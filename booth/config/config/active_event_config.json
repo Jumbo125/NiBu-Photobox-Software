@@ -1,0 +1,11 @@
+{
+  "active_event": {
+    "eventName": "Andreas",
+    "photo_storage_path": "C:\\Users\\andre\\Desktop\\Fotos",
+    "max_prints": 30,
+    "print_counter": 10,
+    "allow_reprint": false,
+    "multiple_print": 1,
+    "config_path": "C:\\Users\\andre\\Desktop\\photo-software\\booth\\config\\config\\active_event_config.json"
+  }
+}

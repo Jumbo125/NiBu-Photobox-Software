@@ -1,0 +1,74 @@
+{
+  "taskName": "NiBuPhotoboothWatchdog",
+  "configs": [
+    {
+      "src": "launcher\\defaultConfig\\active_event_config.json",
+      "dst": "booth\\config\\config\\active_event_config.json"
+    },
+    {
+      "src": "launcher\\defaultConfig\\camera_config.json",
+      "dst": "booth\\config\\config\\camera_config.json"
+    },
+    {
+      "src": "launcher\\defaultConfig\\config.json",
+      "dst": "booth\\config\\config\\config.json"
+    },
+    {
+      "src": "launcher\\defaultConfig\\pythonServerStart_config.json",
+      "dst": "booth\\config\\config\\pythonServerStart_config.json"
+    },
+    {
+      "src": "launcher\\defaultConfig\\render_config.json",
+      "dst": "booth\\config\\config\\render_config.json"
+    },
+    {
+      "src": "launcher\\defaultConfig\\appsettings.json",
+      "dst": "booth\\tools\\camerabridge\\Worker\\appsettings.json"
+    },
+    {
+      "src": "launcher\\defaultConfig\\ApiServer_settings.json",
+      "dst": "booth\\tools\\camerabridge\\APIServer\\ApiServer_settings.json"
+    },
+    {
+      "src": "launcher\\defaultConfig\\server_config.json",
+      "dst": "booth\\tools\\python_portable\\server_config.json"
+    }
+  ],
+  "firewallRules": [
+    {
+      "name": "Caddy",
+      "portSource": "caddy_php_port.json:CADDY_PORT",
+      "ruleTemplate": "NiBu Photobooth Caddy ({port})"
+    },
+    {
+      "name": "PHP",
+      "portSource": "caddy_php_port.json:PHP_PORT",
+      "ruleTemplate": "NiBu Photobooth PHP ({port})"
+    },
+    {
+      "name": "Bridge",
+      "portSource": "..\\booth\\tools\\camerabridge\\APIServer\\ApiServer_settings.json:Bridge.Port",
+      "ruleTemplate": "NiBu Photobooth Bridge ({port})"
+    },
+    {
+      "name": "Python",
+      "portSource": "..\\booth\\tools\\python_portable\\server_config.json:Python_ServerPort",
+      "ruleTemplate": "NiBu Photobooth Python ({port})"
+    }
+  ],
+  "patchRules": [
+    {
+      "dst": "booth\\tools\\camerabridge\\APIServer\\ApiServer_settings.json",
+      "set": {
+        "Bridge.Port": "{BRIDGE_PORT}"
+      }
+    },
+    {
+      "dst": "booth\\tools\\python_portable\\server_config.json",
+      "set": {
+        "port": "{BRIDGE_PORT}",
+        "Python_ServerPort": "{PY_PORT}"
+      }
+    }
+  ]
+}

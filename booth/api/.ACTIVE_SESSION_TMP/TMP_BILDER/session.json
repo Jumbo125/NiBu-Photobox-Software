@@ -1,0 +1,42 @@
+{
+    "schemaVersion": 1,
+    "id": "s1768833762659_883f6395b43a7",
+    "startedAt": "2026-01-19T14:42:42.659Z",
+    "status": "CAPTURING",
+    "progress": {
+        "done": 1,
+        "total": 3
+    },
+    "eventName": "Andreas",
+    "basePath": "C:\\Users\\andre\\Desktop\\Fotos",
+    "eventPath": "C:\\Users\\andre\\Desktop\\Fotos\\EVENTS\\Andreas",
+    "photoTarget": 3,
+    "captureFolderHint": ".ACTIVE_SESSION_TMP/TMP_BILDER",
+    "expectedFiles": [
+        "Photo_1",
+        "Photo_2",
+        "Photo_3"
+    ],
+    "photos": [
+        {
+            "slot": 1,
+            "expectedName": "Photo_1",
+            "file": "C:\\Photobox\\tools\\camerabridge\\.ACTIVE_SESSION_TMP/TMP_BILDER",
+            "ts": 1768833777461
+        }
+    ],
+    "print": {
+        "multiplePrint": 1,
+        "printCounter": 5,
+        "autoPrint": true,
+        "printerCount": 1
+    },
+    "camera": {
+        "useSettings": true,
+        "iso": "100",
+        "shutter": "1/60",
+        "wb": "auto"
+    },
+    "error": null,
+    "updatedAt": "2026-01-19T14:42:57+00:00"
+}

@@ -1,0 +1,12 @@
+{
+    "port": 8052,
+    "args": [
+        "--one-instance",
+        "true",
+        "--window_console",
+        "true"
+    ],
+    "Python_ServerPort": 8053,
+    "AuthKey": "wvwNoeLREef_wruEyEHFbNnwE0Nj9fnm-sjjsVg_qoY",
+    "caddyWebroot": "C:\\Users\\andre\\Desktop\\photo-software\\booth"
+}
