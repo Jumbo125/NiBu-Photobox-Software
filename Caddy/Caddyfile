@@ -1,0 +1,95 @@
+#{
+#	log {
+#		output file logs/caddy-runtime.log
+#		level ERROR
+#		format console
+#	}
+#}
+
+# ------------------------------------------------------------
+# Site-Adresse:
+# Verwendet Umgebungsvariablen für Ports, damit dieselbe Caddyfile in
+# unterschiedlichen Setups funktioniert.
+#
+# Erwartete Umgebungsvariablen:
+#   CADDY_PORT  -> HTTP-Listen-Port für Caddy (Default z.B. 8050)
+#   PHP_PORT    -> PHP-FastCGI-Listen-Port (Default z.B. 8051)
+#   BRIDGE_PORT -> Port der Camera-Bridge-API (Default z.B. 8052)
+#   PY_PORT     -> Port der Python-API (Default z.B. 8053)
+# ------------------------------------------------------------
+:{$CADDY_PORT} {
+
+	# Dokument-Root für statische Dateien (ausgeliefert via file_server).
+	# Relative Pfade beziehen sich auf das Arbeitsverzeichnis von Caddy.
+	root * booth
+
+	# OPTIONAL (empfohlen, wenn dein Access-Log explodiert):
+	# Diese Endpoints sind oft High-Frequency (Polling / Liveview / Healthchecks)
+	# und füllen Logs extrem schnell.
+	@noisy {
+		path /watchdog/_health.txt /watchdog/_php_ping.php /pyapi/ping /camerapi/api/status /camerapi/live.mjpg
+	}
+	log_skip @noisy
+
+	# Access-Log (HTTP Requests) in eine separate Datei schreiben + Rotation.
+	log {
+		output file logs/caddy-access.log {
+			roll_size 20mb
+			roll_keep 10
+			roll_keep_for 168h
+		}
+		format json
+		level INFO
+	}
+
+	# --------------------------------------------------------
+	# Reverse Proxy: Python-API
+	#
+	# handle_path entfernt das Prefix vor dem Proxying.
+	# Beispiel:
+	#   /pyapi/ping  ->  /ping  am Upstream
+	# --------------------------------------------------------
+	handle_path /pyapi/* {
+		reverse_proxy 127.0.0.1:{$PY_PORT}
+	}
+
+	# --------------------------------------------------------
+	# Reverse Proxy: Camera-Bridge-API
+	#
+	# handle_path entfernt das Prefix vor dem Proxying.
+	# Beispiel:
+	#   /camerapi/api/status  ->  /api/status  am Upstream
+	# --------------------------------------------------------
+	handle_path /camerapi/* {
+		reverse_proxy 127.0.0.1:{$BRIDGE_PORT}
+	}
+
+	# --------------------------------------------------------
+	# Default-Handler:
+	# - PHP-Dateien werden via php_fastcgi ausgeführt
+	# - alles andere wird als statische Datei ausgeliefert
+	# --------------------------------------------------------
+	handle {
+
+		# PHP-FastCGI Upstream (php-cgi lauscht auf PHP_PORT).
+		php_fastcgi 127.0.0.1:{$PHP_PORT} {
+
+			# Dokument-Root explizit auch für PHP setzen.
+			# Das hilft, wenn PHP sonst Dateien relativ falsch auflöst.
+			root booth
+
+			# Timeout für Aufbau/Verbindung zum FastCGI-Upstream.
+			dial_timeout 3s
+
+			# Read/Write Timeouts für die Kommunikation mit dem Upstream.
+			read_timeout 15s
+			write_timeout 15s
+
+			# STDERR von PHP in Caddy-Logs aufnehmen (hilft beim Debugging).
+			capture_stderr
+		}
+
+		# Statische Dateien aus dem Dokument-Root ausliefern.
+		file_server
+	}
+}

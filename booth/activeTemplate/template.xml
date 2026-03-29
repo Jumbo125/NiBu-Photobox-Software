@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<template width="1800" height="1200" greenwall="0">
+  <layer type="image" id="1" x="0" y="0" w="1808" h="1205" rotation="0" z="1" radius="0" border="0" border_color="#000000" border_style="solid" border_width="0" shadow="0" shadow_preset="custom" shadow_color="rgba(0,0,0,0.35)" shadow_x="0" shadow_y="6" shadow_blur="18" shadow_spread="0" src="assets/bg2.jpg" name="bg2.jpg"/>
+  <layer type="photo" id="2" x="44" y="25" w="934" h="626" rotation="0" z="2" radius="0" border="0" border_color="#000000" border_style="solid" border_width="0" shadow="0" shadow_preset="custom" shadow_color="rgba(0,0,0,0.35)" shadow_x="0" shadow_y="6" shadow_blur="18" shadow_spread="0" index="1"/>
+  <layer type="photo" id="3" x="265" y="721" w="648" h="434" rotation="0" z="3" radius="0" border="0" border_color="#000000" border_style="solid" border_width="0" shadow="0" shadow_preset="custom" shadow_color="rgba(0,0,0,0.35)" shadow_x="0" shadow_y="6" shadow_blur="18" shadow_spread="0" index="2"/>
+  <layer type="photo" id="4" x="1080" y="40" w="592" h="396" rotation="0" z="4" radius="0" border="0" border_color="#000000" border_style="solid" border_width="0" shadow="0" shadow_preset="custom" shadow_color="rgba(0,0,0,0.35)" shadow_x="0" shadow_y="6" shadow_blur="18" shadow_spread="0" index="3"/>
+</template>

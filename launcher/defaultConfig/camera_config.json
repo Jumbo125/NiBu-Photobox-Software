@@ -1,0 +1,15 @@
+{
+    "camera_settings": {
+        "iso": "100",
+        "shutter": "1/60",
+        "aperture": "5.6",
+        "wb": "auto",
+        "exposure": 0,
+        "use_settings_for_picture": false,
+        "liveview_always_active": false,
+        "liveview_fps_active": 20,
+        "liveview_fps_idle": 10,
+        "preview_mirror": true,
+        "fullImg": true
+    }
+}

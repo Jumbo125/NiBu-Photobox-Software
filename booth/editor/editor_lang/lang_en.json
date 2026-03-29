@@ -1,0 +1,199 @@
+{
+  "page.title": "Template Editor",
+  "brand.title": "Template Editor",
+
+  "aria.templateActions": "Template actions",
+  "aria.addItems": "Add items",
+
+  "btn.new": "New",
+  "btn.activeTemplate": "Edit active Template",
+  "btn.import": "Import",
+  "btn.save": "Save",
+  "btn.exportZip": "Export ZIP",
+
+  "btn.addPhoto": "Add Photo",
+  "btn.addImage": "Add Image",
+
+  "inspector.x": "X",
+  "inspector.y": "Y",
+  "inspector.w": "W",
+  "inspector.h": "H",
+  "inspector.rot": "Rot",
+
+  "te.align.left.title": "Align left",
+  "te.align.center_h.title": "Align horizontal center",
+  "te.align.right.title": "Align right",
+  "te.align.top.title": "Align top",
+  "te.align.middle_v.title": "Align vertical center",
+  "te.align.bottom.title": "Align bottom",
+  "aria.align.horizontal": "Align horizontally",
+  "aria.align.vertical": "Align vertically",
+
+
+  "chk.greenwall": "Greenwall",
+  "hint.noSelection": "No object selected",
+
+  "zoom.out.title": "Zoom out",
+  "zoom.in.title": "Zoom in",
+
+  "layers.title": "Layers",
+  "layers.hint.topFront": "Top = front",
+  "layers.hint.view": "View:",
+
+  "layers.btn.bringFwd.title": "Move layer up",
+  "layers.btn.sendBack.title": "Move layer down",
+  "layers.btn.delete.title": "Delete",
+
+  "toast.close": "Close",
+
+  "modal.start.title": "Start template",
+  "modal.close": "Close",
+
+  "tab.new": "New",
+  "tab.importZip": "Existing (ZIP)",
+  "tab.projects": "Activate project",
+  "tab.activeTemplate": "Active Template",
+
+  "new.name.label": "Template name",
+  "new.name.placeholder": "e.g. event_2026",
+  "new.name.help": "Allowed: a-z, 0-9, _ and -",
+
+  "new.sizePreset.label": "Size (preset)",
+  "preset.1800x1200": "1800 x 1200 (4x6\" landscape)",
+  "preset.1200x1800": "1200 x 1800 (4x6\" portrait)",
+  "preset.2400x3600": "2400 x 3600 (8x12\" portrait)",
+  "preset.custom": "Custom…",
+
+  "new.width.label": "Width (px)",
+  "new.height.label": "Height (px)",
+
+  "btn.startEditor": "Start editor",
+  "btn.startEditor_activeTemplate": "Edit active Template",
+
+  "import.hint": "Select ZIP (contains <code>template.xml</code> + images/assets)",
+  "btn.importDo": "Import",
+
+  "projects.select.label": "Select project",
+  "projects.select.loading": "– Loading projects –",
+  "btn.refresh": "Refresh",
+  "btn.activateProject": "Activate project",
+
+  "projects.select.loadingDots": "— Loading projects… —",
+  "projects.select.error": "— Error loading —",
+  "projects.select.none": "— No projects found —",
+  "projects.select.choose": "— Please choose —",
+  "projects.hint.noXmlFolder": "No folder with XML was found.",
+
+  "wizard.tip": "Tip: Save/Export writes to <code>booth/templates/&lt;name&gt;</code>.",
+    "aria.language": "Language",
+  "lang.switch.title": "Change language",
+  "lang.switch.btn": "Language",
+  "lang.de": "German",
+  "lang.en": "English",
+
+  "aria.greenwallActions": "Greenwall actions",
+  "btn.greenwall.upload": "Upload",
+  "lbl.greenwall.no_file": "No image",
+
+  "layerSettings.title": "Layer settings",
+  "layerSettings.radius.enable": "Border radius",
+  "layerSettings.radius.px": "Radius (px)",
+  "layerSettings.radius.placeholder": "px",
+
+  "layerSettings.border.enable": "Border",
+  "layerSettings.advanced": "Advanced",
+  "layerSettings.border.color": "Color",
+  "layerSettings.border.style": "Style",
+  "layerSettings.border.style.solid": "Solid",
+  "layerSettings.border.style.dashed": "Dashed",
+  "layerSettings.border.style.dotted": "Dotted",
+  "layerSettings.border.width": "Width",
+  "layerSettings.border.width.placeholder": "px",
+
+  "layerSettings.shadow.enable": "Box shadow",
+  "layerSettings.shadow.preset": "Preset",
+  "layerSettings.shadow.preset.custom": "Custom",
+  "layerSettings.shadow.color": "Color",
+  "layerSettings.shadow.offsetX": "Horizontal",
+  "layerSettings.shadow.offsetY": "Vertical",
+  "layerSettings.shadow.blur": "Blur",
+  "layerSettings.shadow.spread": "Spread",
+    "template_editor.err.te_not_loaded": "Template editor functions not loaded.",
+  "template_editor.err.bootstrap_not_loaded": "Bootstrap not loaded.",
+
+  "template_editor.toast.enter_template_name": "Please enter a template name.",
+  "template_editor.toast.invalid_size": "Invalid size.",
+  "template_editor.toast.template_exists": "This template already exists. Please choose another name.",
+  "template_editor.toast.editor_started": "Editor started.",
+  "template_editor.toast.check_exists_failed": "Couldn't check whether the template already exists (API error).",
+
+  "template_editor.toast.import_ok_prefix": "Import OK: ",
+  "template_editor.toast.start_template_first": "Start a template first.",
+  "template_editor.toast.image_added": "Image added.",
+  "template_editor.toast.only_png_jpg_allowed": "Only PNG or JPG allowed.",
+  "template_editor.toast.greenwall_saved": "Greenwall saved.",
+
+  "template_editor.toast.no_active_template": "No template active.",
+  "template_editor.toast.saved_template_xml": "Saved (template.xml).",
+  "template_editor.toast.export_started": "ZIP export started.",
+
+  "template_editor.err.import_from_xml_missing": "TE.importFromXmlText is missing – please add the function.",
+  "template_editor.err.project_xml_load_failed": "Project XML could not be loaded.",
+  "template_editor.toast.active_template_loaded": "Active template loaded.",
+  "template_editor.err.active_template_xml_load_failed": "ActiveTemplate XML could not be loaded.",
+
+    "net.err.http_status": "HTTP {status}",
+
+  "te.projects.select.loading": "— Loading projects… —",
+  "te.projects.select.load_error": "— Load error —",
+  "te.projects.select.none_found": "— No projects found —",
+  "te.projects.select.prompt": "— Please choose —",
+  "te.projects.hint.no_xml": "No folder with XML was found.",
+  "te.projects.option.label": "{name} ({modified})",
+
+  "te.xml.parse_error.console": "XML parse error:",
+  "te.xml.invalid.toast": "Invalid XML file (parse error)",
+  "te.xml.template_missing.console": "No <template> found.",
+  "te.xml.template_missing.toast": "Invalid XML file (missing template tag)",
+
+  "te.layer.photo.placeholder": "PHOTO {idx}",
+  "te.layer.image.default_name": "IMAGE",
+  "te.layer.item.default_name": "ITEM",
+
+  "te.image.add_timeout.warn": "Image was not added in time: {src}",
+  "te.project.loaded.toast": "Project loaded: {name}",
+
+  "te.i18n.lang_json_invalid": "Invalid language JSON",
+
+  "te.config.load_failed": "Failed to load config",
+  "te.config.save_failed": "Failed to save config",
+
+  "te.api.list_projects_missing": "TE.apiListProjects is missing",
+  "te.api.list_projects_failed": "apiListProjects failed",
+
+  "te.greenwall.img_null": "image is null",
+
+    "te.alert.no_active_project": "No active project selected / template name is missing.",
+  "te.export.failed_http": "Export failed (HTTP {status})",
+  "te.import.no_zip_selected": "No ZIP selected",
+  "te.fabric.load_image_missing": "TE._fabricLoadImage is missing",
+
+    "te.layers.none": "No layers",
+  "te.layers.drag.title": "Drag",
+  "te.layers.move_up.title": "Move forward (up)",
+  "te.layers.move_down.title": "Move backward (down)",
+
+  "te.layer.type.item": "Item",
+  "te.layer.type.photo": "Photo",
+  "te.layer.type.image": "Image",
+
+  "te.fabric.fromurl_missing": "fabric Image.fromURL is missing",
+  "te.fabric.fromurl_returned_null": "fromURL returned null",
+
+  "te.canvas.no_active": "No canvas active",
+  "te.image.load_failed.console": "Image load failed:",
+  "te.image.could_not_load.toast": "Image could not be loaded"
+
+
+
+}

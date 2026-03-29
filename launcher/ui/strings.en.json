@@ -1,0 +1,92 @@
+{
+  "meta": { "code": "en", "name": "English" },
+
+  "window.main.title": "NiBu Photobooth Launcher",
+  "window.advanced.title": "NiBu Launcher – Advanced",
+
+  "label.status": "Status (Process + Healthchecks)",
+  "label.console": "Console / Logs",
+  "label.installStatus": "Installation Status",
+  "group.control": "Control",
+
+  "btn.start": "Start",
+  "btn.stop": "Stop",
+  "btn.restart": "Restart",
+  "btn.openApp": "Open App",
+  "btn.openLogs": "Log Files",
+  "btn.advanced": "Advanced…",
+
+  "btn.refresh": "Refresh",
+  "btn.refreshing": "Refreshing…",
+
+  "btn.ok": "OK",
+  "btn.cancel": "Cancel",
+  "btn.yes": "Yes",
+  "btn.no": "No",
+
+  "tray.open": "Open",
+  "tray.exit": "Exit",
+  "tray.logs": "Open logs",
+
+  "adv.frame1": "Installation",
+  "adv.frame2": "Manual installation",
+  "adv.frame3": "Watchdog",
+  "adv.frame4": "Uninstall / Remove",
+
+  "adv.btn.unblock": "Unblock files",
+  "adv.btn.fullInstall": "Full install",
+  "adv.btn.firewall": "Install firewall rules",
+  "adv.btn.editPort": "Edit Ports (Caddy/PHP)",
+  "adv.btn.task": "Install Task Scheduler",
+
+  "adv.btn.watchdogStart": "Start watchdog",
+  "adv.btn.watchdogStop": "Stop watchdog",
+
+  "adv.btn.removeAll": "Remove all",
+  "adv.btn.firewallUninstall": "Remove firewall rules",
+  "adv.btn.taskUninstall": "Remove Task Scheduler",
+
+  "adv.port.title": "Ports for full install",
+  "adv.port.caddy": "Caddy port",
+  "adv.port.php": "PHP port",
+  "adv.port.api": "API Server (Bridge) port",
+  "adv.port.python": "Python port",
+
+  "adv.row.configs": "Config files installed",
+  "adv.row.firewall": "Firewall",
+  "adv.row.task": "Task Scheduler",
+
+  "state.yes": "YES",
+  "state.no": "NO",
+  "state.error": "ERROR",
+
+  "log.manualRefreshStart": "[{time}] Manual refresh: started",
+  "log.manualRefreshDone": "[{time}] Manual refresh: done -> {summary}",
+  "log.advRefreshStart": "[{time}] Advanced refresh: started",
+  "log.advRefreshDone": "[{time}] Advanced refresh: done -> {summary}",
+
+  "log.openLogs": "[{time}] Opening logs: {dir}",
+
+  "grid.service": "Service",
+  "grid.process": "Process",
+  "grid.health": "Health",
+
+  "adv.grid.key": "Area",
+  "adv.grid.state": "Status",
+  "adv.grid.details": "Details",
+
+  "confirm.install.title": "Installation",
+  "confirm.install.msg": "Installation will overwrite existing settings.\nDo you want to continue?\n\nAffected file(s): {files}",
+
+  "confirm.uninstall.title": "Uninstall",
+  "confirm.uninstall.msg": "Uninstall will delete all configuration files.\nAfterwards you can reinstall, or optionally delete the entire folder to remove everything.\n\nDo you want to continue?",
+   "adv.btn.shortcut": "Create Desktop Shortcut",
+   
+   "adv.btn.winTweaks": "Windows kiosk tweaks",
+   
+     "adv.btn.btnWindowstweaksUninstall": "WindowsTweaks Uninstall",
+
+  "confirm.winTweaks.title": "Notice",
+  "confirm.winTweaks.msg": "Notice: This action changes Windows settings (Registry/Policies). Administrator privileges are required. Some changes only take effect after sign-out/sign-in or a reboot.\n\nThe following settings will be applied:\n\nDisable lock screen (Policy: NoLockScreen=1)\n\nDisable Microsoft Consumer Features (Policy: DisableWindowsConsumerFeatures=1)\n\nDisable toast notifications for current user (ToastEnabled=0 under HKCU)\n\nDisable toast notifications via policy (system-wide) (NoToastApplicationNotification=1)\n\nOnly run this if you want these adjustments."
+
+}

@@ -1,0 +1,632 @@
+/* Nur Ergänzungen – Bootstrap macht den Rest */
+
+.list-group-item.active {
+    background-color: #000000 !important;
+}
+
+.js-layer-drag:hover{
+  cursor: move;
+}
+
+.te-canvas-scroll {
+  overflow: hidden;
+  text-align: center;
+}
+.navbar button {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.te-canvas-frame {
+  display: inline-block;
+  padding: 12px;
+  /* border-radius: 16px; */
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+#editorCanvas {
+  background: #fff;
+  border-radius: 10px;
+}
+
+/* Modal Tabs (nutzen data-panel) */
+.te-tabpanel {
+  display: block;
+}
+
+.greenwall_wrapper {
+    background-color: green;
+    padding: 2px;
+    margin-right: 39px;
+    border-radius: 5px;
+}
+
+.editorWrap {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 16px;
+  padding: 16px;
+}
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  /* border-radius: 16px; */
+  padding: 12px;
+}
+.cardTitle {
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  align-items: center;
+  margin: 8px 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+.row input {
+  background: #0d1117;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+}
+.btnRow {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+.small {
+  font-size: 12px;
+}
+:root {
+  --te-bg: #0f1115;
+  --te-panel: #171a21;
+  --te-panel2: #1e2230;
+  --te-text: #e9eefc;
+  --te-muted: rgba(233, 238, 252, 0.65);
+  --te-accent: #4da3ff;
+  --te-danger: #ff4d5e;
+  --te-border: rgba(255, 255, 255, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  background: var(--te-bg);
+  color: var(--te-text);
+}
+
+.te-shell {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.te-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--te-border);
+  background: linear-gradient(180deg, var(--te-panel), rgba(23, 26, 33, 0.85));
+  gap: 12px;
+}
+
+.te-title {
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+.te-subtitle {
+  font-size: 12px;
+  color: var(--te-muted);
+  margin-top: 2px;
+}
+
+.te-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.te-sep {
+  width: 1px;
+  height: 22px;
+  background: var(--te-border);
+  margin: 0 4px;
+}
+
+.te-btn {
+  border: 1px solid var(--te-border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--te-text);
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+.te-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.te-btn:active {
+  transform: translateY(1px);
+}
+
+.te-btn-primary {
+  border-color: rgba(77, 163, 255, 0.35);
+  background: rgba(77, 163, 255, 0.15);
+}
+.te-btn-primary:hover {
+  background: rgba(77, 163, 255, 0.25);
+}
+
+.te-btn-danger {
+  border-color: rgba(255, 77, 94, 0.35);
+  background: rgba(255, 77, 94, 0.15);
+}
+.te-btn-danger:hover {
+  background: rgba(255, 77, 94, 0.25);
+}
+
+.te-hidden {
+  display: none !important;
+}
+
+.te-inspector {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--te-border);
+  background: rgba(23, 26, 33, 0.75);
+}
+.te-inspector-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.te-inspector label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--te-muted);
+}
+.te-inspector input {
+  width: 92px;
+  padding: 6px 8px;
+/*   border-radius: 10px; */
+  border: 1px solid var(--te-border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--te-text);
+}
+
+.te-hint {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--te-muted);
+}
+
+.te-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  min-height: 0;
+}
+
+.te-canvas-wrap {
+  overflow: auto;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  cursor: default;
+}
+.te-canvas-frame {
+  display: inline-block;
+  padding: 12px;
+  /* border-radius: 16px; */
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--te-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+#editorCanvas {
+  background: #ffffff;
+  /* border-radius: 10px; */
+}
+
+.te-layers {
+  border-left: 1px solid var(--te-border);
+  background: rgba(23, 26, 33, 0.85);
+  padding: 10px;
+  overflow: auto;
+}
+.te-layers-title {
+  font-weight: 700;
+  margin: 4px 4px 10px;
+}
+.te-layers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.te-layer-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+ /*  border-radius: 12px; */
+  border: 1px solid var(--te-border);
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+}
+.te-layer-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.te-layer-item.active {
+  border-color: rgba(77, 163, 255, 0.6);
+  background: rgba(77, 163, 255, 0.15);
+}
+.te-layer-badge {
+  font-size: 11px;
+  padding: 3px 8px;
+/*   border-radius: 999px; */
+  border: 1px solid var(--te-border);
+  color: var(--te-muted);
+}
+.te-layer-name {
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.te-toast {
+  position: fixed;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(23, 26, 33, 0.95);
+  border: 1px solid var(--te-border);
+  padding: 10px 12px;
+  /* border-radius: 14px; */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  font-size: 13px;
+  max-width: min(720px, 92vw);
+}
+
+/* MODAL */
+.te-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.te-modal-card {
+  width: min(720px, 96vw);
+  background: linear-gradient(180deg, var(--te-panel2), rgba(23, 26, 33, 0.98));
+  border: 1px solid var(--te-border);
+  /* border-radius: 18px; */
+  padding: 14px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+}
+.te-modal-title {
+  font-weight: 800;
+  font-size: 18px;
+  margin: 4px 4px 12px;
+}
+
+.te-modal-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 0 4px 10px;
+}
+.te-tab {
+  border: 1px solid var(--te-border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--te-text);
+  padding: 8px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.te-tab-active {
+  border-color: rgba(77, 163, 255, 0.6);
+  background: rgba(77, 163, 255, 0.18);
+}
+
+.te-modal-body {
+  padding: 4px;
+}
+.te-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 10px 0;
+  color: var(--te-muted);
+  font-size: 12px;
+}
+.te-field input,
+.te-field select {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--te-border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--te-text);
+}
+.te-grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.te-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 10px;
+}
+
+.te-import-box {
+  border: 1px dashed var(--te-border);
+/*   border-radius: 14px; */
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.te-import-text {
+  color: var(--te-muted);
+  margin-bottom: 10px;
+}
+.te-modal-footnote {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--te-muted);
+  padding: 0 4px;
+}
+
+.msg {
+  background: #0d1117;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px;
+  color: var(--muted);
+  min-height: 44px;
+  white-space: pre-wrap;
+}
+.stage {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 12px;
+  overflow: auto;
+}
+.stageTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.canvas {
+  position: relative;
+  width: 900px;
+  height: 600px;
+  border: 1px dashed #2b3747;
+  /* border-radius: 12px; */
+  background: #0d1117;
+  overflow: hidden;
+}
+.overlayImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+.slot {
+  position: absolute;
+  border: 2px dashed rgba(76, 139, 245, 0.85);
+  background: rgba(76, 139, 245, 0.08);
+  /* border-radius: 10px; */
+}
+.slot.selected {
+  border-style: solid;
+  box-shadow: 0 0 0 2px rgba(76, 139, 245, 0.35);
+}
+.handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: rgba(76, 139, 245, 0.95);
+ /*  border-radius: 999px; */
+  border: 2px solid #0b0d10;
+}
+.handle.nw {
+  left: -7px;
+  top: -7px;
+  cursor: nwse-resize;
+}
+.handle.ne {
+  right: -7px;
+  top: -7px;
+  cursor: nesw-resize;
+}
+.handle.sw {
+  left: -7px;
+  bottom: -7px;
+  cursor: nesw-resize;
+}
+.handle.se {
+  right: -7px;
+  bottom: -7px;
+  cursor: nwse-resize;
+}
+.grid {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+      to right,
+      rgba(154, 167, 181, 0.18) 1px,
+      transparent 1px
+    ),
+    linear-gradient(to bottom, rgba(154, 167, 181, 0.18) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+.hidden {
+  display: none;
+}
+
+/* Split layout: Canvas links flexibel, Layers rechts fix */
+.te-split {
+  display: flex;
+  gap: 1rem;
+  height: 100%;
+  min-height: 0;
+}
+
+.te-left {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.te-right {
+  flex: 0 0 360px;
+  width: 360px;
+  min-width: 320px;
+  min-height: 0;
+}
+
+/* Canvas frame */
+.te-canvas-scroll {
+  height: 100%;
+  min-height: 0;
+}
+.te-canvas-frame {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden; /* wenn Screen zu klein -> scroll */
+  padding: 12px;
+}
+
+#editorCanvas {
+  background: #fff; /* damit man die Fläche sieht */
+/*   border-radius: 12px; */
+}
+
+@media (max-width: 980px) {
+  .editorWrap {
+    grid-template-columns: 1fr;
+  }
+  .canvas {
+    width: 92vw;
+    height: 60vw;
+  }
+  .te-split {
+    flex-direction: column;
+  }
+  .te-right {
+    width: auto;
+    flex: 0 0 auto;
+    max-height: 40vh;
+  }
+}
+
+/* --- Template Editor: Auto-Fit Canvas (override) --- */
+.te-canvas-scroll {
+  overflow: hidden !important;
+  height: 100%;
+  min-height: 0;
+  text-align: center;
+}
+
+.te-canvas-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden !important; /* kein Scroll: wir zoomen raus */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+.canvas-container {
+  cursor: default;
+  transition: transform 0.1s ease;
+}
+
+.te-canvas-frame {
+  position: relative;
+  overflow: hidden;
+}
+.te-canvas-frame .canvas-container {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.te-canvas-frame .canvas-container,
+.te-canvas-frame .upper-canvas,
+.te-canvas-frame .lower-canvas {
+/*   border-radius: 12px; */
+}
+
+#editorCanvas {
+  display: block;
+  background: #fff;
+/*   border-radius: 12px; */
+}
+
+/* --- FIX Pan/Scroll (am Ende lassen) --- */
+.te-canvas-wrap,
+.te-canvas-scroll {
+  overflow: auto !important;
+  height: 100%;
+  min-height: 0;
+}
+
+.te-canvas-frame {
+  position: relative !important;
+  width: auto !important;
+  height: auto !important;
+  overflow: visible !important;
+  display: inline-block !important;
+}
+
+/* beim Panning */
+.te-is-panning {
+  cursor: grabbing !important;
+}
+
+.rechte_spalte{
+  overflow:scroll;
+  color:white;
+}
+
+.rechte_spalte .card {
+color:white;
+}
+
+select#shadowPreset {
+width:fit-content;
+}

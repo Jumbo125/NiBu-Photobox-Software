@@ -1,0 +1,799 @@
+{
+  "app.title": "Fotobox Steuerung",
+  "nav.general_settings": "Allgemeine Einstellungen",
+  "nav.template_editor": "Template-Editor",
+  "nav.active_event": "Aktives Event",
+  "nav.camera_settings": "Kamera Einstellungen",
+  "nav.SelectCamera": "Kamera-Gerät wählen",
+  "nav.select_device": "Gerät wählen",
+  "nav.fullscreen": "Vollbild",
+
+  "screen.main_placeholder_title": "Zum Starten berühren",
+  "screen.main_placeholder_text": "Tippe irgendwo auf den Bildschirm, um die Fotosession zu starten.",
+
+  "overlay.preloader_title": "Lade Konfiguration...",
+
+  "overlay.settings.title": "Allgemeine Einstellungen",
+  "overlay.settings.description": "Globale Optionen der Fotobox konfigurieren.",
+  "overlay.settings.render": "(Erweitert)\n  Öffne Bilderstellung Einstellungen",
+  "overlay.settings.printer": "Öffne Drucker Einstellungen",
+
+  "general.settings.printer_not_found": "Keine Druckereinstellungen gefunden",
+  "general.settings.printer_opened": "Druckereinstellungen geöffnet",
+
+  "overlay.settings.cameraBridgeSetup": "(Erweitert)\n CameraBridge Setup öffnen",
+
+  "overlay.settings.language.label": "Sprache",
+  "overlay.settings.language.option_en": "🇬🇧 Englisch",
+  "overlay.settings.language.option_de": "🇩🇪 Deutsch",
+  "overlay.settings.language.help": "Diese Einstellung wird in der Konfigurationsdatei gespeichert.",
+
+  "overlay.settings.ui.title": "Benutzeroberfläche",
+  "overlay.settings.ui.bgcolor.label": "Hintergrundfarbe",
+  "overlay.settings.ui.theme.label": "Designstil",
+
+  "overlay.settings.capture.title": "Aufnahmeeinstellungen",
+  "overlay.settings.capture.counter_first": "Countdown vor dem ersten Foto (Sek.)",
+  "overlay.settings.capture.counter_between": "Sekunden zwischen den Fotos",
+  "overlay.settings.capture.counter_after": "Verzögerung nach der Serie (Sek.)",
+
+  "overlay.settings.print.auto": "Automatisch drucken nach der Serie",
+  "overlay.printer_settings.title": "Drucker-Einstellungen",
+  "overlay.printer_settings.description": "Wähle einen Drucker, setze die Kopienanzahl und öffne optional die Windows-Druckeroptionen.",
+
+  "overlay.printer_settings.printer.section": "Drucker",
+  "overlay.printer_settings.printer.label": "Windows-Drucker",
+  "overlay.printer_settings.printer.placeholder": "Drucker werden geladen…",
+  "overlay.printer_settings.printer.hint": "Die Liste kommt über die lokale CMD WMIC.",
+
+  "general.settings.no_printer_selected": "Kein Drucker gewählt",
+  "general.settings.printer_open_failed": "Fehler beim Öffnen des Druckerdialogs",
+  "general.settings.set_default_ok": "Als Standarddrucker gesetzt",
+  "general.settings.set_default_failed": "Konnte Standarddrucker nicht setzen",
+  "general.settings.working": "Bitte warten…",
+
+  "overlay.settings.app.description": "Die meisten Nutzer müssen keine Pfade oder Ports ändern. Passe diese Einstellungen nur an, wenn du die Tools in einen anderen Ordner installiert hast.",
+  "overlay.settings.app.advanced.title": "Erweiterte Einrichtung (Python Pfade & Ports)",
+
+  "overlay.settings.app.pickfile_python_server.title": "Python Server ",
+  "overlay.settings.app.pickfile_python_server.placeholder": "z. B. C:\\photo-software\\tools\\python_portable\\python_server.py",
+  "overlay.settings.app.pickfile_python_server.filter": "Python (*.py)|*.py|Alle Dateien (*.*)|*.*",
+
+  "overlay.settings.app.pickfile_filepicker_core.title": "Filepicker Core (Python)",
+  "overlay.settings.app.pickfile_filepicker_core.placeholder": "z. B. C:\\photo-software\\tools\\python_portable\\filepicker_core.py",
+  "overlay.settings.app.pickfile_filepicker_core.filter": "Python (*.py)|*.py|Alle Dateien (*.*)|*.*",
+
+  "overlay.printer_settings.copies.section": "Kopien",
+  "overlay.printer_settings.copies.label": "Anzahl Kopien",
+  "overlay.printer_settings.copies.hint": "Dieser Wert wird gespeichert und fürs automatische Drucken verwendet.",
+
+  "overlay.printer_settings.actions.section": "Aktionen",
+  "overlay.printer_settings.actions.reload": "Liste neu laden",
+  "overlay.printer_settings.actions.open_settings": "Druckeroptionen öffnen",
+  "overlay.printer_settings.actions.set_default": "Als Standarddrucker setzen",
+
+  "overlay.printer_settings.note": "Hinweis: Das Windows-Dialogfenster druckt nicht – es dient nur zum Einstellen des Druckers.",
+
+  "overlay.settings.intervall.title": "Intervall-Modus",
+  "overlay.settings.intervall.counter_first": "Countdown vor dem ersten Foto (Sek.)",
+  "overlay.settings.intervall.counter_between": "Sekunden zwischen den Fotos (Intervall-Modus)",
+  "overlay.settings.intervall.counter_after": "Verzögerung nach der Serie (Intervall-Modus)",
+  "overlay.settings.intervall.print_auto": "Automatisch drucken im Intervallmodus",
+
+  "overlay.settings.camera.title": "Camera API-Server",
+  "overlay.settings.app.pickfile_bridge_app.title": "Wähle Photobox.Bridge.ApiServer.exe",
+  "overlay.settings.app.pickfile_bridge_app.path": "Pfad zur Kamerasteuerung-Server (Photobox.Bridge.ApiServer.exe) ",
+  "overlay.settings.app.pickfile_bridge_app.placeholder": "z.B. C:\\Photobox\\tools\\camerabridge\\APIServer\\Photobox.Bridge.ApiServer.exe",
+  "overlay.settings.app.pickfile_bridge_app.filter": "Programme (*.exe)|*.exe|Alle Dateien (*.*)|*.*",
+  "overlay.settings.camera.liveview": "HDMI-Live-View-Overlay aktivieren",
+  "overlay.settings.camera.headless": "Starte CameraBrdige.exe im CLI Modus",
+  "overlay.settings.camera.control_cmd.note": "Normalerweise trägst du hier nur den Pfad zur EXE ein. Die App setzt/aktualisiert CLI-Parameter so weit wie möglich dynamisch anhand deiner Einstellungen. Manuelle Parameter nur setzen, wenn du weißt, was du tust.",
+
+  "overlay.settings.app.title": "Drittanbieter-Software",
+  "overlay.settings.app.pickfile_render_app.title": "Render-App (Bilderstellung)",
+  "overlay.settings.app.pickfile_render_app.path": "Pfad zur Render-App",
+  "overlay.settings.app.pickfile_render_app.placeholder": "z.B. C:\\Photobox\\tools\\python_portable\\render.py",
+  "overlay.settings.app.pickfile_render_app.filter": "Python Datei (*.py)",
+
+  "overlay.settings.app.python.title": "Python Umgebung",
+  "overlay.settings.app.python.port": "Python Port",
+  "overlay.settings.app.python.path": "Pfad zur Python-Exe",
+  "overlay.settings.app.python.placeholder": "z. B. C:\\photo-software\\tools\\python_portable\\python.exe",
+  "overlay.settings.app.python.pickfile_title": "Python.exe auswählen",
+  "overlay.settings.app.python.filter": "Ausführbare Datei (*.exe)|*.exe|Alle Dateien (*.*)|*.*",
+
+  "overlay.settings.print.title": "Druck",
+  "overlay.settings.print.printer": "Druckername (Windows)",
+  "overlay.settings.print.printer.placeholder": "z.B. Canon Selphy CP1300",
+  "overlay.settings.print.silent": "Still drucken (ohne Dialogfenster)",
+
+  "overlay.settings.system.title": "System",
+  "overlay.settings.system.fullscreen": "Im Vollbild-/Kioskmodus starten",
+  "overlay.settings.system.autostart": "Backend beim Start automatisch ausführen",
+  "overlay.settings.system.password": "Admin-Passwort",
+  "overlay.settings.system.password_help": "Wird zum Entsperren der Einstellungen / zum Verlassen des Kiosk-Modus verwendet.",
+
+  "overlay.template_editor.title": "Template-Editor",
+  "overlay.template_editor.description": "Template gestalten und anpassen. Die Editor-Oberfläche wird später hier integriert.",
+
+  "overlay.active_event.title": "Aktives Event",
+  "overlay.active_event.description": "Konfiguriere Ordner, Template und Drucklimits für das aktuelle Event.",
+
+  "overlay.active_event.event_name.label": "Eventname",
+  "overlay.active_event.event_name.placeholder": "Eventname hinzufügen",
+
+  "overlay.active_event.storage.label": "Foto-Speicherordner",
+  "overlay.active_event.storage.placeholder": "C:\\Photobooth\\photos\\event",
+  "overlay.active_event.storage.pickfolder_title": "Foto-Speicherordner auswählen",
+  "overlay.active_event.storage.help": "Wähle einen Ordner für dieses Event. Der Pfad wird in den Event-Einstellungen gespeichert.",
+  "overlay.active_event.print_counter.help": "Anzahl von bisher gedruckten Fotos.",
+  "overlay.active_event.printed.counter": "Gedruckte Fotos",
+
+  "overlay.active_event.template.label": "Template (ZIP)",
+  "overlay.active_event.template.help": "Wähle das Template-ZIP-Archiv. Es wird in den aktuellen Event-Template-Ordner entpackt.",
+
+  "overlay.active_event.prints.label": "Maximale Anzahl an Ausdrucken",
+  "overlay.active_event.prints.placeholder": "0",
+  "overlay.active_event.prints.help": "0 = unbegrenzt. Dieses Limit wird bei jedem Druck heruntergezählt.",
+
+  "overlay.active_event.allow_reprint.label": "Nachdruck erlauben",
+  "overlay.active_event.allow_reprint.help": "Wenn aktiviert, können Operatoren das letzte Ergebnis erneut drucken, ohne eine neue Fotosession zu verbrauchen.",
+
+  "overlay.active_event.multiple_print.label": "Mehrere Druckkopien",
+  "overlay.active_event.multiple_print.placeholder": "1",
+  "overlay.active_event.multiple_print.help": "Anzahl der Kopien pro Druckauftrag (z. B. jedes Mal 2 Ausdrucke).",
+
+  "overlay.camera_settings.iso.label": "ISO",
+  "overlay.camera_settings.shutter.label": "Verschlusszeit",
+  "overlay.camera_settings.aperture.label": "Blende (f)",
+  "overlay.camera_settings.wb.label": "Weißabgleich",
+  "overlay.camera_settings.exposure.label": "Belichtungskorrektur",
+  "overlay.camera_settings.wb.auto": "Auto",
+  "overlay.camera_settings.wb.daylight": "Tageslicht",
+  "overlay.camera_settings.wb.cloudy": "Bewölkt",
+  "overlay.camera_settings.wb.tungsten": "Kunstlicht (Glühlampe)",
+  "overlay.camera_settings.wb.fluorescent": "Leuchtstoffröhre",
+  "overlay.camera_settings.testphoto.title": "Testfoto",
+  "overlay.camera_settings.testphoto.hint": "Nimm ein Testfoto auf, um Einstellungen und Bildausschnitt zu prüfen.",
+  "overlay.camera_settings.testphoto.button": "Testfoto aufnehmen",
+  "overlay.camera_settings.testphoto.placeholder": "Noch kein Testfoto vorhanden.",
+  "overlay.camera_settings.testphoto.alt": "Vorschau des Testfotos",
+  "overlay.camera_settings.testphoto.note": "Das zuletzt aufgenommene Testfoto wird hier angezeigt.",
+  "overlay.camera_settings.liveview_fps_active.label": "LiveView-FPS (während die Session läuft)",
+  "overlay.camera_settings.liveview_fps_active.placeholder": "z.B. 15",
+  "overlay.camera_settings.liveview_fps_active.hint": "Wird nach Klick auf START verwendet (Countdown / Aufnahme). Höhere FPS wirken flüssiger, benötigen aber mehr CPU-/USB-Bandbreite.",
+
+  "overlay.camera_settings.liveview_fps_idle.label": "LiveView-FPS (Leerlauf / nur Vorschau)",
+  "overlay.camera_settings.liveview_fps_idle.placeholder": "z.B. 8",
+  "overlay.camera_settings.liveview_fps_idle.hint": "Wird verwendet, wenn keine Foto-Session läuft (nur Vorschau/Stream). Niedrigere FPS sparen CPU und erhöhen die Stabilität bei langen Events.",
+
+  "overlay.camera_settings.liveview_fps.unit": "FPS",
+
+  "overlay.exit_fullscreen.title": "Vollbild schließen",
+  "overlay.exit_fullscreen.text": "Bitte Admin-Passwort eingeben, um den Kioskmodus zu verlassen.",
+  "overlay.exit_fullscreen.placeholder": "Passwort",
+  "overlay.exit_fullscreen.error": "Falsches Passwort.",
+  "overlay.exit_fullscreen.confirm": "Entsperren",
+
+  "overlay.settings.system.debug_help": "Debug-Konsole unten ein- oder ausschalten",
+  "overlay.settings.system.debug": "Debug-Modus aktivieren/deaktivieren",
+
+  "overlay.select_device.title": "Device auswählen",
+  "overlay.select_device.description": "Wähle das Device für Live-Preview und Aufnahme. Optional kannst du stattdessen eine Webcam verwenden.",
+
+  "overlay.select_device.webcam.label": "Webcam verwenden (Browser)",
+  "overlay.select_device.webcam.help": "Wenn aktiv, ist das Device-Dropdown deaktiviert. Wenn du ein Device auswählst, wird diese Option später automatisch deaktiviert.",
+
+  "overlay.select_device.only_cameras.label": "Nur Cameras anzeigen",
+  "overlay.select_device.only_cameras.help": "Filtert die Device-Liste (nur UI, wird nicht gespeichert).",
+
+  "overlay.select_device.device.label": "Device",
+  "overlay.select_device.device.help": "Dieses Device wird für Preview und Capture verwendet (Stream + Capture sind identisch).",
+
+  "overlay.select_device.no_devices": "Keine Devices gefunden.",
+  "overlay.select_device.refresh": "Devices laden",
+  "overlay.select_device.save": "Speichern",
+
+  "overlay.select_device.error.camera_api_http": "Fehler beim Laden der Kamera-Liste.",
+  "overlay.select_device.error.camerabridge_offline": "Keine Verbindung zu CameraBridge. Bitte Camerabrdige APIServer starten (Standard: 127.0.0.1:8052).",
+
+  "overlay.picker.opening_file": "Öffne Dateiauswahl…",
+  "form.pick_file": "Datei wählen",
+
+  "form.pick_folder": "Ordner wählen",
+  "overlay.picker.opening_folder": "Öffne Ordnerauswahl…",
+
+  "overlay.render_settings.title": "Render-Einstellungen",
+  "overlay.render_settings.description": "Konfiguriere Ausgabequalität und Green-Screen (Greenwall) Einstellungen für den Renderer.",
+
+  "overlay.render_settings.output.section": "Ausgabe",
+
+  "overlay.render_settings.output.format.label": "Format",
+  "overlay.render_settings.output.format.opt.jpg": "JPEG (.jpg)",
+  "overlay.render_settings.output.format.opt.png": "PNG (.png)",
+  "overlay.render_settings.output.format.help": "Ausgabe-Dateiformat für das fertig gerenderte Bild.",
+
+  "overlay.render_settings.output.jpeg_quality.label": "JPEG-Qualität",
+  "overlay.render_settings.output.jpeg_quality.placeholder": "94",
+  "overlay.render_settings.output.jpeg_quality.help": "1–100. Höher = bessere Qualität, größere Datei. Empfehlung für Print: 92–95.",
+
+  "overlay.render_settings.output.jpeg_subsampling.label": "JPEG-Subsampling",
+  "overlay.render_settings.output.jpeg_subsampling.opt.0": "0 (4:4:4) – Beste Kanten für Logos/Text",
+  "overlay.render_settings.output.jpeg_subsampling.opt.1": "1 (4:2:2) – Ausgewogen",
+  "overlay.render_settings.output.jpeg_subsampling.opt.2": "2 (4:2:0) – Kleiner, weichere Farbkanten",
+  "overlay.render_settings.output.jpeg_subsampling.help": "Farb-Subsampling. 0 erhält die besten Farbkanten; 2 reduziert Dateigröße, kann aber farbige Kanten weicher machen.",
+
+  "overlay.render_settings.output.jpeg_optimize.label": "JPEG optimieren",
+  "overlay.render_settings.output.jpeg_optimize.help": "Bessere Kompression (kleinere Datei), Speichern minimal langsamer.",
+
+  "overlay.render_settings.output.jpeg_progressive.label": "Progressives JPEG",
+  "overlay.render_settings.output.jpeg_progressive.help": "Progressives Laden im Browser. Für Druck meist nicht wichtig.",
+
+  "overlay.render_settings.output.dpi.label": "DPI-Metadaten",
+  "overlay.render_settings.output.dpi.placeholder": "300",
+  "overlay.render_settings.output.dpi.help": "Nur Metadaten (Pixel ändern sich nicht). Nützlich für Print-Workflows (z.B. 300 DPI).",
+
+  "overlay.settings.os.label": "Betriebssystem",
+  "overlay.settings.os.option_windows": "Windows",
+  "overlay.settings.os.option_linux": "Linux",
+  "overlay.settings.os.option_mac": "macOS",
+  "overlay.settings.os.help": "Diese Einstellung wird in der Konfigurations-JSON gespeichert.",
+
+  "overlay.select_device.info.camera_selected": "Kamera ausgewählt: {name}",
+  "overlay.select_device.error.camera_select_failed": "Kamera konnte nicht ausgewählt werden: {name}. {detail}",
+
+  "overlay.render_settings.greenwall.section": "Greenwall (Greenscreen)",
+
+  "overlay.render_settings.greenwall.switch.label": "Greenwall-Schalter",
+  "overlay.render_settings.greenwall.switch.opt.auto": "Auto (Template folgen)",
+  "overlay.render_settings.greenwall.switch.opt.on": "Ein (erzwingen)",
+  "overlay.render_settings.greenwall.switch.opt.off": "Aus (erzwingen)",
+  "overlay.render_settings.greenwall.switch.help": "Auto nutzt das Template-Flag (z.B. greenwall=\"1\"). Ein/Aus überschreibt global.",
+
+  "overlay.render_settings.greenwall.mode.label": "Modus",
+  "overlay.render_settings.greenwall.mode.opt.auto": "Auto (Diff bei Referenz, sonst Chroma)",
+  "overlay.render_settings.greenwall.mode.opt.diff": "Diff (Referenzvergleich)",
+  "overlay.render_settings.greenwall.mode.opt.chroma": "Chroma (Grün-Dominanz)",
+  "overlay.render_settings.greenwall.mode.help": "Wähle, wie die Maske erzeugt wird: Diff (mit Referenz) oder Chroma-Key (Grün-Dominanz).",
+
+  "overlay.render_settings.greenwall.diff_threshold.label": "Diff-Schwelle",
+  "overlay.render_settings.greenwall.diff_threshold.placeholder": "25",
+  "overlay.render_settings.greenwall.diff_threshold.help": "Diff-Empfindlichkeit. Niedriger = mehr Person behalten; höher = strengeres Background-Removal.",
+
+  "overlay.render_settings.greenwall.green_min.label": "Grün-Minimum",
+  "overlay.render_settings.greenwall.green_min.placeholder": "150",
+  "overlay.render_settings.greenwall.green_min.help": "Minimaler Grün-Kanalwert, bevor ein Pixel überhaupt als „grün“ gilt.",
+
+  "overlay.render_settings.greenwall.green_ratio.label": "Grün-Verhältnis",
+  "overlay.render_settings.greenwall.green_ratio.placeholder": "1.35",
+  "overlay.render_settings.greenwall.green_ratio.help": "Wie stark Grün Rot/Blau dominieren muss. Höher = strenger (weniger Fehl-Keying, aber evtl. Löcher).",
+
+  "overlay.render_settings.greenwall.blur_radius.label": "Masken-Weichzeichnung (Radius)",
+  "overlay.render_settings.greenwall.blur_radius.placeholder": "2",
+  "overlay.render_settings.greenwall.blur_radius.help": "Glättet die Maske für sauberere Kanten (typisch: 1–3).",
+
+  "overlay.render_settings.greenwall.feather.label": "Feather (Kanten weich)",
+  "overlay.render_settings.greenwall.feather.placeholder": "2",
+  "overlay.render_settings.greenwall.feather.help": "Zusätzliche Kanten-Weichzeichnung (abhängig von der Implementierung).",
+
+  "overlay.render_settings.greenwall.spill_suppression.label": "Spill-Unterdrückung",
+  "overlay.render_settings.greenwall.spill_suppression.placeholder": "0.35",
+  "overlay.render_settings.greenwall.spill_suppression.help": "Reduziert grünen Farbstich an Kanten (0–1).",
+
+  "overlay.render_settings.greenwall.close_iter.label": "Closing-Iterationen",
+  "overlay.render_settings.greenwall.close_iter.placeholder": "1",
+  "overlay.render_settings.greenwall.close_iter.help": "Schließt kleine Löcher in der Maske (morphologisches Closing). Typisch: 0–2.",
+
+  "overlay.render_settings.greenwall.write_mask_debug.label": "Maske als Debug-Bild speichern",
+  "overlay.render_settings.greenwall.write_mask_debug.help": "Wenn aktiv, exportiert der Renderer die Masken-Datei zum Debuggen/Feintuning.",
+
+  "overlay.camera_settings.liveview_always_active.label": "LiveView dauerhaft aktiv",
+  "overlay.camera_settings.liveview_always_active.hint": "Wenn deaktiviert, wird LiveView nur bei Bedarf gestartet. Vor der ersten Aufnahme erscheint ein 3-Sekunden-Aufwärm-Countdown.",
+  "overlay.camera_settings.liveview_always_active.warning": "Wenn aktiviert, läuft LiveView dauerhaft. Das erhöht Wärmeentwicklung und Stromverbrauch und kann bei langen Events die Stabilität beeinträchtigen. Empfehlung: FPS im Idle reduzieren und LiveView nur bei aktiver Session nutzen.",
+
+  "common.on": "an",
+  "common.off": "aus",
+
+  "overlay.connection_info_start_btn": "CameraBridge starten",
+  "overlay.connection_info_stop_btn": "CameraBridge stoppen",
+  "overlay.camerabridge_settings.title": "CameraBridge-Einstellungen",
+  "overlay.camerabridge_settings.description": "Konfiguriere API-Server- und Worker-Einstellungen für den CameraBridge-Dienst.",
+
+  "overlay.settings.camera_server.headless": "Starte CameraBridge-API-SERVER im CLI Modus",
+  "overlay.settings.camera_server.oneinstance": "Aktiviere, dass nur ein CameraBridge-API-SERVER laufen darf (Empfohlen)",
+  "overlay.camerabridge_settings.apiserver.section": "API-Server",
+  "overlay.camerabridge_settings.apiserver.exepath.label": "API-Server-EXE-Pfad",
+  "overlay.camerabridge_settings.apiserver.exepath.hint": "Absoluter Pfad zur API-Server-EXE (erforderlich).",
+
+  "overlay.camerabridge_settings.bridge.section": "API-SERVER Einstellungen",
+  "overlay.camerabridge_settings.bind_address.label": "Bind-Adresse",
+  "overlay.camerabridge_settings.bind_address.hint": "IP-Adresse, auf der gelauscht wird. 127.0.0.1 nur lokal, 0.0.0.0 / + für LAN-Zugriff (Firewall erforderlich).",
+  "overlay.camerabridge_settings.bind_address.alert.title": "Hinweis zur Bind-Adresse",
+  "overlay.camerabridge_settings.bind_address.alert.text": "Legt fest, auf welcher Netzwerkschnittstelle der HTTP-Server lauscht:",
+  "overlay.camerabridge_settings.bind_address.alert.local": "127.0.0.1 = nur lokal (kein LAN/WLAN-Zugriff).",
+  "overlay.camerabridge_settings.bind_address.alert.all": "+ / 0.0.0.0 = alle Schnittstellen (LAN/WLAN/Hotspot), z. B. für Tablet/Handy.",
+  "overlay.camerabridge_settings.bind_address.alert.firewall": "Wichtig: Für LAN-Bindung muss die Windows-Firewall den Port (z. B. 8052) erlauben.",
+
+  "overlay.camerabridge_settings.http_port.label": "HTTP-Port",
+  "overlay.camerabridge_settings.http_port.hint": "Lokaler API-Port des API-Servers (Standard: 8052).",
+
+  "overlay.camerabridge_settings.mjpeg.section": "MJPEG-Endpunkt",
+  "overlay.camerabridge_settings.mjpeg_path.label": "MJPEG-Pfad",
+  "overlay.camerabridge_settings.mjpeg_path.hint": "HTTP-Pfad für den MJPEG-Stream der Vorschau.",
+
+  "overlay.camerabridge_settings.api.section": "API-Schlüssel",
+  "overlay.camerabridge_settings.api_key.label": "API-Schlüssel",
+  "overlay.camerabridge_settings.api_key.generate": "Generieren",
+  "overlay.camerabridge_settings.api_key.hint": "Erforderlich für /api/* Endpunkte (als X-Api-Key). Der MJPEG-Stream bleibt ungeschützt. Leer lassen, um die Authentifizierung zu deaktivieren.",
+
+  "overlay.camerabridge_settings.health.section": "Health",
+  "overlay.camerabridge_settings.health.interval.label": "Intervall (ms)",
+  "overlay.camerabridge_settings.health.interval.hint": "Wie oft der Watchdog/Health-Check ausgeführt wird.",
+  "overlay.camerabridge_settings.health.timeout.label": "Timeout (ms)",
+  "overlay.camerabridge_settings.health.timeout.hint": "Wie lange gewartet wird, bevor ein Check als fehlgeschlagen gilt.",
+
+  "overlay.camerabridge_settings.logging.section": "Logging",
+  "overlay.camerabridge_settings.logging.logfile.label": "Logdatei",
+  "overlay.camerabridge_settings.logging.logfile.hint": "Relativer oder absoluter Pfad zur Logdatei des API-Servers.",
+
+  "overlay.camerabridge_settings.worker.section": "Worker-Prozess",
+  "overlay.camerabridge_settings.worker.exepath.label": "Worker-EXE-Pfad",
+  "overlay.camerabridge_settings.worker.exepath.hint": "Absoluter Pfad zur CameraWorker.exe (erforderlich).",
+  "overlay.camerabridge_settings.worker.args.label": "Worker-Argumente",
+  "overlay.camerabridge_settings.worker.args.hint": "Optionale Kommandozeilen-Argumente für den Worker.",
+  "overlay.camerabridge_settings.worker.autostart_boot.label": "Beim Systemstart automatisch starten",
+  "overlay.camerabridge_settings.worker.autostart_unreachable.label": "Automatisch starten, wenn nicht erreichbar",
+  "overlay.camerabridge_settings.worker.cooldown.label": "Start-Abkühlzeit (ms)",
+  "overlay.camerabridge_settings.worker.failthreshold.label": "Fehler-Schwelle",
+  "overlay.camerabridge_settings.worker.note": "Diese Optionen steuern, wie der API-Server den Worker-Prozess überwacht und neu startet.",
+
+  "overlay.camerabridge_settings.capture.section": "Aufnahme-Einstellungen",
+  "overlay.camerabridge_settings.liveview.section": "Live View",
+  "overlay.camerabridge_settings.liveview_fps.label": "Live-View-FPS",
+  "overlay.camerabridge_settings.liveview_fps.hint": "Bilder pro Sekunde für die MJPEG-Liveview. Niedrigere Werte reduzieren CPU/USB-Last.",
+  "overlay.camerabridge_settings.keepalive_seconds.label": "Keep-Alive Sekunden",
+  "overlay.camerabridge_settings.keepalive_seconds.hint": "Wie lange der Worker ohne Requests aktiv bleibt, bevor Ressourcen freigegeben werden.",
+
+  "overlay.camerabridge_settings.devices.section": "Gerätesuche",
+  "overlay.camerabridge_settings.load_wia_devices.label": "WIA-Geräte laden (Windows Imaging)",
+  "overlay.camerabridge_settings.load_wia_devices.hint": "Nur aktivieren, wenn du WIA-Gerätesuche brauchst. Deaktiviert kann schneller starten und Konflikte reduzieren.",
+
+  "overlay.camerabridge_settings.storage.section": "Speicher",
+  "overlay.camerabridge_settings.capture_folder.label": "Standard-Aufnahmeordner",
+  "overlay.camerabridge_settings.capture_folder.hint": "Ordner, in dem die Originalaufnahmen standardmäßig gespeichert werden (muss beschreibbar sein).",
+
+  "overlay.camerabridge_settings.note": "Hinweis: Manche Änderungen erfordern einen Neustart des CameraBridge-Dienstes, bevor sie wirksam werden.",
+  "overlay.camerabridge_settings.worker.args.warn.title": "⚠ Vorsicht bei Worker-Argumenten",
+  "overlay.camerabridge_settings.worker.args.warn.text": "Falsche Argumente können verhindern, dass der CameraBridge-Worker startet. Unbekannte Argumente werden ignoriert.",
+  "overlay.camerabridge_settings.worker.args.warn.toggle": "Unterstützte Argumente anzeigen",
+  "overlay.camerabridge_settings.worker.args.supported.title": "Unterstützte CLI-Flags",
+  "overlay.camerabridge_settings.worker.args.examples.title": "Beispiele",
+
+  "bridge.badge.ready": "bereit",
+  "bridge.badge.active": "aktiv",
+  "bridge.badge.offline": "offline",
+  "bridge.badge.stream_empty": "Stream leer",
+  "bridge.badge.frames_ready": "Frames bereit",
+  "bridge.badge.idle": "Stream offen, kein Kamerabild (LiveView aus)",
+  "bridge.badge.uncertain": "unsicher",
+  "bridge.badge.checking": "prüfe...",
+
+  "bridge.toast.reachable": "CameraBridge erreichbar ✅",
+  "bridge.toast.offline": "CameraBridge läuft nicht ❌",
+  "bridge.toast.frames_sending": "✅ 1–4 OK: Stream sendet Frames",
+  "bridge.toast.no_frames": "⚠️ 1–3 OK, aber keine Frames (framesActive=false)",
+  "bridge.toast.no_client": "ℹ️ 1–2 OK, Frames kommen an – aber kein MJPEG Client verbunden (streamClients=0)",
+  "bridge.toast.liveview_off": "ℹ️ 1–2 OK: Server läuft – LiveView ist aus",
+  "bridge.toast.uncertain": "⚠️ Server erreichbar, Status aber uneindeutig",
+
+  "bridge.detail.stream_clients": "Stream-Clients",
+  "bridge.detail.liveview": "LiveView",
+  "bridge.detail.no_client": "Frames aktiv, aber niemand hängt auf /live.mjpg (Clients: {n}).",
+  "bridge.detail.server_ok_start_liveview": "Server OK. Starte LiveView, dann kommen Frames/Stream.",
+
+  "bridge.stop.ok.stopped": "CameraBridge wurde erfolgreich beendet.",
+  "bridge.stop.err.missing_params": "Bridge-Stop fehlgeschlagen: Fehlende Parameter.",
+  "bridge.stop.err.hash_mismatch": "Bridge-Stop fehlgeschlagen: Sicherheitsprüfung fehlgeschlagen.",
+  "bridge.stop.err.exe_not_found": "Bridge-Stop fehlgeschlagen: EXE-Datei nicht gefunden.",
+  "bridge.stop.err.taskkill_failed": "Bridge-Stop fehlgeschlagen: Prozess konnte nicht beendet werden.",
+  "bridge.stop.err.no_exe_path": "Bridge-Stop fehlgeschlagen: Kein EXE-Pfad in der Konfiguration.",
+  "bridge.stop.err.request_failed": "Bridge-Stop fehlgeschlagen: Anfrage konnte nicht abgeschlossen werden.",
+  "bridge.stop.err.unknown": "Bridge-Stop fehlgeschlagen: Unbekannte Serverantwort.",
+  "bridge.stop.ok.already_stopped": "CameraBridge war bereits beendet.",
+
+  "template.err.missing": "Template-Datei fehlt (template.xml).",
+  "template.err.invalid_xml": "Template ist ungültig (XML-Fehler).",
+  "template.err.no_photos": "Template enthält keine Foto-Slots (layer type=\"photo\").",
+  "template.err.unknown": "Template-Fehler (unbekannt).",
+  "template.err.request_failed": "Template-Info konnte nicht geladen werden.",
+
+  "bridge.start.err.no_exe_path": "Bridge-Start fehlgeschlagen: EXE-Pfad fehlt in der Konfiguration.",
+  "bridge.start.err.no_headless_option": "Bridge-Start fehlgeschlagen: Headless-Option für die CLI fehlt in der Konfiguration.",
+  "bridge.start.info.headless_setting": "Bridge-Start: Headless-Einstellung erkannt.",
+  "bridge.start.info.response_received": "Bridge-Start: Server-Antwort empfangen.",
+  "bridge.start.err.bad_response": "Bridge-Start fehlgeschlagen: Ungültige Antwort vom Server.",
+  "bridge.start.err.request_failed": "Bridge-Start fehlgeschlagen: Anfrage konnte nicht abgeschlossen werden.",
+
+  "form.save": "Speichern",
+  "form.cancel": "Abbrechen",
+  "form.close": "Schließen",
+
+  "api.upload.err.post_required": "POST erforderlich",
+  "api.upload.err.no_file_uploaded": "Keine Datei hochgeladen (Feldname muss \"zip\" sein)",
+  "api.upload.err.upload_error": "Upload-Fehler",
+  "api.upload.err.file_must_be_zip": "Datei muss eine .zip sein",
+  "api.upload.err.tmp_missing": "Temporäre Upload-Datei fehlt",
+  "api.upload.err.cannot_create_target": "Zielordner kann nicht erstellt werden",
+  "api.upload.err.cannot_open_zip": "ZIP kann nicht geöffnet werden",
+  "api.upload.err.no_xml_in_zip": "ZIP enthält keine .xml-Datei",
+  "api.upload.err.unexpected": "Unerwarteter Fehler",
+  "overlay.active_event.print_counter.label": "Bereits gedruckte Fotos",
+  "overlay.active_event.print_counter.placeholder": "0",
+
+  "overlay.active_event.open_folder.title": "Event-Ordner öffnen",
+  "overlay.active_event.open_folder.button": "Ordner",
+
+  "overlay.active_event.config_file.tooltip": "config/active_event_config.json",
+
+  "overlay.camera_settings.title": "Kamera-Einstellungen",
+  "overlay.camera_settings.description": "Passe Kameraparameter über die digiCamControl-CLI an.",
+  "overlay.camera_settings.use_settings_for_picture.label": "Einstellungen für Foto verwenden",
+  "overlay.camera_settings.use_settings_for_picture.hint": "Wenn aktiviert, läuft LiveView kontinuierlich (mehr Wärme- und Stromverbrauch; kann bei langen Events die Stabilität verringern). Empfehlung: Im Idle niedrigere FPS und höhere FPS nur während aktiver Fotosessions.",
+  "overlay.camera_settings.preview_mirror.label": "Vorschau spiegeln",
+  "overlay.camera_settings.preview_mirror.hint": "Spiegelt nur die Bildschirmvorschau (nützlich bei front-facing Setups). Gespeicherte Fotos werden nicht verändert.",
+  "overlay.camera_settings.full_img.label": "Vollbild-Vorschau (Kanten beschneiden, Bild zentrieren)",
+  "overlay.camera_settings.actions.apply": "Einstellungen anwenden",
+
+  "overlay.camerabridge_settings.logging.logfile.pick_title": "Logdatei auswählen",
+  "overlay.camerabridge_settings.logging.logfile.filter": "Text (*.txt)|*.txt|Alle Dateien (*.*)|*.*",
+
+  "overlay.camerabridge_settings.worker.exepath.pick_title": "CameraWorker.exe auswählen",
+  "overlay.camerabridge_settings.worker.exepath.filter": "Programme (*.exe)|*.exe|Alle Dateien (*.*)|*.*",
+
+  "overlay.camerabridge_settings.worker.args.help.toggle_title": "Hilfe umschalten",
+
+  "overlay.camerabridge_settings.worker.logging.logfile.label": "Worker-Logdatei",
+  "overlay.camerabridge_settings.worker.logging.logfile.pick_title": "Worker-Logdatei auswählen",
+  "overlay.camerabridge_settings.worker.logging.logfile.filter": "Log (*.log)|*.log|Text (*.txt)|*.txt|Alle Dateien (*.*)|*.*",
+  "overlay.camerabridge_settings.worker.logging.logfile.hint": "Optional. Wenn gesetzt, hängt die UI beim Speichern <code>--log=&lt;path&gt;</code> an die Worker-Argumente an.",
+
+  "overlay.camerabridge_settings.capture_folder.pick_title": "Aufnahmeordner auswählen",
+
+  "common.loading": "Lade…",
+  "common.ok": "OK",
+  "capture.working.render": "Bilder werden verarbeitet…",
+  "capture.working.abort": "Vorgang wird abgebrochen…",
+  "capture.error.title": "Fehler",
+  "capture.finish.title": "Fertig",
+  "capture.preview.alt": "Vorschau",
+
+  "overlay.connection_info.bridge_label": "CameraBridge:",
+  "overlay.connection_info.connected_device_err": "Kein Gerät verbunden",
+  "overlay.connection_info.connected_device": "Verbunden mit: ",
+  "bridge.badge.unknown": "unbekannt",
+
+  "overlay.settings.app.python.caddyWebRoot.path": "Caddy-Webroot-Pfad (wichtig für manche Python-API-Endpunkte, z. B. Uploads).",
+  "overlay.settings.app.python.caddyWebRoot.placeholder": "z. B. C:\\photo-software\\booth\\",
+  "overlay.settings.app.python.caddyWebRoot.folder": "Caddy-Webroot-Ordner auswählen",
+
+  "overlay.settings.app.python.api_key.label": "Python API-Key",
+  "overlay.settings.app.python.api_key.generate": "Generieren",
+
+  "overlay.settings.app.python.server_controls.start": "Start",
+  "overlay.settings.app.python.server_controls.restart": "Neustart",
+  "overlay.settings.app.python.server_controls.stop": "Stopp",
+  "overlay.settings.app.python.server_controls.refresh": "Aktualisieren",
+
+  "overlay.settings.app.python.server_controls.status_unknown": "Status: unbekannt",
+  "common.unknown": "unbekannt",
+
+  "overlay.settings.app.pickfile_python_server.pickfile_title": "python_server.py auswählen",
+
+  "overlay.settings.tooltip.config_path": "config/config.json",
+
+  "overlay.settings.ui.theme.option_dark": "Dunkel",
+  "overlay.settings.ui.theme.option_light": "Hell",
+
+  "overlay.settings.bgStaticImgChoose.label": "Hintergrundbild",
+  "overlay.settings.bgStaticImgChoose.placeholder": "uploads/bgImage.jpg",
+
+  "form.pick_file_upload": "Datei zum Hochladen auswählen",
+
+  "overlay.settings.capture.counter_until_capture": "Sekunden bis zur Aufnahme",
+  "overlay.settings.capture.text_starting": "Text: Start",
+  "overlay.settings.capture.text_next_photo": "Nächstes Foto",
+  "overlay.settings.capture.text_processing": "Verarbeitung",
+  "overlay.settings.capture.text_hold_still": "Stillhalten (während der Aufnahme)",
+  "overlay.settings.capture.text_hold_still_help": "Du kannst Variablen verwenden: {slot} (aktuelles Foto) und {target} (Anzahl Fotos). Beispiel: \"Foto {slot}/{target} – bitte stillhalten…\"",
+  "overlay.settings.capture.text_printing": "Drucken",
+  "overlay.settings.capture.text_done": "Fertig",
+  "overlay.settings.capture.show_finish_image": "Finales Bild nach der Aufnahme anzeigen",
+  "overlay.settings.capture.show_finish_image_help": "Zeigt dem Nutzer das finale Bild, nachdem der Aufnahmeablauf abgeschlossen ist.",
+  "overlay.settings.capture.show_finish_image_seconds": "Anzeigedauer des finalen Bildes (Sekunden)",
+  "overlay.settings.capture.show_finish_image_seconds_help": "Wie lange das finale Bild sichtbar bleibt, bevor zurück zum Startbildschirm gewechselt wird. (0 = deaktiviert)",
+  "overlay.settings.capture.preview_img_time": "Jedes geschossene Foto kurz anzeigen (Sek)",
+  "overlay.settings.capture.settingFastCaptureEffect": "Schnellerer Auslöser(ms)",
+  "overlay.settings.capture.settingFastCaptureEffect_help": "Bei einigen Geräten dauert die Fotografie lange. Simulieren Sie einen schnelleren Erfassungsablauf, indem Sie den Erfassungsablauf auslösen, bevor der sichtbare Countdown abgelaufen ist. (0 = deaktiviert)",
+
+
+  "overlay.settings.system.ui_browser_watchdog_interval": "UI-Browser-Watchdog Prüfintervall (Minuten)",
+  "overlay.settings.system.password.toggle_aria": "Passwort anzeigen/ausblenden",
+
+  "capture.defaults.text_starting": "Gleich geht’s los…",
+  "capture.defaults.text_next_photo": "Nächstes Foto…",
+  "capture.defaults.text_processing": "Bilder werden verarbeitet…",
+  "capture.defaults.text_hold_still": "Foto {slot}/{target} – bitte stillhalten…",
+  "capture.defaults.text_printing": "Bild wird gedruckt…",
+  "capture.defaults.text_done": "Fertig!",
+
+  "nav.browser_reload": "Browser neu laden",
+  "nav.browser_close": "Browser schließen",
+
+  "screen.main.liveview_toggle.title": "LiveView umschalten",
+  "screen.main.live_frame.title": "Kamera-Stream",
+  "screen.main.debug.current_fps": "Aktuelle FPS:",
+  "screen.main.preview_toggle.aria_label": "",
+  "screen.main.exit_fullscreen.aria_label": "",
+  "modal.close_app.title": "Anwendung wird geschlossen",
+  "modal.close_app.wait": "Bitte warten …",
+
+  "overlay.printer_settings.config.tooltip": "config/config.json",
+  "overlay.select_device.config_tooltip": "config/config.json",
+
+  "bridge.toast.waiting": "Warte auf CameraBridge…",
+
+  "overlay.exit_fullscreen.keypad.clear": "C",
+  "overlay.exit_fullscreen.keypad.back": "⌫",
+
+  "capture.err.no_response": "Keine Antwort vom Dienst.",
+  "capture.bridge.err.method_not_available": "CameraBridge-Funktion nicht verfügbar: {method}.",
+
+  "capture.capture_once.err.invalid_slot": "Ungültiger Foto-Slot.",
+  "capture.capture_once.err.missing_target_directory": "Zielordner für die Aufnahme fehlt.",
+
+  "capture.wait_for_frames.err.timeout": "Zeitüberschreitung beim Warten auf LiveView-Frames.",
+
+  "capture.ensure_tmp_dir.warn.capture_root_missing": "captureRoot fehlt in der Konfiguration.",
+  "capture.ensure_tmp_dir.warn.join_and_normalize_missing": "joinAndNormalizePath fehlt – Pfad kann nicht zusammengesetzt werden.",
+
+  "capture.flow.warn.liveview_recovery_timeout": "LiveView hat sich nicht rechtzeitig erholt (Timeout).",
+  "capture.preview.warn.non_blocking_continue": "Vorschau nicht bereit – weiter ohne zu blockieren.",
+
+  "python.render.err.missing_capture_folder_hint": "Session-Ordner fehlt (captureFolderHint).",
+  "python.err.unreachable": "Python-Server nicht erreichbar.",
+  "python.render.err.request_failed": "Render-Anfrage ist fehlgeschlagen.",
+
+  "python.print.err.missing_image_path": "Bildpfad fehlt.",
+  "python.print.err.missing_event_file": "Event-Datei fehlt.",
+  "python.print.err.request_failed": "Druck-Anfrage ist fehlgeschlagen.",
+
+  "capture.start.err.missing_config_values": "Fehlende Konfigurationswerte:",
+  "capture.start.err.failed": "Fehler beim Start:",
+
+  "capture.flow.err.capture_api_missing": "PB.captureApi fehlt (capture_api.js laden!).",
+  "capture.flow.err.invalid_photo_target": "Ungültige Fotoanzahl (photoTarget).",
+  "capture.flow.err.max_prints_reached": "Maximale Anzahl erreicht ({current}/{max}).",
+
+  "capture.flow.text.starting": "Startet…",
+  "capture.flow.text.next_photo": "Nächstes Foto…",
+  "capture.flow.text.hold_still": "Foto {slot}/{target} – bitte stillhalten…",
+  "capture.flow.text.processing": "Verarbeite…",
+  "capture.flow.text.done": "Fertig!",
+
+  "capture.flow.err.capture_failed": "Aufnahme fehlgeschlagen.",
+  "capture.flow.err.render_failed": "Rendern fehlgeschlagen.",
+
+  "bootstrap.config.load_failed": "Konfigurationsladen fehlgeschlagen:",
+  "bootstrap.config.loaded_trigger": "[Config] geladen → löse pb:configLoaded aus",
+  "bootstrap.config.fullscreen_value": "[Config] general.system.fullscreen =",
+  "bootstrap.active_event.update_failed": "[updateActiveEventUI] fehlgeschlagen:",
+  "bootstrap.liveframe.src_changed_apply_mirror": "[PB] liveFrame src geändert → Mirror anwenden",
+  "preview_mirror.sync_from_config": "[preview_mirror] Sync aus Konfiguration =",
+  "preview_mirror.changed": "[preview_mirror] geändert =",
+  "bg_static_img.sync_from_config": "[bgStaticImg] Sync aus Konfiguration =",
+  "bg_static_img.changed": "[bgStaticImg] geändert =",
+  "common.empty": "(leer)",
+
+  "camera.settings.info.loaded": "Kameraeinstellungen konnten geladen werden.",
+  "camera_restore.log.retry_limit_reached": "[camera_restore] Wiederholungs-Limit erreicht:",
+  "camera_restore.log.retry": "[camera_restore] Wiederhole",
+  "camera_restore.warn.warmup_failed": "[camera_restore] Warmup fehlgeschlagen:",
+  "camera_restore.warn.apply_selected_camera_failed": "[camera_restore] applySelectedCameraFromConfig fehlgeschlagen:",
+  "camera_restore.warn.bridge_select_failed": "[camera_restore] Bridge-Auswahl fehlgeschlagen:",
+  "camera_restore.retry_reason.config_not_ready": "PB_CONFIG nicht bereit (general + camera.camera_settings)",
+  "camera_restore.retry_reason.select_missing": "settingDeviceSelected fehlt",
+  "camera_restore.retry_reason.warmup_not_ready": "Warmup nicht bereit (Preview/DOM/Bridge)",
+
+  "common.ellipsis": "…",
+
+  "bridge.ui.starting": "Starte…",
+  "bridge.ui.restarting": "Starte neu…",
+  "bridge.ui.stopping": "Stoppe…",
+
+  "bridge.restart.err.request_failed": "Bridge-Neustart fehlgeschlagen: Anfrage konnte nicht abgeschlossen werden.",
+
+  "bridge.console.bridgeServices_missing": "PB.bridgeServices fehlt. pb_bridge_services.js muss vorher geladen werden.",
+  "bridge.console.ensureBridgeRunning_missing": "ensureBridgeRunning fehlt in PB.bridgeServices.",
+  "bridge.console.restartBridge_missing": "restartBridge fehlt in PB.bridgeServices.",
+  "bridge.console.stopBridge_missing": "stopBridge fehlt in PB.bridgeServices.",
+  "bridge.console.pythonSvc_missing": "PB.pythonSvc fehlt. pb_python_server.js muss vorher geladen werden.",
+
+  "bridge.err.timeout": "Zeitüberschreitung der Anfrage",
+  "bridge.err.aborted": "Anfrage abgebrochen",
+  "bridge.err.bad_response": "Ungültige Serverantwort",
+  "bridge.err.network_error": "Netzwerkfehler",
+  "bridge.err.offline": "Offline",
+
+  "main.log.initMain": "[main] initMain()",
+  "main.log.configLoaded": "[main] pb:configLoaded empfangen",
+  "main.log.allConfigsLoaded": "[main] pb:allConfigsLoaded → Mirror + Restore + LiveView",
+  "main.log.done": "[main] initMain() fertig",
+  "main.warn.initBootstrap_missing": "[main] WARN: PB.initBootstrap ist keine Funktion",
+  "main.warn.picker_warmup_failed": "[main] Picker-Warm-up fehlgeschlagen:",
+  "main.warn.initMain_failed": "[main] initMain fehlgeschlagen:",
+
+  "config.save.err.multi_failed": "Mindestens eine Konfiguration konnte nicht gespeichert werden. Hinweis: Falls eine JSON-Datei defekt/ungültig ist, wurde sie ggf. gesichert (siehe Fehlermeldung).",
+  "active_event.upload.err.failed": "Upload des Active-Event Templates fehlgeschlagen.",
+
+  "preview.toggle_view.warn_failed": "Preview-Umschalten fehlgeschlagen:",
+  "liveview.toggle.title.busy": "LiveView…",
+  "liveview.toggle.title.turn_off": "LiveView ausschalten",
+  "liveview.toggle.title.turn_on": "LiveView einschalten",
+  "liveview.toggle.warn_no_api": "[liveview_toggle] Keine LiveView-API verfügbar (PB.bridge fehlt?)",
+  "liveview.toggle.warn_toggle_failed": "[liveview_toggle] LiveView-Umschalten fehlgeschlagen:",
+
+  "overlay.printer_settings.err.pythonSvc_missing": "PB.pythonSvc fehlt. pb_python_server.js muss vor printer_Settings.js geladen werden.",
+  "overlay.printer_settings.btn.loading": "Lade…",
+  "overlay.printer_settings.err.invalid_response": "Ungültige Antwort",
+  "overlay.printer_settings.printer.none": "Keine Drucker gefunden",
+  "overlay.printer_settings.printer.default_suffix": " (Standard)",
+  "overlay.printer_settings.msg.list_updated": "Druckerliste aktualisiert.",
+  "overlay.printer_settings.err.load_failed": "Fehler beim Laden der Drucker",
+  "common.error_prefix": "Fehler: ",
+  "common.opening_short": "Öffne…",
+  "general.settings.printer_open_failed_detail": "Fehler beim Öffnen des Druckerdialogs: {detail}",
+
+  "python.ui.warn.missing_service": "[pythonUi] PB.pythonSvc fehlt – pb_python_server.js nicht geladen?",
+  "python.ui.warn.shutdown_error": "shutdown error:",
+  "python.ui.state.running": "läuft",
+  "python.ui.state.stopped": "gestoppt",
+  "python.ui.status.running": "Status: läuft",
+  "python.ui.status.stopped": "Status: gestoppt",
+  "python.ui.status.running_pid": "Status: läuft (PID {pid}) @ {host}:{port}",
+  "python.ui.status.running_local": "Status: läuft @ 127.0.0.1:{port}",
+  "python.ui.status.stopped_not_reachable": "Status: gestoppt / nicht erreichbar @ 127.0.0.1:{port}",
+  "python.ui.msg.service_unreachable": "⚠️ Python-Service nicht erreichbar (Port {port}).",
+  "python.ui.msg.service_reachable_pid": "✅ Python-Service erreichbar (PID {pid}).",
+  "python.ui.msg.service_reachable": "✅ Python-Service erreichbar.",
+  "python.ui.msg.starting": "Starte …",
+  "python.ui.msg.start_triggered": "Start ausgelöst.",
+  "python.ui.msg.start_failed": "Start fehlgeschlagen (PHP-Start-Endpoint oder Script-Pfad prüfen).",
+  "python.ui.msg.stopping": "Stoppe …",
+  "python.ui.msg.stop_signal_sent": "Stop-Signal gesendet.",
+  "python.ui.msg.shutdown_unconfirmed": "Shutdown-Request konnte nicht bestätigt werden (siehe Konsole).",
+  "python.ui.msg.restarting": "Starte neu …",
+
+  "ui.watchdog.log.disabled": "[UI Watchdog] deaktiviert (ui_watchdog_minutes = 0)",
+  "ui.watchdog.log.enabled": "[UI Watchdog] aktiviert: Timeout = {min} Min, Prüfung alle {sec}s",
+  "ui.watchdog.log.stalled_reload": "[UI Watchdog] seit {min} Minuten ohne Lebenszeichen – Seite wird neu geladen",
+
+  "windows.picker.bindings.err.missing_service": "[windows_picker_bindings] PB.pythonSvc fehlt. pb_python_server.js muss vorher geladen werden.",
+  "windows.picker.btn.wait": "Bitte warten…",
+  "windows.picker.title.file": "Datei auswählen",
+  "windows.picker.title.folder": "Ordner auswählen",
+  "windows.picker.filter.all": "Alle Dateien (*.*)|*.*",
+  "windows.picker.alert.failed": "Picker fehlgeschlagen:\n{msg}",
+  "windows.picker.openfolder.err.missing_storage_path": "PB_CONFIG.activeEvent.active_event.photo_storage_path fehlt.",
+  "windows.picker.openfolder.err.no_folder_path": "Kein Ordnerpfad ermittelbar (leer).",
+  "windows.picker.openfolder.err.failed": "openfolder fehlgeschlagen",
+  "windows.picker.closebrowser.err.missing_api_key": "API-Key fehlt",
+  "windows.picker.closebrowser.err.failed": "closeBrowser fehlgeschlagen",
+  "windows.picker.closebrowser.alert.failed": "Browser konnte nicht geschlossen werden:\n{msg}",
+
+  "bridge.services.err.missing_pythonSvc": "PB.pythonSvc fehlt",
+  "bridge.services.msg.python_unreachable_starting": "Python-Server ist nicht erreichbar – starte ihn jetzt…",
+  "bridge.services.msg.python_running": "Python-Server läuft ✅",
+  "bridge.services.msg.bridge_already_running": "CameraBridge läuft bereits ✅",
+  "bridge.services.msg.bridge_unreachable_starting": "CameraBridge nicht erreichbar – starte über Python Tool-Server…",
+  "bridge.services.msg.abort_missing_api_key": "Abgebrochen: Python api_key fehlt (pythonServer.AuthKey).",
+  "bridge.services.msg.abort_python_not_started": "Abgebrochen: CameraBridge läuft nicht und Python-Server konnte nicht gestartet werden.",
+  "bridge.services.msg.abort_missing_exe_path": "Abgebrochen: EXE-Pfad fehlt (cameraBridgeServer.Server.ExePath).",
+  "bridge.services.msg.bridge_starting": "Starte CameraBridge API-Server…",
+  "bridge.services.msg.abort_bridge_timeout": "Abgebrochen: CameraBridge konnte nicht gestartet werden (kein Ping innerhalb {sec}s).",
+  "bridge.services.msg.bridge_running": "CameraBridge läuft ✅",
+  "bridge.services.msg.bridge_restarting": "Starte CameraBridge neu…",
+  "bridge.services.msg.restart_timeout": "Restart angefordert (kein Ping innerhalb {sec}s).",
+  "bridge.services.msg.bridge_stopping": "Stoppe CameraBridge…",
+  "bridge.services.msg.bridge_stopped": "CameraBridge gestoppt ✅",
+  "bridge.services.msg.stop_timeout": "Stop angefordert (Server antwortet noch).",
+
+  "bridge_api.err.http": "HTTP {status} – {detail}",
+  "bridge_api.err.missing_route": "[bridge_api] Fehlende Route: {routeKey}",
+  "bridge_api.err.select_by_serial_empty": "selectBySerial: Seriennummer ist leer",
+  "bridge_api.err.select_by_serial_no_id": "selectBySerial: Treffer gefunden, aber kein id-Feld vorhanden",
+  "bridge_api.warn.status_forbidden_ui": "[bridge.status] Im UI verboten – nutze PB._bridgeLastHealth",
+  "bridge_api.err.status_disabled_ui": "bridge.status ist im UI deaktiviert",
+
+  "api_url.err.unknown_route_key": "Unbekannter API-Routen-Key: {key}",
+  "api_url.err.missing_path_for_key": "Fehlender Pfad für Routen-Key: {key}",
+
+  "camera_bridge.hint.offline": "CameraBridge ist offline.",
+  "camera_bridge.hint.http": "CameraBridge HTTP-Fehler.",
+  "camera_bridge.hint.error": "CameraBridge Fehler.",
+  "camera_bridge.device.default_name": "Kamera {id}",
+  "camera_bridge.err.bridge_not_loaded": "PB.bridge nicht geladen",
+  "camera_bridge.err.bridge_select_not_available": "PB.bridge.select nicht verfügbar",
+  "camera_bridge.err.bridge_select_by_serial_not_available": "PB.bridge.selectBySerial nicht verfügbar",
+  "camera_bridge.err.bridge_liveview_set_fps_not_available": "PB.bridge.liveviewSetFps nicht verfügbar",
+  "camera_bridge.err.bridge_liveview_start_not_available": "PB.bridge.liveviewStart nicht verfügbar",
+
+  "debug_guard.log.toggle": "[debug_guard] Umschalten -> ",
+  "debug_guard.log.config_value": "[debug_guard] system.debugMode = ",
+
+  "debug_overlay.log.error_prefix": "[FEHLER]",
+  "debug_overlay.log.promise_prefix": "[PROMISE]",
+  "debug_overlay.log.config_value": "[debug] general.system.debugMode = ",
+  "debug_overlay.log.installed_waiting": "[debug] Debug-Overlay installiert (warte auf Config)",
+
+  "i18n.warn.load_failed": "Sprachdatei konnte nicht geladen werden:",
+  "i18n.warn.lookup_failed": "[PB.t] Übersetzungs-Lookup fehlgeschlagen",
+
+  "zip.import.success": "Template importiert ✅",
+  "zip.import.failed": "ZIP-Import fehlgeschlagen",
+  "zip.import.error_prefix": "Template-ZIP-Fehler: ",
+  "zip.upload.error_prefix": "ZIP-Upload-Fehler: ",
+  "zip.upload.request_failed": "Anfrage fehlgeschlagen",
+  "zip.error_prefix": "ZIP-Fehler: ",
+
+  "eventName.empty": "Bitte einen Namen eingeben.",
+  "eventName.trailing": "Darf nicht mit Punkt oder Leerzeichen enden.",
+  "eventName.dot": "\".\" und \"..\" sind nicht erlaubt.",
+  "eventName.chars": "Enthält ungültige Zeichen (z.B. <>:\"/\\\\|?*).",
+  "eventName.reserved": "Reservierter Windows-Name (z.B. CON, AUX, COM1…).",
+  "eventName.length": "Bitte kürzer (max. 80 Zeichen).",
+
+  "python_svc.ui.reachable": "✅ Python-Service erreichbar @ {url}",
+  "python_svc.ui.not_reachable": "⚠️ Python-Service nicht erreichbar @ {url}",
+  "python_svc.ui.connect_failed": "⚠️ Verbindung zum Python-Service fehlgeschlagen ({url}).",
+
+  "python_svc.err.missing_script_path": "[pythonSvc] Kein python_server.py Pfad gefunden (general.app.python_server).",
+  "python_svc.warn.start_via_php_failed": "[pythonSvc] startViaPhp fehlgeschlagen:",
+  "python_svc.err.not_reachable": "Python-Service nicht erreichbar",
+  "python_svc.warn.call_restart_first_failed": "[pythonSvc] callWithRestart: erster Versuch fehlgeschlagen, starte neu…",
+
+  "pb_init.log.dom_ready": "[pb_init] DOM bereit",
+  "pb_init.warn.init_bootstrap_missing": "[pb_init] PB.initBootstrap fehlt",
+
+  "preview.hint.starting_camera_preview": "Starte Kamera Preview…",
+
+  "overlay.select_device.error.no_usable_selector": "Kein gültiger Selektor",
+
+  "overlay.picker.err.no_python_path": "Python-Pfad fehlt (cfg.general.python.Path).",
+  "overlay.picker.err.server_unreachable": "Python-Picker-Server nicht erreichbar.",
+  "overlay.picker.err.http_failed": "Picker-Anfrage fehlgeschlagen.",
+  "overlay.picker.err.http_failed_retry": "Picker-Anfrage fehlgeschlagen (erneuter Versuch).",
+  "overlay.picker.filter.images_default": "Bilder|*.jpg;*.png|Alle Dateien|*.*",
+
+  "overlay.camera_settings.testphoto.loading": "Testfoto wird aufgenommen…",
+  "overlay.camera_settings.testphoto.error.capture_failed": "Testfoto-Aufnahme fehlgeschlagen.",
+  "overlay.camera_settings.testphoto.error.bridge_missing": "Testfoto fehlgeschlagen: PB.bridge.captureJpeg fehlt (Binary-JPEG-Client nicht eingebaut).",
+  "overlay.camera_settings.testphoto.error.invalid_response": "Testfoto fehlgeschlagen: Ungültige Antwort.",
+
+  "bridge.error.unauthorized": "Nicht autorisiert.",
+  "bridge.error.no_camera": "Keine Kamera gefunden.",
+  "bridge.error.not_found": "Nicht gefunden.",
+  "bridge.error.device_busy": "Kamera ist beschäftigt.",
+  "bridge.error.cannot_focus": "Fokussieren nicht möglich.",
+  "bridge.error.timeout": "Zeitüberschreitung.",
+  "bridge.error.capture_failed": "Aufnahme fehlgeschlagen.",
+  "bridge.error.refresh_timeout": "Vorschau-Zeitüberschreitung.",
+  "bridge.error.refresh_failed": "Vorschau konnte nicht aktualisiert werden.",
+  "bridge.error.invalid_request": "Ungültige Anfrage.",
+   "overlay.settings.capture.text_triggering": "Text während Auslösung",
+  "overlay.settings.capture.text_triggering_help": "Text, der nach dem Countdown angezeigt wird, während die Kamera das Foto noch aufnimmt.",
+  "capture.defaults.text_triggering": "Kamera löst gerade aus…\nbitte nicht bewegen.",
+  "capture.working.trigger.title" : "Bitte still halten!",
+   "overlay.render_settings.photo_work_scale.section": "Foto-Arbeitsgröße",
+  "overlay.render_settings.photo_work_scale.label": "Foto-Skalierungsfaktor",
+  "overlay.render_settings.photo_work_scale.hint": "Skalierungsfaktor für die interne Fotoverarbeitung. Es wird nur verkleinert, niemals hochskaliert. Standard: 1.5"
+}

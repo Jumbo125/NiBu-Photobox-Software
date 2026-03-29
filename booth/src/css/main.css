@@ -1,0 +1,751 @@
+/* ============================================================
+   BASE / LAYOUT
+   ============================================================ */
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden; /* keine Scrollbars */
+}
+
+body {
+  background-color: #111;
+  color: #fff;
+}
+
+/* ============================================================
+   HEADER (15vh)
+   ============================================================ */
+
+#appHeader {
+  height: 15vh;
+  transform: translate3d(0, 0, 0);
+  transition: transform 220ms ease;
+  will-change: transform;
+}
+
+/* Navbar etwas höher und "griffiger" machen */
+.navbar {
+  height: 100%; /* Navbar füllt den 15vh Header */
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.btn-nav-lg {
+  padding: 0.8rem 0.5rem;
+  font-size: 1rem;
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+.btn-nav-lg:hover {
+  transform: translateY(-1px);
+}
+
+.active_event_title {
+  width: 20vw;
+  display: block;
+}
+
+#modalSettingsLabel {
+  width: 50%;
+}
+[data-bs-trigger="hover click"] {
+  cursor: pointer;
+}
+/* ============================================================
+   MAIN
+   ============================================================ */
+
+#appMain {
+  height: calc(100vh - 15vh);
+  margin: 0;
+  overflow: hidden;
+  transition: margin-top 220ms ease, height 220ms ease;
+}
+
+/* "Bitte drücken"-Bereich */
+.start-area {
+  width: 100%;
+  max-width: 900px;
+  height: 100%;
+  max-height: calc(100vh - 15vh);
+
+  border-radius: 1.5rem;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: radial-gradient(circle at top, #333 0, #141414 60%, #000 100%);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+
+  cursor: pointer;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.7);
+}
+
+.start-title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+}
+
+.start-subtitle {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  opacity: 0.9;
+}
+
+/* ============================================================
+   MODALS / FORMS
+   ============================================================ */
+
+.modal-template-editor {
+  max-width: 100vw;
+  margin-top: 0;
+}
+
+#template-editor-container {
+  top: 0;
+  min-height: 90vh;
+  background-color: #1e1e1e;
+  border-radius: 0.5rem;
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+}
+
+#template-editor-container iframe{
+   width: 100%; 
+  height: 100vh;
+   border: 1px solid #6c757d; 
+   border-radius: .5rem; 
+}
+
+.modal-content {
+  background-color: #181818;
+  color: #fff;
+}
+
+.form-text {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.card.bg-secondary.bg-opacity-25 {
+  backdrop-filter: blur(4px);
+}
+
+/*  ============================================================
+    PRELOADER
+    ============================================================ */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.loading-overlay.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.loading-card {
+  background: #111;
+  color: #fff;
+  padding: 24px 28px;
+  border-radius: 14px;
+  min-width: 320px;
+  max-width: 520px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.spinner {
+  width: 46px;
+  height: 46px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.25);
+  border-top-color: rgba(255, 255, 255, 0.95);
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pb-spin {
+  display: inline-block;
+  animation: pbSpin 1s linear infinite;
+}
+@keyframes pbSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.loading-subtext {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+/* ============================================================
+   FULLSCREEN STATE (15vh)
+   ============================================================ */
+
+body.pb-fullscreen {
+  overflow: hidden;
+}
+
+/* Header raus sliden */
+body.pb-fullscreen #appHeader {
+  transform: translate3d(0, -15vh, 0);
+}
+
+/* Main rutscht hoch und wird 100vh */
+body.pb-fullscreen #appMain {
+  height: 100vh;
+  margin-top: -15vh;
+}
+
+#greenwall_settings {
+  background-color: #00800080;
+  padding: 5px;
+  border-radius: 5px;
+  box-shadow: 0px 0px 6px 1px black;
+}
+/* ============================================================
+   FULLSCREEN EXIT BUTTON
+   ============================================================ */
+
+.pb-exit-fullscreen {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 9999;
+
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+
+  display: none;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #fff;
+
+  cursor: pointer;
+  user-select: none;
+
+  backdrop-filter: blur(4px);
+}
+
+body.pb-fullscreen .pb-exit-fullscreen {
+  display: flex;
+}
+
+.pb-exit-fullscreen:hover {
+  background: rgba(0, 0, 0, 0.32);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+.pb-main {
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh;
+}
+
+.pb-bg {
+  position: absolute;
+  inset: 0;
+}
+
+/* Video als Fullscreen-Background */
+.pb-bg-video video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pb-bg-video {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background-color: transparent;
+}
+#liveVideo,
+#liveImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  background: #000;
+  display: block;
+}
+
+/* Text bleibt darüber */
+.start-area {
+  position: relative;
+  padding: 24px 28px;
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  color: #fff;
+}
+
+/* Umschalt-Button */
+.pb-toggle-preview {
+  position: absolute;
+  z-index: 6;
+  top: 14px;
+  left: 14px;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  cursor: pointer;
+  font-size: 2rem;
+  width: 4rem;
+  aspect-ratio: 1 / 1;
+  height: 4rem;
+}
+
+.pb-bg {
+  position: absolute;
+  inset: 0;
+}
+
+.pb-preview-media {
+  position: absolute;
+  inset: 0;
+}
+
+.pb-preview-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* toogle liveview */
+#previewMediaWrap {
+  position: relative;
+  height: 90vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Spiegelung nur fürs Preview-Iframe */
+body.pb-preview-mirrored #liveFrame {
+  transform: scaleX(-1);
+  transform-origin: center;
+}
+
+body.pb-fullscreen #previewMediaWrap {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+}
+
+#btnLiveviewToggle {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+}
+
+#liveVideo,
+#liveFrame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  object-fit: cover;
+}
+
+/* iframe soll keine Klicks “klauen” */
+#liveFrame {
+  pointer-events: none;
+}
+
+/* Static img */
+#bgStaticImg img {
+  width: 100vw;
+  object-fit: contain;
+}
+
+/* --- Capture Overlay --- */
+#pbCaptureOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(0, 0, 0, 0.55);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+#pbCaptureOverlay .pb-capture-panel {
+  width: min(900px, 92vw);
+  padding: 24px 18px;
+  border-radius: 18px;
+  text-align: center;
+
+  /* “card” look */
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+}
+
+#pbCaptureCountdown {
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 10px;
+
+  /* responsive groß */
+  font-size: clamp(72px, 14vw, 140px);
+  letter-spacing: 1px;
+}
+
+#pbCaptureStatus {
+  font-size: clamp(18px, 2.4vw, 24px);
+  opacity: 0.95;
+  margin: 0 auto;
+  max-width: 80vw;
+  white-space: pre-line; /* \n anzeigen */
+}
+
+#pbCaptureCancelBtn {
+  margin-top: 18px;
+  min-width: 220px;
+  border-radius: 999px;
+}
+
+#pbCaptureCancelBtn i {
+  margin-right: 8px;
+}
+
+.modal-template-editor {
+  background: black;
+}
+
+/* DEBUG BOX */
+#pbDebugBox {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  max-height: 15vh;
+  overflow: auto;
+
+  background: rgba(0, 0, 0, 0.85);
+  color: #0f0;
+  font: 12px/1.3 monospace;
+
+  padding: 8px;
+  z-index: 5;
+  white-space: pre-wrap;
+}
+
+/* Camera Connection Info */
+body.pb-fullscreen .pb-connection-panel {
+  display: none;
+}
+
+.pb-connection-panel {
+  display: block;
+  position: fixed;
+  bottom: 0.75rem;
+  right: 0.75rem;
+  z-index: 6;
+}
+.pb-connection-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  backdrop-filter: blur(6px);
+}
+.pb-connection-label {
+  opacity: 0.9;
+}
+
+#debugCurrentFps{
+  width: auto;
+    position: absolute;
+    left: 5%;
+    display:none;
+}
+body.debug #debugCurrentFps{
+    display:block;
+}
+
+body.pb-fullscreen{
+  display:none;
+}
+
+/* ============================================================
+   Capture Windows
+   ============================================================ */
+.pb-capture-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display:flex;
+  width: 50vw;
+  height: 80vh;
+  margin: 0 auto;
+  align-content: center;
+  flex-wrap: wrap;
+  flex-direction: column;
+  justify-content: center;
+  top: 10vh;
+  border-radius: 50px;
+  border: white 1px solid;
+  box-shadow: 0px 0px 10px 0px white;
+  background: rgba(0, 0, 0, 0.65);
+  color: white;
+  text-align: center;
+}
+#Capture_working_capture.bg-white{
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0px;
+}
+
+#captureShutter {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+#captureShutter.is-playing {
+  opacity: 1;
+  visibility: visible;
+}
+
+.working_capture{
+width: 100vw;
+    height: 100vh;
+    display: flex !important;
+    flex-direction: column;
+    align-content: center;
+    justify-content: center;
+}
+
+.working_capture .spinner-border{
+width: 10vw;
+    height: auto;
+    aspect-ratio: 1;
+}
+
+.working_capture svg{
+    height: 40vh;
+    margin-top: -10vh;
+}
+
+.pb-capture-box {
+  min-width: 340px;
+  padding: 10vh;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.35);
+}
+.pb-capture-counter {
+  font-size: 72px;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+.pb-capture-title {
+  font-size: 28px;
+  font-weight: 600;
+}
+.pb-capture-text {
+  font-size: 18px;
+  opacity: 0.95;
+}
+
+/* Finish with image layout */
+#Capture_finish_with_img{
+    width: 100vw;
+    height: 100vh;
+    background-color: black;
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+}
+
+#Capture_finish_with_img img{
+    box-shadow: 0px 0px 20px 1px white;
+    height: 90%;
+}
+
+.pb-finish-img-box{
+  display:flex;
+  align-items:stretch;
+  gap:24px;
+  padding:24px;
+  width:100%;
+  height:100%;
+}
+
+.pb-finish-img-left{
+  flex:0 0 80vw;              /* <- links 80vw */
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+
+.pb-finish-img{
+  max-width:100%;
+  max-height:100%;
+  object-fit:contain;
+  border-radius:16px;
+}
+
+.pb-finish-img-right{
+  flex:1 1 auto;               /* <- rechts Restbreite */
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  min-width:220px;
+}
+
+
+
+
+/*  ======================================
+    Animation der Kamera Beldne SVG */
+     :root { --durTotal: 1s; }
+
+  .blade { fill:#000; stroke:#222; stroke-width:3; stroke-linejoin:round; }
+
+  /* Grundzustand: keine Animation */
+  .bladeg{
+    transform-origin: 150px 170px;
+    transform-box: fill-box;
+    animation: none;
+  }
+  .closedMask{
+    opacity: 0;
+    animation: none;
+  }
+
+  /* Nur wenn Container "is-playing" hat, läuft die Animation */
+  .shutter.is-playing .bladeg{
+    animation-name: shutterClose;
+    animation-timing-function: cubic-bezier(.2,.85,.2,1);
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+    animation-delay: var(--d, 0s);
+    animation-duration: calc(var(--durTotal) - var(--d, 0s));
+  }
+
+  .shutter.is-playing .closedMask{
+    animation: maskIn var(--durTotal) linear 1 forwards;
+  }
+
+  #liveFrame{
+    background-color: black;
+  }
+body.pb-capture-running #btnTogglePreview,
+body.pb-capture-running #btnLiveviewToggle {
+  display: none !important;
+}
+
+/* Zwischenvorschau nach jedem Capture */
+#Capture_preview_between_shots {
+  background: #000;
+  height: 100vh;
+  width: 100vw;
+}
+
+#Capture_preview_between_shots .pb-shot-preview-box {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: #000;
+}
+
+#Capture_preview_between_shots .pb-shot-preview-frame {
+  height: 100vh;
+  max-height: 100vh;
+  aspect-ratio: 3 / 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #000;
+}
+
+#Capture_preview_between_shots .pb-shot-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  display: block;
+  background: #000;
+}
+
+#loader_image img{
+    height: 40vh;
+    display: block;
+    margin: 0 auto;
+}
+
+#Capture_working_trigger_loader_image svg{
+width: 10vw;
+height: auto;
+}
+
+.Capture_working_trigger_loader_image_svg {
+  wdith: 10vw;
+}
+
+
+  @keyframes shutterClose {
+    0%   { transform: rotate(var(--base)) translateY(0px);  opacity: 1; }
+    92%  { transform: rotate(calc(var(--base) + 22deg)) translateY(44px); opacity: 1; }
+    100% { transform: rotate(calc(var(--base) + 22deg)) translateY(44px); opacity: 0; }
+  }
+
+  @keyframes maskIn{
+    0%, 92% { opacity: 0; }
+    100%   { opacity: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    /*.shutter.is-playing .bladeg { animation: none; opacity: 0; }
+    .shutter.is-playing .closedMask { animation: none; opacity: 1; }*/
+  }

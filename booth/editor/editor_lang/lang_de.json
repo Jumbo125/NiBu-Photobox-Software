@@ -1,0 +1,202 @@
+{
+  "page.title": "Template Editor",
+  "brand.title": "Template Editor",
+
+  "aria.templateActions": "Template Aktionen",
+  "aria.addItems": "Elemente hinzufügen",
+
+  "btn.new": "Neu",
+  "btn.activeTemplate": "Aktives Template bearebiten",
+  "btn.import": "Import",
+  "btn.save": "Speichern",
+  "btn.exportZip": "Export ZIP",
+
+  "btn.addPhoto": "Foto hinzufügen",
+  "btn.addImage": "Bild hinzufügen",
+
+  "inspector.x": "X",
+  "inspector.y": "Y",
+  "inspector.w": "W",
+  "inspector.h": "H",
+  "inspector.rot": "Rot",
+
+  
+   "te.align.left.title": "Links ausrichten",
+  "te.align.center_h.title": "Horizontal zentrieren",
+  "te.align.right.title": "Rechts ausrichten",
+  "te.align.top.title": "Oben ausrichten",
+  "te.align.middle_v.title": "Vertikal zentrieren",
+  "te.align.bottom.title": "Unten ausrichten",
+  "aria.align.horizontal": "Horizontal ausrichten",
+  "aria.align.vertical": "Vertikal ausrichten",
+
+  "chk.greenwall": "Greenwall",
+  "hint.noSelection": "Kein Objekt selektiert",
+
+  "zoom.out.title": "Rauszoomen",
+  "zoom.in.title": "Reinzoomen",
+
+  "layers.title": "Ebenen",
+  "layers.hint.topFront": "Top = vorne",
+  "layers.hint.view": "Ansicht:",
+
+  "layers.btn.bringFwd.title": "Ebene hoch",
+  "layers.btn.sendBack.title": "Ebene runter",
+  "layers.btn.delete.title": "Löschen",
+
+  "toast.close": "Schließen",
+
+  "modal.start.title": "Template starten",
+  "modal.close": "Schließen",
+
+  "tab.new": "Neu",
+  "tab.importZip": "Bestehend (ZIP)",
+  "tab.projects": "Projekt aktivieren",
+  "tab.activeTemplate": "Aktives Template",
+
+  "new.name.label": "Template-Name",
+  "new.name.placeholder": "z.B. event_2026",
+  "new.name.help": "Erlaubt: a-z, 0-9, _ und -",
+
+  "new.sizePreset.label": "Größe (Preset)",
+  "preset.1800x1200": "1800 x 1200 (4x6\" landscape)",
+  "preset.1200x1800": "1200 x 1800 (4x6\" portrait)",
+  "preset.2400x3600": "2400 x 3600 (8x12\" portrait)",
+  "preset.custom": "Custom…",
+
+  "new.width.label": "Breite (px)",
+  "new.height.label": "Höhe (px)",
+
+  "btn.startEditor": "Editor starten",
+  "btn.startEditor_activeTemplate": "Actives Template bearbeiten",
+
+  "import.hint": "ZIP auswählen (enthält <code>template.xml</code> + Bilder/Assets)",
+  "btn.importDo": "Importieren",
+
+  "projects.select.label": "Projekt auswählen",
+  "projects.select.loading": "– Lade Projekte –",
+  "btn.refresh": "Aktualisieren",
+  "btn.activateProject": "Projekt aktivieren",
+
+  "projects.select.loadingDots": "— Lade Projekte… —",
+  "projects.select.error": "— Fehler beim Laden —",
+  "projects.select.none": "— Keine Projekte gefunden —",
+  "projects.select.choose": "— Bitte wählen —",
+  "projects.hint.noXmlFolder": "Es wurde kein Ordner mit XML gefunden.",
+
+  "wizard.tip": "Tipp: Save/Export schreibt in <code>booth/templates/&lt;name&gt;</code>.",
+    "aria.language": "Sprache",
+  "lang.switch.title": "Sprache wechseln",
+  "lang.switch.btn": "Sprache",
+  "lang.de": "Deutsch",
+  "lang.en": "Englisch",
+    "aria.greenwallActions": "Greenwall Aktionen",
+  "btn.greenwall.upload": "Hochladen",
+  "lbl.greenwall.no_file": "Kein Bild",
+
+  "layerSettings.title": "Layer Einstellungen",
+  "layerSettings.radius.enable": "Eckenradius",
+  "layerSettings.radius.px": "Radius (px)",
+  "layerSettings.radius.placeholder": "px",
+
+  "layerSettings.border.enable": "Rahmen",
+  "layerSettings.advanced": "Erweitert",
+  "layerSettings.border.color": "Farbe",
+  "layerSettings.border.style": "Stil",
+  "layerSettings.border.style.solid": "Durchgehend",
+  "layerSettings.border.style.dashed": "Gestrichelt",
+  "layerSettings.border.style.dotted": "Gepunktet",
+  "layerSettings.border.width": "Strichstärke",
+  "layerSettings.border.width.placeholder": "px",
+
+  "layerSettings.shadow.enable": "Schatten",
+  "layerSettings.shadow.preset": "Preset",
+  "layerSettings.shadow.preset.custom": "Benutzerdefiniert",
+  "layerSettings.shadow.color": "Farbe",
+  "layerSettings.shadow.offsetX": "Horizontal",
+  "layerSettings.shadow.offsetY": "Vertikal",
+  "layerSettings.shadow.blur": "Unschärfe",
+  "layerSettings.shadow.spread": "Ausdehnung",
+
+  "template_editor.err.te_not_loaded": "Template-Editor-Funktionen nicht geladen.",
+  "template_editor.err.bootstrap_not_loaded": "Bootstrap nicht geladen.",
+
+  "template_editor.toast.enter_template_name": "Bitte Template-Name eingeben.",
+  "template_editor.toast.invalid_size": "Ungültige Größe.",
+  "template_editor.toast.template_exists": "Dieses Template existiert bereits. Bitte einen anderen Namen wählen.",
+  "template_editor.toast.editor_started": "Editor gestartet.",
+  "template_editor.toast.check_exists_failed": "Konnte nicht prüfen, ob das Template schon existiert (API-Fehler).",
+
+  "template_editor.toast.import_ok_prefix": "Import OK: ",
+  "template_editor.toast.start_template_first": "Erst Template starten.",
+  "template_editor.toast.image_added": "Bild hinzugefügt.",
+  "template_editor.toast.only_png_jpg_allowed": "Nur PNG oder JPG erlaubt.",
+  "template_editor.toast.greenwall_saved": "Greenwall gespeichert.",
+
+  "template_editor.toast.no_active_template": "Kein Template aktiv.",
+  "template_editor.toast.saved_template_xml": "Gespeichert (template.xml).",
+  "template_editor.toast.export_started": "ZIP Export gestartet.",
+
+  "template_editor.err.import_from_xml_missing": "TE.importFromXmlText fehlt – bitte Funktion einfügen.",
+  "template_editor.err.project_xml_load_failed": "Projekt-XML konnte nicht geladen werden.",
+  "template_editor.toast.active_template_loaded": "Aktives Template geladen.",
+  "template_editor.err.active_template_xml_load_failed": "ActiveTemplate-XML konnte nicht geladen werden.",
+
+   "net.err.http_status": "HTTP {status}",
+
+  "te.projects.select.loading": "— Lade Projekte… —",
+  "te.projects.select.load_error": "— Fehler beim Laden —",
+  "te.projects.select.none_found": "— Keine Projekte gefunden —",
+  "te.projects.select.prompt": "— Bitte wählen —",
+  "te.projects.hint.no_xml": "Es wurde kein Ordner mit XML gefunden.",
+  "te.projects.option.label": "{name} ({modified})",
+
+  "te.xml.parse_error.console": "XML Parse-Fehler:",
+  "te.xml.invalid.toast": "Ungültige XML-Datei (Parse-Fehler)",
+  "te.xml.template_missing.console": "Kein <template> gefunden.",
+  "te.xml.template_missing.toast": "Ungültige XML-Datei (template-Tag fehlt)",
+
+  "te.layer.photo.placeholder": "FOTO {idx}",
+  "te.layer.image.default_name": "BILD",
+  "te.layer.item.default_name": "ELEMENT",
+
+  "te.image.add_timeout.warn": "Bild wurde nicht rechtzeitig hinzugefügt: {src}",
+  "te.project.loaded.toast": "Projekt geladen: {name}",
+
+  "te.i18n.lang_json_invalid": "Lang JSON ungültig",
+
+  "te.config.load_failed": "Config laden fehlgeschlagen",
+  "te.config.save_failed": "Config speichern fehlgeschlagen",
+
+  "te.api.list_projects_missing": "TE.apiListProjects fehlt",
+  "te.api.list_projects_failed": "apiListProjects fehlgeschlagen",
+
+  "te.greenwall.img_null": "Bild ist leer",
+
+    "te.alert.no_active_project": "Kein aktives Projekt gewählt / Template-Name fehlt.",
+  "te.export.failed_http": "Export fehlgeschlagen (HTTP {status})",
+  "te.import.no_zip_selected": "Kein ZIP ausgewählt",
+  "te.fabric.load_image_missing": "TE._fabricLoadImage fehlt",
+
+"te.layers.none": "Keine Ebenen",
+  "te.layers.drag.title": "Ziehen",
+  "te.layers.move_up.title": "Nach vorne (hoch)",
+  "te.layers.move_down.title": "Nach hinten (runter)",
+
+  "te.layer.type.item": "Element",
+  "te.layer.type.photo": "Foto",
+  "te.layer.type.image": "Bild",
+
+  "te.fabric.fromurl_missing": "fabric Image.fromURL fehlt",
+  "te.fabric.fromurl_returned_null": "fromURL lieferte null",
+
+  "te.canvas.no_active": "Kein Canvas aktiv",
+  "te.image.load_failed.console": "Bild-Laden fehlgeschlagen:",
+  "te.image.could_not_load.toast": "Bild konnte nicht geladen werden"
+
+
+
+
+
+
+}

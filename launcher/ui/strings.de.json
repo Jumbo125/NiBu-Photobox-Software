@@ -1,0 +1,94 @@
+{
+  "meta": { "code": "de", "name": "Deutsch" },
+
+  "window.main.title": "NiBu Photobooth Launcher",
+  "window.advanced.title": "NiBu Launcher – Erweitert",
+
+  "label.status": "Status (Prozess + Healthchecks)",
+  "label.console": "Konsole / Logs",
+  "label.installStatus": "Installationsstatus",
+  "group.control": "Steuerung",
+
+  "btn.start": "Start",
+  "btn.stop": "Stop",
+  "btn.restart": "Neustart",
+  "btn.openApp": "App öffnen",
+  "btn.openLogs": "Log-Dateien",
+  "btn.advanced": "Erweitert…",
+
+  "btn.refresh": "Aktualisieren",
+  "btn.refreshing": "Aktualisiere…",
+
+  "btn.ok": "OK",
+  "btn.cancel": "Abbrechen",
+  "btn.yes": "Ja",
+  "btn.no": "Nein",
+
+  "tray.open": "Öffnen",
+  "tray.exit": "Beenden",
+  "tray.logs": "Logs öffnen",
+
+  "adv.frame1": "Installation",
+  "adv.frame2": "Manuelle Installation",
+  "adv.frame3": "Watchdog",
+  "adv.frame4": "Deinstallieren / Löschen",
+
+  "adv.btn.unblock": "Dateien entsperren",
+  "adv.btn.fullInstall": "Vollinstallation",
+  "adv.btn.firewall": "Firewall installieren",
+  "adv.btn.editPort": "Ports bearbeiten (Caddy/PHP)",
+  "adv.btn.task": "Taskplaner installieren",
+
+  "adv.btn.watchdogStart": "Watchdog starten",
+  "adv.btn.watchdogStop": "Watchdog stoppen",
+
+  "adv.btn.removeAll": "Alles entfernen",
+  "adv.btn.firewallUninstall": "Firewall entfernen",
+  "adv.btn.taskUninstall": "Taskplaner entfernen",
+
+  "adv.port.title": "Ports für Vollinstallation",
+  "adv.port.caddy": "Caddy-Port",
+  "adv.port.php": "PHP-Port",
+  "adv.port.api": "API-Server (Bridge) Port",
+  "adv.port.python": "Python-Port",
+
+  "adv.row.configs": "Konfigurationsdateien installiert",
+  "adv.row.firewall": "Firewall",
+  "adv.row.task": "Taskplaner",
+
+  "state.yes": "JA",
+  "state.no": "NEIN",
+  "state.error": "FEHLER",
+
+  "log.manualRefreshStart": "[{time}] Manuelles Refresh: gestartet",
+  "log.manualRefreshDone": "[{time}] Manuelles Refresh: fertig -> {summary}",
+  "log.advRefreshStart": "[{time}] Advanced Refresh: gestartet",
+  "log.advRefreshDone": "[{time}] Advanced Refresh: fertig -> {summary}",
+
+  "log.openLogs": "[{time}] Öffne Logs: {dir}",
+
+  "grid.service": "Dienst",
+  "grid.process": "Prozess",
+  "grid.health": "Health",
+
+  "adv.grid.key": "Bereich",
+  "adv.grid.state": "Status",
+  "adv.grid.details": "Details",
+
+  "confirm.install.title": "Installation",
+  "confirm.install.msg": "Durch die Installation werden vorhandene Einstellungen überschrieben.\nWollen Sie fortfahren?\n\nBetroffene Datei(en): {files}",
+
+  "confirm.uninstall.title": "Deinstallation",
+  "confirm.uninstall.msg": "Durch die Deinstallation werden sämtliche Konfigurationsdateien gelöscht.\nAnschließend können Sie neu installieren oder ggf. den gesamten Ordner löschen, um ihn vollständig zu entfernen.\n\nWollen Sie fortfahren?",
+ 
+  "adv.btn.shortcut": "Desktop-Verknüpfung erstellen",
+  
+  "adv.btn.winTweaks": "Windows-Kiosk Anpassungen",
+  
+  "adv.btn.btnWindowstweaksUninstall": "WindowsTweaks Deinstallieren",
+
+  "confirm.winTweaks.title": "Hinweis",
+  "confirm.winTweaks.msg": "Hinweis: Diese Aktion ändert Windows-Einstellungen (Registry/Policies). Administratorrechte sind erforderlich. Manche Änderungen werden erst nach Ab-/Anmelden oder Neustart wirksam.\n\nEs werden folgende Einstellungen gesetzt:\n\nSperrbildschirm deaktivieren (Policy: NoLockScreen=1)\n\nMicrosoft Consumer Features deaktivieren (Policy: DisableWindowsConsumerFeatures=1)\n\nToast-Benachrichtigungen für aktuellen Benutzer deaktivieren (ToastEnabled=0 unter HKCU)\n\nToast-Benachrichtigungen per Policy sperren (systemweit) (NoToastApplicationNotification=1)\n\nNur ausführen, wenn du diese Anpassungen möchtest."
+}
+
+

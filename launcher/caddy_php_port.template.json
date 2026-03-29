@@ -1,0 +1,4 @@
+{
+  "CADDY_PORT": __CADDY_PORT__,
+  "PHP_PORT": __PHP_PORT__
+}

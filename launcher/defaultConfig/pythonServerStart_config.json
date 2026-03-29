@@ -1,0 +1,7 @@
+{
+  "Enabled": true,
+  "Host": "127.0.0.1",
+  "PingPath": "/ping",
+  "PingTimeoutMs": 500,
+  "StartCooldownMs": 8000
+}
