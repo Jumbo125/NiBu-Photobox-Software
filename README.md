@@ -1,9 +1,13 @@
 <!-- Language switch -->
 [Deutsch](#de) | [English](#en)
-
 ![Logo](Logo/Logo.png)
 
+
+
 # Photobooth Control (Kiosk UI) · CameraBridge · Python Renderer
+
+![startbild](Logo/startbild.jpg)
+
 
 ![Python](https://camo.githubusercontent.com/e14a118e41ec77a1d51020fe2687bc9a24f81af4a389739afb876306ee7a64c6/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f507974686f6e2d332e782d626c75653f6c6f676f3d707974686f6e)  
 ![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL--3.0--or--later-blue.svg)
