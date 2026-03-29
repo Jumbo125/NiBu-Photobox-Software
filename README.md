@@ -210,13 +210,13 @@ The Web UI uses a separate camera subsystem. The camera is controlled by **worke
 
 ```mermaid
 flowchart LR
-  U[User / Touchscreen] -->|Tap to start / Settings| W[Web UI (Browser)]
-  W -->|HTTP / JSON| A[ApiServer.exe<br/>(CameraBridge API Server)]
-  A -->|Start/Control| K[worker.exe<br/>(Camera Worker)]
-  K -->|Canon SDK / Nikon Pro| C[(Camera)]
-  W -->|HTTP (optional)| P[Python Tool Server<br/>(Render / Print / Service)]
-  P -->|File paths| FS[(Event / Session files)]
-  A -->|MJPEG / LiveView| W
+  U["User / Touchscreen"] -->|"Tap to start / Settings"| W["WebUI (Browser)"]
+  W -->|"HTTP / JSON"| A["ApiServer.exe<br>(CameraBridge API-Server)"]
+  A -->|"Start / Control"| K["worker.exe<br>(Camera Worker)"]
+  K -->|"Canon SDK / Nikon Pro"| C["Kamera"]
+  W -->|"HTTP (optional)"| P["Python Tool-Server<br>(Render / Print / Service)"]
+  P -->|"Dateipfade"| FS["Event-/Session-Files"]
+  A -->|"MJPEG / LiveView"| W
 ```
 
 
