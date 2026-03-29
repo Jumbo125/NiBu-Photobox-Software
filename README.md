@@ -23,7 +23,7 @@ Browser-basierte Steuerung für eine Fotobox im Kioskbetrieb: **Startscreen**, *
 **Geplant:** Eine zusätzliche Schnittstelle/Integration für **DNP Drucker** ist vorgesehen.
 
 ### Architektur (Überblick)
-![Architektur-Skizze](config_skizze/architektur_skizze.png)
+![Architektur-Skizze](config-skizze/architektur_skizze.png)
 
 Die WebUI arbeitet mit einem separaten Kamera-Subsystem. Die Kamera wird durch **worker.exe** (Kamera-Worker) gesteuert. Der **ApiServer.exe** stellt die HTTP/JSON-API bereit, übersetzt Requests in **Named-Pipe-IPC** zum Worker und liefert u. a. den **MJPEG-LiveView-Stream**. Die WebUI kommuniziert mit dem API-Server (HTTP/JSON) und nutzt dessen Stream für die Vorschau.
 
@@ -202,7 +202,7 @@ Browser-based controller for a kiosk-style photo booth: **start screen**, **capt
 
 ### Architecture (overview)
 
-![Architektur-Skizze](config_skizze/architektur_skizze.png)
+![Architektur-Skizze](config-skizze/architektur_skizze.png)
 
 The Web UI uses a separate camera subsystem. The camera is controlled by **worker.exe** (camera worker). **ApiServer.exe** provides the HTTP/JSON API, translates requests to the worker via **named-pipe IPC**, and exposes the **MJPEG live view stream**. The Web UI talks to the API server over HTTP/JSON and uses the stream for preview.
 
