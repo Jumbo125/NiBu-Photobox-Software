@@ -1,7 +1,7 @@
 <!-- Language switch -->
 [Deutsch](#de) | [English](#en)
 
-![Logo](Logo/logo.png)
+![Logo](Logo/Logo.png)
 
 # Photobooth Control (Kiosk UI) · CameraBridge · Python Renderer
 
