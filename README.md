@@ -29,14 +29,16 @@ Die WebUI arbeitet mit einem separaten Kamera-Subsystem. Die Kamera wird durch *
 
 > Kamera-Worker (**worker.exe**) und API-Server (**ApiServer.exe**) sind in einem **eigenen GitHub-Repository** versioniert, weil sie auch unabhängig eingesetzt werden können – die WebUI nutzt sie jedoch als Backend für LiveView/Capture.
 
+```mermaid
 flowchart LR
-  U[User / Touchscreen] -->|Tap to start / Settings| W[WebUI Browser]
-  W -->|HTTP / JSON| A[ApiServer.exe]
-  A -->|Start / Control| K[worker.exe]
-  K -->|Canon SDK / Nikon Pro| C[Kamera]
-  W -->|HTTP optional| P[Python Tool-Server]
-  P -->|Dateipfade| FS[Event-/Session-Files]
-  A -->|MJPEG / LiveView| W
+  U["User / Touchscreen"] -->|"Tap to start / Settings"| W["WebUI (Browser)"]
+  W -->|"HTTP / JSON"| A["ApiServer.exe<br>(CameraBridge API-Server)"]
+  A -->|"Start / Control"| K["worker.exe<br>(Camera Worker)"]
+  K -->|"Canon SDK / Nikon Pro"| C["Kamera"]
+  W -->|"HTTP (optional)"| P["Python Tool-Server<br>(Render / Print / Service)"]
+  P -->|"Dateipfade"| FS["Event-/Session-Files"]
+  A -->|"MJPEG / LiveView"| W
+```
 
 
 Zusätzlich bietet der API-Server:
