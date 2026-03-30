@@ -32,6 +32,21 @@ Browser-basierte Steuerung für eine Fotobox im Kioskbetrieb: **Startscreen**, *
 
 **Geplant:** Eine zusätzliche Schnittstelle/Integration für **DNP Drucker** ist vorgesehen.
 
+### Features / Überblick
+
+- **Einfache Handhabung** – die Photobox ist so aufgebaut, dass sie auch im Eventbetrieb schnell und unkompliziert bedient werden kann.
+- **Standarddrucker setzen** – der gewünschte Drucker kann direkt ausgewählt und als Standarddrucker verwendet werden.
+- **Maximale Ausdrucke festlegen** – pro Event kann eine feste Obergrenze für Ausdrucke definiert werden.
+- **Mehrfachdruck freigeben** – mehrere Ausdrucke pro Session oder Nachdrucke können erlaubt werden.
+- **Einfacher Template Editor** – Templates lassen sich ohne komplizierten Workflow direkt erstellen und anpassen.
+- **Schatten und runde Ecken** – Layout-Elemente können mit Schatten, Rahmen und abgerundeten Ecken gestaltet werden.
+- **Ebenen-Funktion** – Objekte können in Vorder- und Hintergrund angeordnet und sauber organisiert werden.
+- **Drag & Drop** – Elemente und Ebenen lassen sich komfortabel per Drag & Drop verschieben.
+- **Greenwall / Greenscreen** – Greenwall-Unterstützung ist integriert und kann im Workflow verwendet werden.
+- **Farbauswahl des Grüntons** – Greenscreen-/Greenwall-Parameter lassen sich an unterschiedliche Hintergründe und Lichtbedingungen anpassen.
+- **Remote-Zugriff** – Zugriff über Netzwerk, Tablet oder andere Geräte ist möglich, abhängig von der API-/Server-Konfiguration.
+- **Mehrsprachig** – Oberfläche und wichtige Bereiche sind mehrsprachig ausgelegt.
+
 ### Launcher (Controll Panel)
 
 Der **NiBu Photobooth Launcher** ist der einfache Startpunkt für Operatoren. Er prüft die wichtigsten Dienste und startet/stoppt sie gesammelt.
@@ -231,6 +246,21 @@ Browser-based controller for a kiosk-style photo booth: **start screen**, **capt
 **Linux status:** Linux support is **mostly prepared**, but depending on your deployment you still need to adjust a few things (e.g., paths, service startup, printer listing/integrations).
 
 **Planned:** An additional interface/integration for **DNP printers** is planned.
+
+## Features / Overview
+
+- **Easy to use** – the photobooth is designed for quick and simple operation, even during live events.
+- **Set default printer** – the preferred printer can be selected directly and used as the default printer.
+- **Define maximum prints** – a fixed print limit can be configured per event.
+- **Allow multiple prints** – multiple prints per session or reprints can be enabled.
+- **Simple template editor** – templates can be created and adjusted directly without a complicated workflow.
+- **Shadows and rounded corners** – layout elements can be styled with shadows, borders, and rounded corners.
+- **Layer support** – objects can be arranged in front of or behind each other and managed cleanly.
+- **Drag & drop** – elements and layers can be moved comfortably via drag and drop.
+- **Greenwall / greenscreen support** – integrated Greenwall support is available in the workflow.
+- **Adjustable green tone settings** – greenscreen/greenwall parameters can be tuned for different backgrounds and lighting conditions.
+- **Remote access** – access over network, tablet, or other devices is possible depending on the API/server configuration.
+- **Multilingual** – the interface and core areas are designed to support multiple languages.
 
 ### Launcher (Controll Panel)
 
