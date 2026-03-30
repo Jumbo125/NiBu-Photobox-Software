@@ -5,7 +5,7 @@
 
 
 
-# Photobooth Control (Kiosk UI) · CameraBridge · Python Renderer
+# Photobox Control (Kiosk UI) · CameraBridge · Python Renderer
 
 ![startbild](Logo/startbild.jpg)
 
