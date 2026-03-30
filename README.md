@@ -47,6 +47,13 @@ Browser-basierte Steuerung für eine Fotobox im Kioskbetrieb: **Startscreen**, *
 - **Remote-Zugriff** – Zugriff über Netzwerk, Tablet oder andere Geräte ist möglich, abhängig von der API-/Server-Konfiguration.
 - **Mehrsprachig** – Oberfläche und wichtige Bereiche sind mehrsprachig ausgelegt.
 
+## Support
+
+Donate with PayPal ☕
+Wenn dir das Projekt hilft und du mir einen Kaffee ausgeben willst:
+
+[![Donate with PayPal ☕](https://img.shields.io/badge/Donate-PayPal-00457C?logo=paypal&logoColor=white)](https://www.paypal.me/andreasrottmann92)
+
 ### Launcher (Controll Panel)
 
 Der **NiBu Photobooth Launcher** ist der einfache Startpunkt für Operatoren. Er prüft die wichtigsten Dienste und startet/stoppt sie gesammelt.
@@ -68,6 +75,13 @@ Der **NiBu Photobooth Launcher** ist der einfache Startpunkt für Operatoren. Er
 - Danach im Hauptfenster **Start** klicken und mit **App öffnen** die Photobox starten.
 
 Hinweis: Autostart wird bewusst **manuell** über eine Verknüpfung eingerichtet (um Probleme mit Security-Software zu vermeiden).
+
+## Camera Control
+
+Die Kamerasteuerung für dieses Projekt wurde in ein eigenes Repository ausgelagert.
+
+Repository:
+[NiBu Camera Control](https://github.com/Jumbo125/NiBu-Camera-Control)
 
 ### Architektur (Überblick)
 ![Architektur-Skizze](config-skizze/photobox_architektur.png)
@@ -262,6 +276,12 @@ Browser-based controller for a kiosk-style photo booth: **start screen**, **capt
 - **Remote access** – access over network, tablet, or other devices is possible depending on the API/server configuration.
 - **Multilingual** – the interface and core areas are designed to support multiple languages.
 
+## Support
+
+Donate with PayPal ☕
+
+[![Donate with PayPal ☕](https://img.shields.io/badge/Donate-PayPal-00457C?logo=paypal&logoColor=white)](https://www.paypal.me/andreasrottmann92)
+
 ### Launcher (Controll Panel)
 
 The **NiBu Photobooth Launcher** is the operator-friendly entry point. It checks core services and starts/stops them as a bundle.
@@ -283,6 +303,13 @@ The **NiBu Photobooth Launcher** is the operator-friendly entry point. It checks
 - Then use **Start** and **Open App** to launch the Photobooth UI.
 
 Note: Autostart is intentionally configured **manually** via a shortcut (to avoid issues with security software).
+
+## Camera Control
+
+The camera control for this project has been moved to a separate repository.
+
+Repository:
+[NiBu Camera Control](https://github.com/Jumbo125/NiBu-Camera-Control)
 
 ### Architecture (overview)
 
