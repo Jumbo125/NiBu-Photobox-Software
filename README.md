@@ -32,6 +32,28 @@ Browser-basierte Steuerung für eine Fotobox im Kioskbetrieb: **Startscreen**, *
 
 **Geplant:** Eine zusätzliche Schnittstelle/Integration für **DNP Drucker** ist vorgesehen.
 
+### Launcher (Controll Panel)
+
+Der **NiBu Photobooth Launcher** ist der einfache Startpunkt für Operatoren. Er prüft die wichtigsten Dienste und startet/stoppt sie gesammelt.
+
+![Launcher – Hauptfenster](Logo/launcher2.jpg)
+
+**Wichtigste Buttons (Hauptfenster):**
+- **Start** – startet die komplette Umgebung (Caddy, PHP, Bridge API, Python).
+- **Stop** – stoppt die Umgebung.
+- **Neustart** – Stop + Start (sauberer Re-Start).
+- **App öffnen** – öffnet die Photobox-WebUI im Browser.
+- **Log-Dateien** – öffnet den Log-Ordner.
+- **Erweitert…** – Installation, Ports, Firewall/Tasks, Kiosk-Tweaks.
+
+![Launcher – Erweitert / Vollinstallation](Logo/launcher1.jpg)
+
+**Vollinstallation (1 Klick):**
+- **Vollinstallation** installiert bzw. richtet die Umgebung mit einem Klick ein (Konfiguration, Ports/Setup-Schritte, je nach Paket auch Firewall/Tasks).  
+- Danach im Hauptfenster **Start** klicken und mit **App öffnen** die Photobox starten.
+
+Hinweis: Autostart wird bewusst **manuell** über eine Verknüpfung eingerichtet (um Probleme mit Security-Software zu vermeiden).
+
 ### Architektur (Überblick)
 ![Architektur-Skizze](config-skizze/photobox_architektur.png)
 
@@ -209,6 +231,28 @@ Browser-based controller for a kiosk-style photo booth: **start screen**, **capt
 **Linux status:** Linux support is **mostly prepared**, but depending on your deployment you still need to adjust a few things (e.g., paths, service startup, printer listing/integrations).
 
 **Planned:** An additional interface/integration for **DNP printers** is planned.
+
+### Launcher (Controll Panel)
+
+The **NiBu Photobooth Launcher** is the operator-friendly entry point. It checks core services and starts/stops them as a bundle.
+
+![Launcher – Main window](Logo/launcher2.jpg)
+
+**Key buttons (main window):**
+- **Start** – starts the full stack (Caddy, PHP, Bridge API, Python).
+- **Stop** – stops the stack.
+- **Restart** – clean stop + start.
+- **Open App** – opens the Photobooth Web UI in your browser.
+- **Open Logs** – opens the log folder.
+- **Advanced…** – installation, ports, firewall/tasks, kiosk tweaks.
+
+![Launcher – Advanced / Full install](Logo/launcher1.jpg)
+
+**Full install (one click):**
+- **Full Install** sets up everything with one click (configs, ports/setup steps, and depending on the package also firewall/tasks).  
+- Then use **Start** and **Open App** to launch the Photobooth UI.
+
+Note: Autostart is intentionally configured **manually** via a shortcut (to avoid issues with security software).
 
 ### Architecture (overview)
 
