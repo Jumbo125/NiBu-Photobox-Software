@@ -51,7 +51,7 @@ def load_server_config(config_path: str) -> Dict[str, Any]:
         return {"ok": False, "error": "server_config_not_found", "path": rp}
 
     try:
-        with open(rp, "r", encoding="utf-8") as f:
+        with open(rp, "r", encoding="utf-8-sig") as f:
             data = json.load(f)
         if not isinstance(data, dict):
             return {"ok": False, "error": "server_config_invalid", "path": rp}

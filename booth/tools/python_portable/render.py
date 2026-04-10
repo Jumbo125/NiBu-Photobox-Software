@@ -140,7 +140,7 @@ def load_render_config(explicit_path: Optional[str] = None) -> Dict[str, Any]:
         return dict(DEFAULT_RENDER_CONFIG)
 
     try:
-        with cfg_path.open("r", encoding="utf-8") as f:
+        with cfg_path.open("r", encoding="utf-8-sig") as f:
             user_cfg = json.load(f)
     except Exception as e:
         print(f"Warnung: render_config.json konnte nicht gelesen werden ({cfg_path}): {e}", file=sys.stderr)

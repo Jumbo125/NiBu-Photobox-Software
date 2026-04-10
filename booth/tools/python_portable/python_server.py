@@ -241,7 +241,7 @@ def _pb_load_json(path):
     try:
         if not path or not os.path.isfile(path):
             return {}
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, "r", encoding="utf-8-sig") as f:
             data = json.load(f)
         return data if isinstance(data, dict) else {}
     except Exception:
@@ -483,7 +483,7 @@ def _json_file_check(path: Path, required: bool = True) -> Dict[str, Any]:
         if not result["is_file"]:
             result["error"] = "not_a_file"
             return result
-        with path.open("r", encoding="utf-8") as fh:
+        with path.open("r", encoding="utf-8-sig") as fh:
             data = json.load(fh)
         result["json_ok"] = isinstance(data, (dict, list))
         if not result["json_ok"]:
