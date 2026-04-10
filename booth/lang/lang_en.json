@@ -42,9 +42,18 @@
   "overlay.printer_settings.description": "Select a printer, configure copies, and optionally open the Windows printer preferences.",
 
   "overlay.printer_settings.printer.section": "Printer",
+  "overlay.printer_settings.dnp_paper_status.label": "DNP printer available – query paper status",
+  "overlay.printer_settings.dnp_paper_status.hint": "Enables paper status querying when a DNP printer is available.",
   "overlay.printer_settings.printer.label": "Windows printer",
   "overlay.printer_settings.printer.placeholder": "Loading printers…",
   "overlay.printer_settings.printer.hint": "The list is provided by CMD WMIC.",
+  "overlay.printed.paper.remaining" : "Remaining Paper",
+  "capture.flow.err.paper_empty": "Printing is not possible. The paper is empty.",
+  "capture.flow.err.paper_status_unavailable": "Printing is not possible. Paper status could not be determined.",
+  "capture.flow.err.reprint_not_allowed": "Reprint is not allowed for this event.",
+  "capture.flow.err.last_session_missing": "No previous session is available for reprint.",
+  "capture.flow.err.reprint_failed": "Reprint failed.",
+  "capture.flow.err.print_api_missing": "The print API is not available.",
 
   "general.settings.no_printer_selected": "No printer selected",
   "general.settings.printer_open_failed": "Failed to open printer dialog",
@@ -418,6 +427,7 @@
   "form.save": "Save",
   "form.cancel": "Cancel",
   "form.close": "Close",
+  "form.print_again": "Print again",
 
   "api.upload.err.post_required": "POST required",
   "api.upload.err.no_file_uploaded": "No file uploaded (field name must be \"zip\")",
@@ -791,9 +801,18 @@
   "bridge.error.internal_error": "Internal error.",
   "overlay.settings.capture.text_triggering": "Trigger text",
   "overlay.settings.capture.text_triggering_help": "Text shown after the countdown while the camera is still taking the photo.",
-  "capture.defaults.text_triggering": "The camera is taking the photo…\nplease do not move.",
+  "capture.working.trigger.text_triggering": "The camera is taking the photo…\nplease do not move.",
   "capture.working.trigger.title" : "Please hold still!",
    "overlay.render_settings.photo_work_scale.section": "Photo work size",
   "overlay.render_settings.photo_work_scale.label": "Photo scale factor",
-  "overlay.render_settings.photo_work_scale.hint": "Scale factor for internal photo processing. Only downsizes, never upscales. Default: 1.5"
+  "overlay.render_settings.photo_work_scale.hint": "Scale factor for internal photo processing. Only downsizes, never upscales. Default: 1.5",
+  "printer.dnp.paper_remaining.no_dnp":"No DNP",
+  "capture.flow.err.paper_not_enough": "Printing is not possible. Only {remaining} prints are available, but {required} are required.",
+  "capture.error.paper.title": "Printer paper problem",
+  "capture.error.paper.text":"Printing is not possible.",
+  "capture.error.printer.title":"Printer error",
+  "capture.error.printer.text":"Printing failed"
+
+
+
 }

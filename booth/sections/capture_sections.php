@@ -10,9 +10,10 @@
     <div class="pb-capture-counter" data-role="counter"></div>
     <div class="pb-capture-text" data-role="text"></div>
 
-    <button type="button" class="btn btn-danger btn-lg mt-3" data-role="cancel" data-lang-key="form.cancel">
-      <i class="bi bi-x-circle me-1"></i> <?= t('form.cancel', 'Cancel') ?>
-    </button>
+    <button type="button" class="btn btn-danger btn-lg mt-3" data-role="cancel">
+    <i class="bi bi-x-circle me-1"></i>
+    <span data-lang-key="form.cancel"><?= t('form.cancel', 'Cancel') ?></span>
+</button>
   </div>
 </div>
 
@@ -78,6 +79,12 @@
       </div>
       <div class="pb-capture-text mt-2" data-role="text"></div>
 
+       <div class="mt-3">
+        <button type="button" id="print_again" class="btn btn-warning btn-lg">
+         <i class="bi bi-printer-fill"></i> <span data-lang-key="form.print_again"><?= t('form.print_again', 'Print again') ?></span>
+        </button>
+      </div>
+
       <div class="mt-3">
         <button type="button" class="btn btn-primary btn-lg" data-role="close" data-lang-key="form.close">
           <?= t('form.close', 'Close') ?>
@@ -104,7 +111,9 @@
  <!-- svg ist nur durch javascript animiert  die funciton PB.shutter.playIn,   el.classList.remove('is-playing'); -->
 <div id="Capture_working_capture" class="pb-capture-layer d-none bg-white shutter">
   <div class="d-flex justify-content-center align-items-center working_capture" style="width:100vw; height:100vh;">
-    <?php include 'loading_svg.svg'; ?>
+    <?php 
+    include 'loading_svg.svg'; 
+    ?>
 
     <div class="spinner-border text-dark" role="status">
       <span class="visually-hidden" data-lang-key="common.loading">
@@ -121,18 +130,69 @@
       <img src="./src/img/trigger_wait.svg" alt="trigger_wait" style="height: 40vh; display: block; margin: 0 auto;">
     </div>
 
-    
+    <div class="Capture_working_trigger_loader_image_svg justify-content-center align-items-center ">
+      <?php 
+        //include 'loading_svg.svg'; 
+      ?>
+      <img src="./src/img/loading_svg.svg" alt="loading">
+    </div>
 
-    <div class="spinner-border" role="status" aria-hidden="true"></div>
+    <!--<div class="spinner-border" role="status" aria-hidden="true"></div>-->
 
     <div class="pb-capture-title mt-3" data-lang-key="capture.working.trigger.title">
       <?= t('capture.working.trigger.title', 'Please hold still') ?>
     </div>
-<div class="Capture_working_trigger_loader_image_svg justify-content-center align-items-center ">
-      <?php include 'loading_svg.svg'; ?>
-    </div>
+
     <div class="pb-capture-text mt-2" data-role="text" data-lang-key="capture.working.trigger.text">
-      <?= t('capture.working.trigger.text', 'The camera is taking the photo… please do not move.') ?>
+      <?= t('capture.working.trigger.text_triggering', 'The camera is taking the photo… please do not move.') ?>
+    </div>
+  </div>
+</div>
+
+
+
+<div id="Capture_error_paper" class="pb-capture-layer d-none">
+  <div class="pb-capture-box">
+    <div class="Capture_error_paper_image">
+      <img src="./src/img/paper_empty.svg" alt="paper_empty" style="height: 30vh; display: block; margin: 0 auto;">
+    </div>
+
+    <div class="pb-capture-title mt-3" data-lang-key="capture.error.paper.title">
+      <?= t('capture.error.paper.title', 'Printer paper problem') ?>
+    </div>
+
+    <div class="pb-capture-text mt-2" data-role="text" data-lang-key="capture.error.paper.text">
+      <?= t('capture.error.paper.text', 'Printing is not possible.') ?>
+    </div>
+
+    <div class="mt-4 text-center">
+      <button type="button" class="btn btn-light" data-role="close">
+        <?= t('capture.error.paper.close', 'Close') ?>
+      </button>
+    </div>
+  </div>
+</div>
+
+
+
+<div id="Capture_error_printer" class="pb-capture-layer d-none">
+  <div class="pb-capture-box">
+    <div class="Capture_error_printer_image">
+      <img src="./src/img/printer_error.svg" alt="printer_error" style="height: 30vh; display: block; margin: 0 auto;">
+    </div>
+
+    <div class="pb-capture-title mt-3" data-lang-key="capture.error.printer.title">
+      <?= t('capture.error.printer.title', 'Printer error') ?>
+    </div>
+
+    <div class="pb-capture-text mt-2" data-role="text" data-lang-key="capture.error.printer.text">
+      <?= t('capture.error.printer.text', 'Printing failed.') ?>
+    </div>
+
+    <div class="mt-4 text-center">
+      <button type="button" class="btn btn-light" data-role="close">
+        <?= t('capture.error.printer.close', 'Close') ?>
+      </button>
     </div>
   </div>
 </div>

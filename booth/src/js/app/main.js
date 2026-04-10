@@ -38,6 +38,17 @@
   if (PB.__mainStarted) return;
   PB.__mainStarted = true;
 
+   // -------------------------------------------------------------
+// Utils
+// -------------------------------------------------------------
+PB.readBool = function (v) {
+  if (v === true) return true;
+  if (v === false) return false;
+  return ["1", "true", "yes", "y", "on"].includes(
+    String(v ?? "").trim().toLowerCase()
+  );
+};
+
   /**
    * Startet die App einmal sauber.
    */

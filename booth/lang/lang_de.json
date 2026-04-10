@@ -45,6 +45,15 @@
   "overlay.printer_settings.printer.label": "Windows-Drucker",
   "overlay.printer_settings.printer.placeholder": "Drucker werden geladen…",
   "overlay.printer_settings.printer.hint": "Die Liste kommt über die lokale CMD WMIC.",
+    "overlay.printer_settings.dnp_paper_status.label": "DNP-Drucker vorhanden – Papierstatus abfragen",
+    "overlay.printer_settings.dnp_paper_status.hint": "Aktiviert die Papierstatus-Abfrage, wenn ein DNP-Drucker vorhanden ist.",
+    "overlay.printed.paper.remaining" : "Verfügbares Papier",
+   "capture.flow.err.paper_empty": "Drucken nicht möglich. Das Papier ist leer.",
+  "capture.flow.err.paper_status_unavailable": "Drucken nicht möglich. Der Papierstatus konnte nicht ermittelt werden.",
+  "capture.flow.err.reprint_not_allowed": "Nachdrucken ist für dieses Event nicht erlaubt.",
+  "capture.flow.err.last_session_missing": "Es ist keine letzte Session für den Nachdruck vorhanden.",
+  "capture.flow.err.reprint_failed": "Nachdruck fehlgeschlagen.",
+  "capture.flow.err.print_api_missing": "Die Druck-API ist nicht verfügbar.",
 
   "general.settings.no_printer_selected": "Kein Drucker gewählt",
   "general.settings.printer_open_failed": "Fehler beim Öffnen des Druckerdialogs",
@@ -417,6 +426,7 @@
   "form.save": "Speichern",
   "form.cancel": "Abbrechen",
   "form.close": "Schließen",
+  "form.print_again": "Druck wiederholen",
 
   "api.upload.err.post_required": "POST erforderlich",
   "api.upload.err.no_file_uploaded": "Keine Datei hochgeladen (Feldname muss \"zip\" sein)",
@@ -791,9 +801,15 @@
   "bridge.error.invalid_request": "Ungültige Anfrage.",
    "overlay.settings.capture.text_triggering": "Text während Auslösung",
   "overlay.settings.capture.text_triggering_help": "Text, der nach dem Countdown angezeigt wird, während die Kamera das Foto noch aufnimmt.",
-  "capture.defaults.text_triggering": "Kamera löst gerade aus…\nbitte nicht bewegen.",
+  "capture.working.trigger.text_triggering": "Kamera löst gerade aus…\nbitte nicht bewegen.",
   "capture.working.trigger.title" : "Bitte still halten!",
    "overlay.render_settings.photo_work_scale.section": "Foto-Arbeitsgröße",
   "overlay.render_settings.photo_work_scale.label": "Foto-Skalierungsfaktor",
-  "overlay.render_settings.photo_work_scale.hint": "Skalierungsfaktor für die interne Fotoverarbeitung. Es wird nur verkleinert, niemals hochskaliert. Standard: 1.5"
+  "overlay.render_settings.photo_work_scale.hint": "Skalierungsfaktor für die interne Fotoverarbeitung. Es wird nur verkleinert, niemals hochskaliert. Standard: 1.5",
+  "printer.dnp.paper_remaining.no_dnp":"Kein DNP",
+  "capture.flow.err.paper_not_enough": "Drucken ist nicht möglich. Es sind nur noch {remaining} Ausdrucke verfügbar, aber {required} werden benötigt.",
+  "capture.error.paper.title": "Papierproblem",
+"capture.error.paper.text": "Drucken ist nicht möglich.",
+"capture.error.printer.title": "Druckerfehler",
+"capture.error.printer.text": "Der Druck ist fehlgeschlagen."
 }

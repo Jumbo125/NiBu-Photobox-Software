@@ -131,7 +131,7 @@ def deep_merge(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]
 
 def load_render_config(explicit_path: Optional[str] = None) -> Dict[str, Any]:
     booth_root = get_booth_root()
-    cfg_path = Path(explicit_path).resolve() if explicit_path else (booth_root / "config" / "render_config.json")
+    cfg_path = Path(explicit_path).resolve() if explicit_path else (booth_root / "config" / "config" / "render_config.json")
 
     if not cfg_path.exists():
         return dict(DEFAULT_RENDER_CONFIG)
@@ -1138,7 +1138,7 @@ def render_collage_api(payload: Dict[str, Any], base_dir: Optional[Path] = None)
             cfg_source = "payload.render_config"
             cfg = load_render_config(str(cfg_path_used))
         else:
-            cfg_path_used = (booth_root / "config" / "render_config.json").resolve()
+            cfg_path_used = (booth_root / "config" / "config" / "render_config.json").resolve()
             cfg_source = "default booth/config/render_config.json"
             cfg = load_render_config(None)
 

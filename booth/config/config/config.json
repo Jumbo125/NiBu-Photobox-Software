@@ -1,11 +1,11 @@
 {
     "python": {
-        "Path": "C:\\Users\\andre\\Desktop\\photo-software\\booth\\tools\\python_portable\\python.exe",
-        "renderConfig": "C:\\Users\\andre\\Desktop\\photo-software\\booth\\config\\config\\render_config.json"
+        "Path": "xxxxxx\\photo-software\\booth\\tools\\python_portable\\python.exe",
+        "renderConfig": "xxxxxx\\photo-software\\booth\\config\\config\\render_config.json"
     },
     "app": {
         "render_app": "C:\\Photobooth\\booth\\tools\\python_portable\\render.py",
-        "python_server": "C:\\Users\\andre\\Desktop\\photo-software\\booth\\tools\\python_portable\\python_server.py"
+        "python_server": "xxxxxx\\photo-software\\booth\\tools\\python_portable\\python_server.py"
     },
     "system": {
         "os": "windows",
@@ -43,7 +43,7 @@
         "printerCount": 1
     },
     "activeTemplate": {
-        "path": "C:\\Users\\andre\\Desktop\\photo-software\\booth\\activeTemplate\\"
+        "path": "xxxxxx\\photo-software\\booth\\activeTemplate\\"
     },
     "capture": {
         "text_starting": "Gleich geht’s los…",
