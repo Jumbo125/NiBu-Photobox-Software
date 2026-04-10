@@ -137,7 +137,7 @@ def load_render_config(explicit_path: Optional[str] = None) -> Dict[str, Any]:
         return dict(DEFAULT_RENDER_CONFIG)
 
     try:
-        with cfg_path.open("r", encoding="utf-8") as f:
+        with cfg_path.open("r", encoding="utf-8-sig") as f:
             user_cfg = json.load(f)
     except Exception as e:
         print(f"Warnung: render_config.json konnte nicht gelesen werden ({cfg_path}): {e}", file=sys.stderr)
@@ -1198,7 +1198,7 @@ def _load_session_json(folder: Path) -> Optional[Dict[str, Any]]:
     if not f.exists():
         return None
     try:
-        with f.open("r", encoding="utf-8") as fh:
+        with f.open("r", encoding="utf-8-sig") as fh:
             return json.load(fh)
     except Exception as e:
         print(f"[render_core] Warnung: session.json konnte nicht gelesen werden: {e}", file=sys.stderr)
@@ -1211,7 +1211,7 @@ def _write_session_json(folder: Path, data: Dict[str, Any]) -> None:
         tmp = folder / "session.json.tmp"
         out = folder / "session.json"
         data["updatedAt"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-        with tmp.open("w", encoding="utf-8") as fh:
+        with tmp.open("w", encoding="utf-8-sig") as fh:
             json.dump(data, fh, indent=2, ensure_ascii=False)
         tmp.replace(out)
     except Exception as e:

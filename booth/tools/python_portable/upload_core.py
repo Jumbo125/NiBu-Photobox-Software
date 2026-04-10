@@ -49,7 +49,7 @@ def load_json(path: str) -> Dict[str, Any]:
     try:
         if not path or not os.path.isfile(path):
             return {}
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, "r", encoding="utf-8-sig") as f:
             data = json.load(f)
         return data if isinstance(data, dict) else {}
     except Exception:
