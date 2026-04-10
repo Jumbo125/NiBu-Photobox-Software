@@ -16,7 +16,7 @@ SPDX-License-Identifier: Apache-2.0
  *   - jQuery + Bootstrap Modal Events (shown.bs.modal)
  */
 (function ($) {
-  'use strict';
+  "use strict";
   window.PB = window.PB || {};
   const PB = window.PB;
 
@@ -25,13 +25,18 @@ SPDX-License-Identifier: Apache-2.0
    * Handhabung: mergeInto(window.PB_CONFIG[key], patchObj)
    */
   function mergeInto(target, patchObj) {
-    if (!target || typeof target !== 'object') return;
-    if (!patchObj || typeof patchObj !== 'object') return;
+    if (!target || typeof target !== "object") return;
+    if (!patchObj || typeof patchObj !== "object") return;
 
     Object.keys(patchObj).forEach(function (k) {
       const v = patchObj[k];
-      if (v && typeof v === 'object' && !Array.isArray(v)) {
-        if (!target[k] || typeof target[k] !== 'object' || Array.isArray(target[k])) target[k] = {};
+      if (v && typeof v === "object" && !Array.isArray(v)) {
+        if (
+          !target[k] ||
+          typeof target[k] !== "object" ||
+          Array.isArray(target[k])
+        )
+          target[k] = {};
         mergeInto(target[k], v);
       } else {
         target[k] = v;
@@ -45,8 +50,8 @@ SPDX-License-Identifier: Apache-2.0
    */
   function unwrapConfig(res) {
     if (!res) return {};
-    if (res.ok && typeof res.data === 'object') return res.data || {};
-    if (typeof res === 'object') return res;
+    if (res.ok && typeof res.data === "object") return res.data || {};
+    if (typeof res === "object") return res;
     return {};
   }
 
@@ -55,8 +60,8 @@ SPDX-License-Identifier: Apache-2.0
    * Manche Backends liefern {ok:true,data:{...}} (voll), andere nur {ok:true}.
    */
   function unwrapWriteFullConfig(res) {
-    if (res && res.data && typeof res.data === 'object') return res.data;
-    if (res && res.config && typeof res.config === 'object') return res.config;
+    if (res && res.data && typeof res.data === "object") return res.data;
+    if (res && res.config && typeof res.config === "object") return res.config;
     return null;
   }
 
@@ -69,9 +74,9 @@ SPDX-License-Identifier: Apache-2.0
       const $f = $modal.find(sel);
       if ($f.length) return $f.first();
     }
-    const $forms = $modal.find('form[data-json-file], form[data-pb-json-file]');
+    const $forms = $modal.find("form[data-json-file], form[data-pb-json-file]");
     if ($forms.length) return $forms.first();
-    const $any = $modal.find('form');
+    const $any = $modal.find("form");
     return $any.length ? $any.first() : $();
   }
 
@@ -80,38 +85,56 @@ SPDX-License-Identifier: Apache-2.0
   // ============================================================================
 
   function isSelectDeviceModal($modal) {
-    const modalId = ($modal.attr('id') || '').trim();
-    const ariaLbl = ($modal.attr('aria-labelledby') || '').trim();
-    return (modalId === 'modalSelectDevice' || ariaLbl === 'modalSelectDeviceLabel');
+    const modalId = ($modal.attr("id") || "").trim();
+    const ariaLbl = ($modal.attr("aria-labelledby") || "").trim();
+    return (
+      modalId === "modalSelectDevice" || ariaLbl === "modalSelectDeviceLabel"
+    );
   }
 
   function normalizeDeviceObj(dev, fallbackId) {
     return {
-      usb_id: String(dev?.UsbId ?? dev?.usb_id ?? dev?.Id ?? dev?.id ?? fallbackId ?? ''),
-      id: String(dev?.Id ?? dev?.id ?? fallbackId ?? ''),
-      display_name: String(dev?.DisplayName ?? dev?.display_name ?? dev?.displayName ?? dev?.Name ?? ''),
-      manufacturer: String(dev?.Manufacturer ?? dev?.manufacturer ?? ''),
-      model: String(dev?.Model ?? dev?.model ?? ''),
-      serial: String(dev?.Serial ?? dev?.serial ?? ''),
-      port: String(dev?.Port ?? dev?.port ?? ''),
-      is_connected: !!(dev?.IsConnected ?? dev?.is_connected ?? dev?.isConnected ?? false)
+      usb_id: String(
+        dev?.UsbId ?? dev?.usb_id ?? dev?.Id ?? dev?.id ?? fallbackId ?? "",
+      ),
+      id: String(dev?.Id ?? dev?.id ?? fallbackId ?? ""),
+      display_name: String(
+        dev?.DisplayName ??
+          dev?.display_name ??
+          dev?.displayName ??
+          dev?.Name ??
+          "",
+      ),
+      manufacturer: String(dev?.Manufacturer ?? dev?.manufacturer ?? ""),
+      model: String(dev?.Model ?? dev?.model ?? ""),
+      serial: String(dev?.Serial ?? dev?.serial ?? ""),
+      port: String(dev?.Port ?? dev?.port ?? ""),
+      is_connected: !!(
+        dev?.IsConnected ??
+        dev?.is_connected ??
+        dev?.isConnected ??
+        false
+      ),
     };
   }
 
   function readSelectedCameraFromModal($modal) {
     // Select element: #settingDeviceSelected (oder legacy: #selCameraDevice)
-    const $sel = $modal.find('#settingDeviceSelected, #selCameraDevice').first();
-    if (!$sel.length) return { device: '', cam: null };
+    const $sel = $modal
+      .find("#settingDeviceSelected, #selCameraDevice")
+      .first();
+    if (!$sel.length) return { device: "", cam: null };
 
-    const device = String($sel.val() ?? '').trim();
+    const device = String($sel.val() ?? "").trim();
     const opt = $sel[0]?.selectedOptions?.[0];
     if (!opt) return { device, cam: null };
 
     // Option kann JSON als data-device / data-cam / data-camera enthalten
-    const raw = opt.getAttribute('data-device')
-      || opt.getAttribute('data-cam')
-      || opt.getAttribute('data-camera')
-      || '';
+    const raw =
+      opt.getAttribute("data-device") ||
+      opt.getAttribute("data-cam") ||
+      opt.getAttribute("data-camera") ||
+      "";
 
     if (!raw) return { device, cam: null };
 
@@ -119,7 +142,7 @@ SPDX-License-Identifier: Apache-2.0
       const devObj = JSON.parse(raw);
       return { device, cam: normalizeDeviceObj(devObj, device) };
     } catch (e) {
-      console.warn('[SelectDevice] invalid JSON on selected <option>', e, raw);
+      console.warn("[SelectDevice] invalid JSON on selected <option>", e, raw);
       return { device, cam: null };
     }
   }
@@ -127,27 +150,31 @@ SPDX-License-Identifier: Apache-2.0
   function syncSelectDeviceHidden($modal) {
     // Nur wenn Hidden Inputs wirklich existieren (pbCam_* Felder)
     const hasAnyHidden =
-      $modal.find('#pbCam_id, #pbCam_serial, #pbCam_display_name').length > 0;
+      $modal.find("#pbCam_id, #pbCam_serial, #pbCam_display_name").length > 0;
 
     if (!hasAnyHidden) return;
 
     const { cam } = readSelectedCameraFromModal($modal);
     if (!cam) {
       // Wenn nix ausgewählt/parsebar -> leeren, damit nix "altes" gespeichert wird
-      $modal.find('#pbCam_usb_id,#pbCam_id,#pbCam_display_name,#pbCam_manufacturer,#pbCam_model,#pbCam_serial,#pbCam_port,#pbCam_is_connected').val('');
+      $modal
+        .find(
+          "#pbCam_usb_id,#pbCam_id,#pbCam_display_name,#pbCam_manufacturer,#pbCam_model,#pbCam_serial,#pbCam_port,#pbCam_is_connected",
+        )
+        .val("");
       return;
     }
 
-    $modal.find('#pbCam_usb_id').val(cam.usb_id);
-    $modal.find('#pbCam_id').val(cam.id);
-    $modal.find('#pbCam_display_name').val(cam.display_name);
-    $modal.find('#pbCam_manufacturer').val(cam.manufacturer);
-    $modal.find('#pbCam_model').val(cam.model);
-    $modal.find('#pbCam_serial').val(cam.serial);
-    $modal.find('#pbCam_port').val(cam.port);
-    $modal.find('#pbCam_is_connected').val(cam.is_connected ? 'true' : 'false');
+    $modal.find("#pbCam_usb_id").val(cam.usb_id);
+    $modal.find("#pbCam_id").val(cam.id);
+    $modal.find("#pbCam_display_name").val(cam.display_name);
+    $modal.find("#pbCam_manufacturer").val(cam.manufacturer);
+    $modal.find("#pbCam_model").val(cam.model);
+    $modal.find("#pbCam_serial").val(cam.serial);
+    $modal.find("#pbCam_port").val(cam.port);
+    $modal.find("#pbCam_is_connected").val(cam.is_connected ? "true" : "false");
 
-    (PB._dbg || console.log)('[SelectDevice] hidden synced', cam);
+    (PB._dbg || console.log)("[SelectDevice] hidden synced", cam);
   }
 
   // ============================================================================
@@ -155,62 +182,81 @@ SPDX-License-Identifier: Apache-2.0
   // ============================================================================
 
   function loadFormFromJson($form) {
-    const fileRel = $form.attr('data-json-file') || $form.attr('data-pb-json-file');
-    if (!fileRel || typeof PB.configFileGet !== 'function' || typeof PB.applyConfigToForm !== 'function') return;
+    const fileRel =
+      $form.attr("data-json-file") || $form.attr("data-pb-json-file");
+    if (
+      !fileRel ||
+      typeof PB.configFileGet !== "function" ||
+      typeof PB.applyConfigToForm !== "function"
+    )
+      return;
 
-    const root = ($form.attr('data-json-root') || '').trim();
+    const root = ($form.attr("data-json-root") || "").trim();
 
-    PB.configFileGet(fileRel).done(function (res) {
-      const cfg = unwrapConfig(res) || {};
+    PB.configFileGet(fileRel)
+      .done(function (res) {
+        const cfg = unwrapConfig(res) || {};
 
-      // Key aus Dateiname ableiten (z. B. camera, render, activeEvent, general)
-      const key = (typeof PB.configKeyFromFile === 'function') ? PB.configKeyFromFile(fileRel) : 'general';
+        // Key aus Dateiname ableiten (z. B. camera, render, activeEvent, general)
+        const key =
+          typeof PB.configKeyFromFile === "function"
+            ? PB.configKeyFromFile(fileRel)
+            : "general";
 
-      // Initialisiere globale Struktur
-      window.PB_CONFIG = window.PB_CONFIG || { general: {}, render: {}, camera: {}, activeEvent: {} };
+        // Initialisiere globale Struktur
+        window.PB_CONFIG = window.PB_CONFIG || {
+          general: {},
+          render: {},
+          camera: {},
+          activeEvent: {},
+        };
 
-      // korrektes Ersetzen ohne doppelte "general.general"
-      if (key === 'general') {
-        // "config.json" → direkt in PB_CONFIG.general schreiben (nicht nochmal verschachteln)
-        window.PB_CONFIG.general = { ...cfg };
-        console.log('[PB_CONFIG] general replaced ✔️', window.PB_CONFIG.general);
-      } else {
-        // andere JSONs → einfach ersetzen
-        window.PB_CONFIG[key] = { ...cfg };
-        console.log(`[PB_CONFIG] ${key} replaced ✔️`, window.PB_CONFIG[key]);
-      }
-
-      // Formular befüllen
-      const data = root && typeof PB._getDeep === 'function'
-        ? (PB._getDeep(cfg, root) || {})
-        : cfg;
-
-      // Worker.Args -> Worker.LogFile splitten (nur dieses Form)
-      if (($form.attr('id') || '') === 'formCameraBridgeApiServerSettings') {
-        try {
-          if (typeof PB.pbSplitWorkerArgs === 'function') {
-            PB.pbSplitWorkerArgs(data);
-          }
-        } catch (e) {
-          console.warn('[LOAD] PB.pbSplitWorkerArgs failed:', e);
+        // korrektes Ersetzen ohne doppelte "general.general"
+        if (key === "general") {
+          // "config.json" → direkt in PB_CONFIG.general schreiben (nicht nochmal verschachteln)
+          window.PB_CONFIG.general = { ...cfg };
+          console.log(
+            "[PB_CONFIG] general replaced ✔️",
+            window.PB_CONFIG.general,
+          );
+        } else {
+          // andere JSONs → einfach ersetzen
+          window.PB_CONFIG[key] = { ...cfg };
+          console.log(`[PB_CONFIG] ${key} replaced ✔️`, window.PB_CONFIG[key]);
         }
-      }
 
-      PB.applyConfigToForm($form, data);
-      if (typeof PB.applyLanguage === 'function') PB.applyLanguage();
+        // Formular befüllen
+        const data =
+          root && typeof PB._getDeep === "function"
+            ? PB._getDeep(cfg, root) || {}
+            : cfg;
 
-      // Optional: Device-Hidden-Sync (falls SelectDevice-Modal)
-      const $modal = $form.closest('.modal');
-      if ($modal.length && isSelectDeviceModal($modal)) {
-        syncSelectDeviceHidden($modal);
-      }
+        // Worker.Args -> Worker.LogFile splitten (nur dieses Form)
+        if (($form.attr("id") || "") === "formCameraBridgeApiServerSettings") {
+          try {
+            if (typeof PB.pbSplitWorkerArgs === "function") {
+              PB.pbSplitWorkerArgs(data);
+            }
+          } catch (e) {
+            console.warn("[LOAD] PB.pbSplitWorkerArgs failed:", e);
+          }
+        }
 
-      // Event auslösen
-      $(document).trigger('pb:configLoaded', [window.PB_CONFIG, key, cfg]);
+        PB.applyConfigToForm($form, data);
+        if (typeof PB.applyLanguage === "function") PB.applyLanguage();
 
-    }).fail(function (xhr) {
-      console.warn('configFileGet failed:', fileRel, xhr && xhr.status);
-    });
+        // Optional: Device-Hidden-Sync (falls SelectDevice-Modal)
+        const $modal = $form.closest(".modal");
+        if ($modal.length && isSelectDeviceModal($modal)) {
+          syncSelectDeviceHidden($modal);
+        }
+
+        // Event auslösen
+        $(document).trigger("pb:configLoaded", [window.PB_CONFIG, key, cfg]);
+      })
+      .fail(function (xhr) {
+        console.warn("configFileGet failed:", fileRel, xhr && xhr.status);
+      });
   }
 
   // ============================================================================
@@ -218,19 +264,40 @@ SPDX-License-Identifier: Apache-2.0
   // ============================================================================
 
   function saveFormToJson($form, btnEl, $modalOpt) {
-    const fileRel = ($form.attr('data-json-file') || $form.attr('data-pb-json-file') || '').trim();
+    const fileRel = (
+      $form.attr("data-json-file") ||
+      $form.attr("data-pb-json-file") ||
+      ""
+    ).trim();
 
-    const hasSet = (typeof PB.configFileSet === 'function');
-    const hasF2P = (typeof PB.formToPatch === 'function');
+    const hasSet = typeof PB.configFileSet === "function";
+    const hasF2P = typeof PB.formToPatch === "function";
 
-    (PB._dbg || console.log)('[SAVE] fileRel=', fileRel, 'configFileSet=', typeof PB.configFileSet, 'formToPatch=', typeof PB.formToPatch);
+    (PB._dbg || console.log)(
+      "[SAVE] fileRel=",
+      fileRel,
+      "configFileSet=",
+      typeof PB.configFileSet,
+      "formToPatch=",
+      typeof PB.formToPatch,
+    );
 
-    if (!fileRel) { (PB._dbg || console.log)('[SAVE] ABORT: no data-json-file on form'); return null; }
-    if (!hasSet)  { (PB._dbg || console.log)('[SAVE] ABORT: PB.configFileSet missing'); return null; }
-    if (!hasF2P)  { (PB._dbg || console.log)('[SAVE] ABORT: PB.formToPatch missing'); return null; }
+    if (!fileRel) {
+      (PB._dbg || console.log)("[SAVE] ABORT: no data-json-file on form");
+      return null;
+    }
+    if (!hasSet) {
+      (PB._dbg || console.log)("[SAVE] ABORT: PB.configFileSet missing");
+      return null;
+    }
+    if (!hasF2P) {
+      (PB._dbg || console.log)("[SAVE] ABORT: PB.formToPatch missing");
+      return null;
+    }
 
-    const root = ($form.attr('data-json-root') || '').trim();
-    const $modal = ($modalOpt && $modalOpt.length) ? $modalOpt : $form.closest('.modal');
+    const root = ($form.attr("data-json-root") || "").trim();
+    const $modal =
+      $modalOpt && $modalOpt.length ? $modalOpt : $form.closest(".modal");
 
     // Select-Device: vor dem Patch nochmal Hidden syncen (failsafe)
     if ($modal.length && isSelectDeviceModal($modal)) {
@@ -241,25 +308,26 @@ SPDX-License-Identifier: Apache-2.0
     let patch = PB.formToPatch($form) || {};
 
     // Special case: CameraBridge ApiServer Settings -> Worker.Args + Worker.LogFile zusammenführen
-    if (($form.attr('id') || '') === 'formCameraBridgeApiServerSettings') {
+    if (($form.attr("id") || "") === "formCameraBridgeApiServerSettings") {
       try {
         patch = PB.pbNormalizeWorkerArgs(patch);
       } catch (e) {
-        console.warn('[SAVE] pbNormalizeWorkerArgs failed:', e);
+        console.warn("[SAVE] pbNormalizeWorkerArgs failed:", e);
       }
     }
 
     // Select-Device: zusätzlich patch.camera.selected_camera injizieren (auch wenn Hidden mal fehlt)
     if ($modal.length && isSelectDeviceModal($modal)) {
       const { device, cam } = readSelectedCameraFromModal($modal);
-      patch.camera = (patch.camera && typeof patch.camera === 'object') ? patch.camera : {};
+      patch.camera =
+        patch.camera && typeof patch.camera === "object" ? patch.camera : {};
       if (device) patch.camera.device = device;
       if (cam) patch.camera.selected_camera = cam;
     }
 
     // root handling
     let effectivePatch = patch;
-    if (root && typeof PB._setDeep === 'function') {
+    if (root && typeof PB._setDeep === "function") {
       effectivePatch = {};
       PB._setDeep(effectivePatch, root, patch);
     }
@@ -270,58 +338,78 @@ SPDX-License-Identifier: Apache-2.0
     // Request speichern & returnen, damit Multi-Mode $.when warten kann
     const req = PB.configFileSet(fileRel, effectivePatch);
 
-    req.done(function (res) {
-      if (res && res.ok === false) {
-        console.warn('configFileSet response not ok:', res);
-      }
-
-      // Lokales PB_CONFIG updaten (Backend kann volle Config liefern, sonst Patch mergen)
-      const key = (typeof PB.configKeyFromFile === 'function') ? PB.configKeyFromFile(fileRel) : 'general';
-      window.PB_CONFIG = window.PB_CONFIG || { general: {}, render: {}, camera: {}, activeEvent: {} };
-      window.PB_CONFIG[key] = window.PB_CONFIG[key] || {};
-
-      const fullCfg = unwrapWriteFullConfig(res);
-
-      if (fullCfg && typeof fullCfg === 'object') {
-        mergeInto(window.PB_CONFIG[key], fullCfg);
-      } else {
-        mergeInto(window.PB_CONFIG[key], effectivePatch);
-      }
-
-      // UI anwenden
-      PB.applyUiFromConfig?.();
-
-      // Sprache prüfen (meist in general.language)
-      const lang = String(
-        (PB._getDeep?.(window.PB_CONFIG, 'general.language') ?? window.PB_CONFIG?.language ?? '')
-      ).trim();
-
-      if (lang && lang !== PB.currentLanguageCode && typeof PB.loadLanguage === 'function') {
-        PB.currentLanguageCode = lang;
-        PB.loadLanguage(lang);
-      }
-
-      // Module informieren
-      $(document).trigger('pb:configLoaded', [window.PB_CONFIG, key, window.PB_CONFIG[key]]);
-
-      // Preview-Source ggf. neu setzen (z. B. wenn Mirror-Werte geändert wurden)
-      PB.preview?.ensureRunning?.();
-
-      // Modal nur im Single-Mode schließen.
-      // Multi-Mode (btnEl=null) schließt am Ende der Click-Handler.
-      if (btnEl) {
-        const modalEl = $form.closest('.modal')[0];
-        if (modalEl && window.bootstrap?.Modal) {
-          bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+    req
+      .done(function (res) {
+        if (res && res.ok === false) {
+          console.warn("configFileSet response not ok:", res);
         }
-      }
 
-    }).fail(function (xhr) {
-      console.warn('configFileSet failed:', fileRel, xhr && xhr.status);
-    }).always(function () {
-      // Button nur im Single-Mode wieder aktivieren
-      if (btnEl) btnEl.disabled = false;
-    });
+        // Lokales PB_CONFIG updaten (Backend kann volle Config liefern, sonst Patch mergen)
+        const key =
+          typeof PB.configKeyFromFile === "function"
+            ? PB.configKeyFromFile(fileRel)
+            : "general";
+        window.PB_CONFIG = window.PB_CONFIG || {
+          general: {},
+          render: {},
+          camera: {},
+          activeEvent: {},
+        };
+        window.PB_CONFIG[key] = window.PB_CONFIG[key] || {};
+
+        const fullCfg = unwrapWriteFullConfig(res);
+
+        if (fullCfg && typeof fullCfg === "object") {
+          mergeInto(window.PB_CONFIG[key], fullCfg);
+        } else {
+          mergeInto(window.PB_CONFIG[key], effectivePatch);
+        }
+
+        // UI anwenden
+        PB.applyUiFromConfig?.();
+
+        // Sprache prüfen (meist in general.language)
+        const lang = String(
+          PB._getDeep?.(window.PB_CONFIG, "general.language") ??
+            window.PB_CONFIG?.language ??
+            "",
+        ).trim();
+
+        if (
+          lang &&
+          lang !== PB.currentLanguageCode &&
+          typeof PB.loadLanguage === "function"
+        ) {
+          PB.currentLanguageCode = lang;
+          PB.loadLanguage(lang);
+        }
+
+        // Module informieren
+        $(document).trigger("pb:configLoaded", [
+          window.PB_CONFIG,
+          key,
+          window.PB_CONFIG[key],
+        ]);
+
+        // Preview-Source ggf. neu setzen (z. B. wenn Mirror-Werte geändert wurden)
+        PB.preview?.ensureRunning?.();
+
+        // Modal nur im Single-Mode schließen.
+        // Multi-Mode (btnEl=null) schließt am Ende der Click-Handler.
+        if (btnEl) {
+          const modalEl = $form.closest(".modal")[0];
+          if (modalEl && window.bootstrap?.Modal) {
+            bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+          }
+        }
+      })
+      .fail(function (xhr) {
+        console.warn("configFileSet failed:", fileRel, xhr && xhr.status);
+      })
+      .always(function () {
+        // Button nur im Single-Mode wieder aktivieren
+        if (btnEl) btnEl.disabled = false;
+      });
 
     return req;
   }
@@ -330,145 +418,178 @@ SPDX-License-Identifier: Apache-2.0
   // Init Bindings
   // ============================================================================
 
-  PB.initModalConfigBindings = PB.initModalConfigBindings || function () {
-    // Guard: niemals zweimal binden
-    if (PB._modalCfgBound) return;
-    PB._modalCfgBound = true;
+  PB.initModalConfigBindings =
+    PB.initModalConfigBindings ||
+    function () {
+      // Guard: niemals zweimal binden
+      if (PB._modalCfgBound) return;
+      PB._modalCfgBound = true;
 
-    // AutoLoad wenn Modal angezeigt wird
-    $(document)
-      .off('shown.bs.modal.pbCfg', '.modal')
-      .on('shown.bs.modal.pbCfg', '.modal', function () {
-        const $modal = $(this);
+      // AutoLoad wenn Modal angezeigt wird
+      $(document)
+        .off("shown.bs.modal.pbCfg", ".modal")
+        .on("shown.bs.modal.pbCfg", ".modal", function () {
+          const $modal = $(this);
 
-        const $forms = $modal.find('form[data-json-file], form[data-pb-json-file]');
-        if ($forms.length) {
-          $forms.each(function () {
-            const $form = $(this);
-            const hasFile = $form.attr('data-json-file') || $form.attr('data-pb-json-file');
-            if (hasFile) loadFormFromJson($form);
-          });
-        }
+          const $forms = $modal.find(
+            "form[data-json-file], form[data-pb-json-file]",
+          );
+          if ($forms.length) {
+            $forms.each(function () {
+              const $form = $(this);
+              const hasFile =
+                $form.attr("data-json-file") || $form.attr("data-pb-json-file");
+              if (hasFile) loadFormFromJson($form);
+            });
+          }
 
-        // Select-Device: bei Modal open Hidden syncen
-        if (isSelectDeviceModal($modal)) {
-          syncSelectDeviceHidden($modal);
-        }
-      });
+          // Select-Device: bei Modal open Hidden syncen
+          if (isSelectDeviceModal($modal)) {
+            syncSelectDeviceHidden($modal);
+          }
+        });
 
-    // Select-Device: bei Dropdown-Change Hidden Inputs aktualisieren
-    $(document)
-      .off('change.pbSelectDeviceHidden', '#modalSelectDevice #settingDeviceSelected, #modalSelectDevice #selCameraDevice')
-      .on('change.pbSelectDeviceHidden', '#modalSelectDevice #settingDeviceSelected, #modalSelectDevice #selCameraDevice', function () {
-        const $modal = $(this).closest('.modal');
-        if ($modal.length) syncSelectDeviceHidden($modal);
-      });
+      // Select-Device: bei Dropdown-Change Hidden Inputs aktualisieren
+      $(document)
+        .off(
+          "change.pbSelectDeviceHidden",
+          "#modalSelectDevice #settingDeviceSelected, #modalSelectDevice #selCameraDevice",
+        )
+        .on(
+          "change.pbSelectDeviceHidden",
+          "#modalSelectDevice #settingDeviceSelected, #modalSelectDevice #selCameraDevice",
+          function () {
+            const $modal = $(this).closest(".modal");
+            if ($modal.length) syncSelectDeviceHidden($modal);
+          },
+        );
 
-    // Save-Button: innerhalb eines Modals
-    $(document)
-      .off('click.pbCfgSave', '.pb-save-config')
-      .on('click.pbCfgSave', '.pb-save-config', function (ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
+      // Save-Button: innerhalb eines Modals
+      $(document)
+        .off("click.pbCfgSave", ".pb-save-config")
+        .on("click.pbCfgSave", ".pb-save-config", function (ev) {
+          ev.preventDefault();
+          ev.stopPropagation();
 
-        const btnEl = this;
-        const $modal = $(btnEl).closest('.modal');
-        if (!$modal.length) return;
+          const btnEl = this;
+          const $modal = $(btnEl).closest(".modal");
+          if (!$modal.length) return;
 
-        const multiple =
-          $(btnEl).attr('data-multiple-form') === '1' ||
-          $(btnEl).attr('data-multiple-form') === 'true';
+          const multiple =
+            $(btnEl).attr("data-multiple-form") === "1" ||
+            $(btnEl).attr("data-multiple-form") === "true";
 
-        // MULTI-MODE: mehrere Forms speichern
-        if (multiple) {
-          const $forms = $modal.find('form[data-json-file], form[data-pb-json-file]');
-          if (!$forms.length) return;
+          // MULTI-MODE: mehrere Forms speichern
+          if (multiple) {
+            const $forms = $modal.find(
+              "form[data-json-file], form[data-pb-json-file]",
+            );
+            if (!$forms.length) return;
 
-          btnEl.disabled = true;
-          const requests = [];
+            btnEl.disabled = true;
+            const requests = [];
 
-          $forms.each(function () {
-            const $form = $(this);
-            const req = saveFormToJson($form, null, $modal); // btnEl=null, sonst würde Modal schließen
-            if (req && typeof req.then === 'function') requests.push(req);
-          });
-
-          $.when.apply($, requests)
-            .done(function () {
-              // nach allen Saves einmal Sprache/UI anwenden
-              PB.applyUiFromConfig?.();
-              PB.applyLanguage?.();
-
-              // Modal am Ende schließen
-              const modalEl = $modal[0];
-              if (modalEl && window.bootstrap?.Modal) {
-                bootstrap.Modal.getOrCreateInstance(modalEl).hide();
-              }
-            })
-            .fail(function () {
-              // mindestens ein Save ist fehlgeschlagen
-              if (typeof showMsg === 'function') {
-                const msg = (typeof pbT === 'function')
-                  ? pbT(
-                    'config.save.err.multi_failed',
-                    'At least one configuration could not be saved. Note: If a JSON file is corrupt/invalid, it may have been backed up (see error message).'
-                  )
-                  : 'At least one configuration could not be saved. Note: If a JSON file is corrupt/invalid, it may have been backed up (see error message).';
-
-                showMsg(msg, 'danger');
-              }
-            })
-            .always(function () {
-              btnEl.disabled = false;
+            $forms.each(function () {
+              const $form = $(this);
+              const req = saveFormToJson($form, null, $modal); // btnEl=null, sonst würde Modal schließen
+              if (req && typeof req.then === "function") requests.push(req);
             });
 
-          return;
-        }
+            $.when
+              .apply($, requests)
+              .done(async function () {
+                PB.applyUiFromConfig?.();
+                PB.applyLanguage?.();
 
-        // NORMAL-MODE
-        const $form = findFormInModal($modal, btnEl);
-        if (!$form || !$form.length) return;
+                await PB.syncDnpPaperStatusQuery();
 
-        const modalId = ($modal.attr('id') || '').trim();
-        const ariaLbl = ($modal.attr('aria-labelledby') || '').trim();
-        const isActiveEventModal =
-          modalId === 'modalActiveEvent' ||
-          modalId === 'modalActiveEventLabel' ||
-          ariaLbl === 'modalActiveEventLabel';
+                const modalEl = $modal[0];
+                if (modalEl && window.bootstrap?.Modal) {
+                  bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+                }
+              })
+              .fail(function () {
+                // mindestens ein Save ist fehlgeschlagen
+                if (typeof showMsg === "function") {
+                  const msg =
+                    typeof pbT === "function"
+                      ? pbT(
+                          "config.save.err.multi_failed",
+                          "At least one configuration could not be saved. Note: If a JSON file is corrupt/invalid, it may have been backed up (see error message).",
+                        )
+                      : "At least one configuration could not be saved. Note: If a JSON file is corrupt/invalid, it may have been backed up (see error message).";
 
-        if (isActiveEventModal) {
-          btnEl.disabled = true;
+                  showMsg(msg, "danger");
+                }
+              })
+              .always(function () {
+                btnEl.disabled = false;
+              });
 
-          PB.uploadActiveEventTemplateZip($modal)
-            .done(function () {
-              const req = saveFormToJson($form, btnEl, $modal);
-              if (req && typeof req.always === 'function') req.always(() => (btnEl.disabled = false));
-              PB.applyLanguage?.();
-            })
-            .fail(function () {
-              btnEl.disabled = false;
-              if (typeof showMsg === 'function') {
-                const msg = (typeof pbT === 'function')
-                  ? pbT('active_event.upload.err.failed', 'Active event template upload failed.')
-                  : 'Active event template upload failed.';
+            return;
+          }
 
-                showMsg(msg, 'danger');
-              }
+          // NORMAL-MODE
+          const $form = findFormInModal($modal, btnEl);
+          if (!$form || !$form.length) return;
+
+          const modalId = ($modal.attr("id") || "").trim();
+          const ariaLbl = ($modal.attr("aria-labelledby") || "").trim();
+          const isActiveEventModal =
+            modalId === "modalActiveEvent" ||
+            modalId === "modalActiveEventLabel" ||
+            ariaLbl === "modalActiveEventLabel";
+
+          if (isActiveEventModal) {
+            btnEl.disabled = true;
+
+            PB.uploadActiveEventTemplateZip($modal)
+              .done(function () {
+                const req = saveFormToJson($form, btnEl, $modal);
+                if (req && typeof req.always === "function")
+                  req.always(() => (btnEl.disabled = false));
+                PB.applyLanguage?.();
+              })
+              .fail(function () {
+                btnEl.disabled = false;
+                if (typeof showMsg === "function") {
+                  const msg =
+                    typeof pbT === "function"
+                      ? pbT(
+                          "active_event.upload.err.failed",
+                          "Active event template upload failed.",
+                        )
+                      : "Active event template upload failed.";
+
+                  showMsg(msg, "danger");
+                }
+              });
+
+            return;
+          }
+
+          const req = saveFormToJson($form, btnEl, $modal);
+
+          if (req && typeof req.done === "function") {
+            req.done(function () {
+              PB.syncDnpPaperStatusQuery?.();
             });
+          }
 
-          return;
-        }
-
-        saveFormToJson($form, btnEl, $modal);
-        PB.applyLanguage?.();
-      });
-  };
+          PB.applyLanguage?.();
+        });
+    };
 
   // Alias/Kompatibilität (falls alte Module configFilePatch nutzen)
-  PB.configFileSet = PB.configFileSet || function (fileRel, obj) {
-    if (typeof PB.configFilePatch === 'function') return PB.configFilePatch(fileRel, obj);
-    throw new Error('PB.configFileSet: neither configFileSet nor configFilePatch available');
-  };
+  PB.configFileSet =
+    PB.configFileSet ||
+    function (fileRel, obj) {
+      if (typeof PB.configFilePatch === "function")
+        return PB.configFilePatch(fileRel, obj);
+      throw new Error(
+        "PB.configFileSet: neither configFileSet nor configFilePatch available",
+      );
+    };
 
   PB.showBusyModal = function (id) {
     const el = document.getElementById(id);
@@ -481,11 +602,10 @@ SPDX-License-Identifier: Apache-2.0
     }
 
     if (window.jQuery) {
-      $('#' + id).modal('show');
-      return { hide: () => $('#' + id).modal('hide') };
+      $("#" + id).modal("show");
+      return { hide: () => $("#" + id).modal("hide") };
     }
 
     return null;
   };
-
 })(jQuery);

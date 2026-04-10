@@ -16,13 +16,20 @@
     PB.currentLanguageCode = window.PB_CONFIG.language;
   }
 
+  // \n-Strings in echte Zeilenumbrüche umwandeln
+  function normalizeTranslation(value) {
+    return String(value == null ? '' : value).replace(/\\n/g, '\n');
+  }
+
   // interne Lookup-Hilfe (ohne PB.t-Rekursion)
   function tRaw(key, fallback) {
     try {
       const map = PB.currentLanguageMap || {};
-      if (key && Object.prototype.hasOwnProperty.call(map, key)) return map[key];
+      if (key && Object.prototype.hasOwnProperty.call(map, key)) {
+        return normalizeTranslation(map[key]);
+      }
     } catch (_) {}
-    return fallback || key;
+    return normalizeTranslation(fallback || key);
   }
 
   /**
@@ -39,7 +46,10 @@
       })
       .fail(function () {
         if (window.console && console.warn) {
-          console.warn(tRaw('i18n.warn.load_failed', 'Could not load language file:'), url);
+          console.warn(
+            tRaw('i18n.warn.load_failed', 'Could not load language file:'),
+            url
+          );
         }
       });
   };
@@ -51,18 +61,19 @@
   PB.applyLanguage = PB.applyLanguage || function () {
     $('[data-lang-key]').each(function () {
       const $el = $(this);
-
-      // direktes Lesen per attr() statt .data()
       const key = $el.attr('data-lang-key');
       if (!key) return;
 
-      const translation = PB.currentLanguageMap[key];
-      if (!translation) return;
+      if (!Object.prototype.hasOwnProperty.call(PB.currentLanguageMap, key)) {
+        return;
+      }
+
+      const translation = normalizeTranslation(PB.currentLanguageMap[key]);
 
       if ($el.is('input, textarea')) {
         $el.attr('placeholder', translation);
       } else {
-        $el.text(translation);
+        $el.text(translation).css('white-space', 'pre-line');
       }
     });
   };
@@ -75,12 +86,15 @@
     try {
       const map = PB.currentLanguageMap || {};
       if (key && Object.prototype.hasOwnProperty.call(map, key)) {
-        return map[key];
+        return normalizeTranslation(map[key]);
       }
     } catch (e) {
-      console.warn(tRaw('i18n.warn.lookup_failed', '[PB.t] lookup failed'), e);
+      console.warn(
+        tRaw('i18n.warn.lookup_failed', '[PB.t] lookup failed'),
+        e
+      );
     }
-    return fallback || key;
+    return normalizeTranslation(fallback || key);
   };
 
   // Back-compat / Convenience: pbT Alias (falls andere Module pbT nutzen)

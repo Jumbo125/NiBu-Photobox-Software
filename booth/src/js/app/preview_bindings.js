@@ -24,7 +24,7 @@
   }
 
   function applyInitialBgFromConfig() {
-    const always = readBool(PB._getDeep?.(window.PB_CONFIG, 'camera.camera_settings.liveview_always_active'));
+    const always = PB.readBool(PB._getDeep?.(window.PB_CONFIG, 'camera.camera_settings.liveview_always_active'));
     if (always) showVideo();
     else showStatic();
   }

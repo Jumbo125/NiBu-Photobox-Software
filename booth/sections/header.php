@@ -22,6 +22,16 @@
         <span class="navbar-brand mb-0 h1 active_event_counter"></span>
       </div>
 
+       <div id="printer_paper_remaining">
+    
+
+        <span data-lang-key="overlay.printed.paper.remaining">
+          <?= t('overlay.printed.paper.remaining', 'Remaining Paper') ?>
+        </span>
+
+        <span class="navbar-brand mb-0 h1 paper_remaining_value"></span>
+      </div>
+
       <button
         id="btnUiReload"
         class="btn btn-warning btn rounded-circle d-inline-flex align-items-center justify-content-center pb-close-browser"

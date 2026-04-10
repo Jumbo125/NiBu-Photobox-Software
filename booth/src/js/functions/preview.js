@@ -106,7 +106,7 @@
     function applyInitialViewFromConfig(force = false) {
       if (state.initialViewApplied && !force) return;
 
-      const always = readBool(
+      const always = PB.readBool(
         PB._getDeep?.(window.PB_CONFIG, "camera.camera_settings.liveview_always_active")
       );
 
@@ -116,14 +116,7 @@
       state.initialViewApplied = true;
     }
 
-    // -------------------------------------------------------------
-    // Utils
-    // -------------------------------------------------------------
-    function readBool(v) {
-      if (v === true) return true;
-      if (v === false) return false;
-      return ["1", "true", "yes", "y", "on"].includes(String(v ?? "").trim().toLowerCase());
-    }
+    
 
     function withQuery(url, params) {
       const u = new URL(String(url), window.location.href);
@@ -245,9 +238,9 @@
       const portVal = PB._getDeep?.(window.PB_CONFIG, "cameraBridgeServer.Bridge.Port");
 
       const params = {
-        preview_mirror: readBool(camera.preview_mirror) ? "1" : "0",
-        full_img: readBool(camera.fullImg) ? "1" : "0",
-        debug_mode: readBool(debugModeVal) ? "1" : "0"
+        preview_mirror: PB.readBool(camera.preview_mirror) ? "1" : "0",
+        full_img: PB.readBool(camera.fullImg) ? "1" : "0",
+        debug_mode: PB.readBool(debugModeVal) ? "1" : "0"
       };
 
       if (portVal != null && String(portVal).trim() !== "") {

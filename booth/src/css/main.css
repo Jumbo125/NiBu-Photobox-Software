@@ -730,9 +730,28 @@ height: auto;
 }
 
 .Capture_working_trigger_loader_image_svg {
-  wdith: 10vw;
+  width: 5vw;
+    display: block;
+    margin: 0 auto;
 }
 
+.pb-capture-text{
+    white-space: pre-line;
+}
+
+#Capture_working_trigger .pb-capture-box {
+    width: 50vw;
+}
+
+#printer_paper_remaining{
+    text-align: center;
+    margin-right: 1vw;
+    display: none;
+}
+
+.dnp #printer_paper_remaining{
+display:block;
+}
 
   @keyframes shutterClose {
     0%   { transform: rotate(var(--base)) translateY(0px);  opacity: 1; }

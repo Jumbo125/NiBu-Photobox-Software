@@ -130,17 +130,17 @@ body.pb-capture-running #btnLiveviewToggle {
   PB.captureUI =
     PB.captureUI ||
     (function () {
-    const ids = [
-  "Capture_countdown",
-  "Capture_working_trigger",
-  "Capture_working_capture",
-  "Capture_working_render",
-  "Capture_working_abort",
-  "Capture_error",
-  "Capture_finish",
-  "Capture_finish_with_img",
-  "Capture_preview_between_shots",
-];
+      const ids = [
+        "Capture_countdown",
+        "Capture_working_trigger",
+        "Capture_working_capture",
+        "Capture_working_render",
+        "Capture_working_abort",
+        "Capture_error",
+        "Capture_finish",
+        "Capture_finish_with_img",
+        "Capture_preview_between_shots",
+      ];
       const $layers = ids.map((id) => $("#" + id));
 
       function hideAll() {
@@ -227,6 +227,324 @@ body.pb-capture-running #btnLiveviewToggle {
       const p = String(basePath || "").replace(/[\/\\]+$/g, "");
       return p + "\\EVENTS\\" + safe;
     };
+
+  function storeLastSessionData(renderRes) {
+    const lastSession = {};
+
+    const imagePath = renderRes?.output_path || renderRes?.outputPath || null;
+    const previewUrl = renderRes?.preview_url || renderRes?.previewUrl || null;
+
+    if (imagePath) lastSession.output_path = imagePath;
+    if (previewUrl) lastSession.preview_url = previewUrl;
+
+    window.PB_CONFIG = window.PB_CONFIG || {};
+    window.PB_CONFIG.lastSession = lastSession;
+
+    return window.PB_CONFIG.lastSession;
+  }
+
+  function getRequiredPrintCount() {
+    const raw = PB._getDeep?.(
+      window.PB_CONFIG,
+      "activeEvent.active_event.multiple_print",
+    );
+
+    const n = parseInt(raw, 10);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }
+
+  function getCachedRemainingPrintCount() {
+    const raw = PB._getDeep?.(window.PB_CONFIG, "general.dnp.remainingPrints");
+    const n = parseInt(raw, 10);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function getCachedPaperShortageResult() {
+    const remainingPrints = getCachedRemainingPrintCount();
+    const requiredPrintCount = getRequiredPrintCount();
+
+    if (
+      !Number.isFinite(remainingPrints) ||
+      !Number.isFinite(requiredPrintCount) ||
+      requiredPrintCount <= 0
+    ) {
+      return null;
+    }
+
+    if (remainingPrints < requiredPrintCount) {
+      return {
+        ok: false,
+        error: "paper_not_enough",
+        message: fmt(
+          pbT(
+            "capture.flow.err.paper_not_enough",
+            "Printing is not possible. Only {remaining} prints are remaining, but {required} are required.",
+          ),
+          {
+            remaining: remainingPrints,
+            required: requiredPrintCount,
+          },
+        ),
+        remainingPrints,
+        requiredPrintCount,
+        usedCachedRemainingPrints: true,
+      };
+    }
+
+    return {
+      ok: true,
+      remainingPrints,
+      requiredPrintCount,
+      usedCachedRemainingPrints: true,
+    };
+  }
+
+
+  async function checkPaperBeforePrint() {
+    const dnpRes =
+      typeof PB._getDnpPaperState === "function"
+        ? await PB._getDnpPaperState()
+        : { ok: false, error: "dnp_state_function_missing" };
+
+    const apiRemainingPrints = parseInt(
+      dnpRes?.dnp?.remainingPrints ?? dnpRes?.raw?.["Remaining prints"],
+      10,
+    );
+    const cachedRemainingPrints = parseInt(
+      PB._getDeep?.(window.PB_CONFIG, "general.dnp.remainingPrints"),
+      10,
+    );
+
+    const statusCode = Number(
+      dnpRes?.status ?? dnpRes?.http ?? dnpRes?.httpStatus ?? dnpRes?.response?.status,
+    );
+    const errorCode = String(dnpRes?.error || "").toLowerCase();
+    const isTooManyRequests =
+      statusCode === 429 ||
+      errorCode === "timer_too_short" ||
+      errorCode === "too_many_requests";
+
+    const remainingPrints = Number.isFinite(apiRemainingPrints)
+      ? apiRemainingPrints
+      : isTooManyRequests && Number.isFinite(cachedRemainingPrints)
+        ? cachedRemainingPrints
+        : NaN;
+
+    const requiredPrintCount = getRequiredPrintCount();
+
+    if (!dnpRes?.ok && !(isTooManyRequests && Number.isFinite(cachedRemainingPrints))) {
+      return {
+        ok: false,
+        error: "paper_status_unavailable",
+        message: pbT(
+          "capture.flow.err.paper_status_unavailable",
+          "Printing is not possible. Paper status could not be determined.",
+        ),
+        response: dnpRes,
+      };
+    }
+
+    if (Number.isFinite(remainingPrints) && remainingPrints <= 1) {
+      return {
+        ok: false,
+        error: "paper_empty",
+        message: pbT(
+          "capture.flow.err.paper_empty",
+          "Printing is not possible. The paper is empty.",
+        ),
+        remainingPrints,
+        response: dnpRes,
+      };
+    }
+
+    if (
+      Number.isFinite(remainingPrints) &&
+      Number.isFinite(requiredPrintCount) &&
+      requiredPrintCount > 0 &&
+      remainingPrints < requiredPrintCount
+    ) {
+      return {
+        ok: false,
+        error: "paper_not_enough",
+        message: fmt(
+          pbT(
+            "capture.flow.err.paper_not_enough",
+            "Printing is not possible. Only {remaining} prints are remaining, but {required} are required.",
+          ),
+          {
+            remaining: remainingPrints,
+            required: requiredPrintCount,
+          },
+        ),
+        remainingPrints,
+        requiredPrintCount,
+        response: dnpRes,
+      };
+    }
+
+    return {
+      ok: true,
+      remainingPrints: Number.isFinite(remainingPrints) ? remainingPrints : null,
+      requiredPrintCount:
+        Number.isFinite(requiredPrintCount) ? requiredPrintCount : null,
+      usedCachedRemainingPrints:
+        !Number.isFinite(apiRemainingPrints) &&
+        isTooManyRequests &&
+        Number.isFinite(cachedRemainingPrints),
+      response: dnpRes,
+    };
+  }
+
+  function isPaperEmptyError(res) {
+    const error = String(res?.error || "").toLowerCase();
+    const message = String(res?.message || "").toLowerCase();
+
+    return (
+      error === "paper_empty" ||
+      error === "paper_not_enough" ||
+      error === "no_paper" ||
+      error === "out_of_paper" ||
+      message.includes("no paper") ||
+      message.includes("paper empty") ||
+      message.includes("out of paper") ||
+      message.includes("not enough paper")
+    );
+  }
+
+  async function showCaptureErrorMessage(text) {
+    const msg =
+      String(text || "").trim() ||
+      pbT(
+        "capture.flow.err.paper_empty",
+        "Printing is not possible. The paper is empty.",
+      );
+
+    return new Promise((resolve) => {
+      PB.captureUI.show("Capture_error", {
+        text: msg,
+        onClose: () => {
+          PB.captureUI.hideAll();
+          resolve({ ok: true });
+        },
+      });
+    });
+  }
+
+  PB.printLastSession =
+    PB.printLastSession ||
+    async function () {
+      if (PB._reprintBusy) {
+        return { ok: false, error: "reprint_busy" };
+      }
+
+      PB._reprintBusy = true;
+
+      try {
+        if (!PB.captureApi || typeof PB.captureApi.printDefault !== "function") {
+          return {
+            ok: false,
+            error: "print_api_missing",
+            message: pbT(
+              "capture.flow.err.print_api_missing",
+              "Print API is not available.",
+            ),
+          };
+        }
+
+        const allowReprint = PB.readBool(
+          PB._getDeep(window.PB_CONFIG, "activeEvent.active_event.allow_reprint"),
+        );
+
+        if (!allowReprint) {
+          return {
+            ok: false,
+            error: "reprint_not_allowed",
+            message: pbT(
+              "capture.flow.err.reprint_not_allowed",
+              "Reprint is not allowed for this event.",
+            ),
+          };
+        }
+
+        const last = window.PB_CONFIG?.lastSession || {};
+        const imagePath = last.output_path || last.outputPath || null;
+        const eventConfigPath =
+          String(
+            PB._getDeep(
+              window.PB_CONFIG,
+              "activeEvent.active_event.config_path",
+              "",
+            ) || "",
+          )
+            .trim()
+            .replace(/[\/\\]+$/g, "") || null;
+        const printerName =
+          String(
+            PB._getDeep(window.PB_CONFIG, "general.printer.printerName") || "",
+          ).trim() || null;
+
+        if (!imagePath || !eventConfigPath) {
+          return {
+            ok: false,
+            error: "last_session_missing",
+            message: pbT(
+              "capture.flow.err.last_session_missing",
+              "No previous session is available for reprint.",
+            ),
+          };
+        }
+
+        const paperCheck = await checkPaperBeforePrint();
+        if (!paperCheck.ok) {
+          return paperCheck;
+        }
+
+        const printPayload = {
+          image_path: imagePath,
+          event_file: eventConfigPath,
+        };
+
+        if (printerName) {
+          printPayload.printerName = printerName;
+        }
+
+        return PB.captureApi.printDefault(printPayload);
+      } catch (e) {
+        return {
+          ok: false,
+          error: "reprint_failed",
+          message: e?.message || String(e),
+        };
+      } finally {
+        PB._reprintBusy = false;
+      }
+    };
+
+  $(document)
+    .off("click.pbReprint", "#print_again")
+    .on("click.pbReprint", "#print_again", async function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const $btn = $(this);
+      const oldDisabled = $btn.prop("disabled");
+      $btn.prop("disabled", true);
+
+      try {
+        const res = await PB.printLastSession();
+
+        if (!res?.ok) {
+          PB.captureUI.show("Capture_error", {
+            text:
+              res?.message ||
+              pbT("capture.flow.err.reprint_failed", "Reprint failed."),
+            onClose: () => PB.captureUI.hideAll(),
+          });
+        }
+      } finally {
+        $btn.prop("disabled", oldDisabled);
+      }
+    });
 
   async function ensureViewStreamVisible(wantStream) {
     if (
@@ -449,7 +767,7 @@ body.pb-capture-running #btnLiveviewToggle {
   PB.captureFlow.utils.waitForPreviewFramePaint =
     PB.captureFlow.utils.waitForPreviewFramePaint ||
     async function ({
-      timeoutMs = 900,
+      timeoutMs = 2500,
       intervalMs = 50,
       iframeId = "liveFrame",
       imgSelector = "img#lv, img#mjpg, img#stream, img",
@@ -635,34 +953,55 @@ body.pb-capture-running #btnLiveviewToggle {
   // Preview Prepare / Restore (LiveView nur an den Flow-Grenzen)
   // -----------------------------------------------------------------------
   async function preparePreviewForSeries() {
+  const isFirstLiveviewWarmup = PB.captureFlow._liveviewWarm !== true;
+
+  // Beim ersten Start deutlich großzügiger sein
+  const frameTimeout = isFirstLiveviewWarmup ? 12000 : 5000;
+  const previewTimeout = isFirstLiveviewWarmup ? 8000 : 4000;
+  const previewSettleMs = isFirstLiveviewWarmup ? 600 : 350;
+  const startPauseMs = isFirstLiveviewWarmup ? 1000 : 350;
+
+  async function bootOnce() {
     await ensureViewStreamVisible(true).catch(() => {});
     await ensurePreviewRunning().catch(() => {});
 
-    // LiveView nur einmal sauber vor dem Capture-Flow starten.
     const startRes = await PB.captureApi.liveviewStart().catch((error) => ({
       ok: false,
       error,
     }));
+
     if (!startRes || startRes.ok !== true) {
-      throw startRes?.error || new Error("LiveView could not be started before capture flow.");
+      throw (
+        startRes?.error ||
+        new Error("LiveView could not be started before capture flow.")
+      );
     }
+
+    // Wichtig: API kann schon ok sein, obwohl im Browser noch keine echten Frames da sind
+    await PB.sleep(startPauseMs);
 
     const framesRes =
       typeof PB.captureApi.waitForFrames === "function"
-        ? await PB.captureApi.waitForFrames(5000).catch((error) => ({
+        ? await PB.captureApi.waitForFrames(frameTimeout).catch((error) => ({
             ok: false,
             error,
           }))
         : { ok: true, skipped: true };
 
     if (!framesRes || framesRes.ok !== true) {
-      throw (
+      const err =
         framesRes?.error ||
-        new Error("Timed out waiting for live-view frames before capture flow.")
-      );
+        new Error(
+          `Timed out waiting for live-view frames before capture flow. timeout=${frameTimeout}ms`,
+        );
+      err.code = err.code || "frames_time_out";
+      throw err;
     }
 
-    const previewReady = await waitForPreviewReady(4000, 350).catch((error) => ({
+    const previewReady = await waitForPreviewReady(
+      previewTimeout,
+      previewSettleMs,
+    ).catch((error) => ({
       ok: false,
       error,
     }));
@@ -670,11 +1009,39 @@ body.pb-capture-running #btnLiveviewToggle {
     if (!previewReady || previewReady.ok !== true) {
       throw (
         previewReady?.error ||
-        new Error("LiveView preview was not ready before capture flow.")
+        new Error(
+          `LiveView preview was not ready before capture flow. timeout=${previewTimeout}ms`,
+        )
       );
     }
+
+    PB.captureFlow._liveviewWarm = true;
+    return { ok: true };
   }
 
+  try {
+    return await bootOnce();
+  } catch (firstErr) {
+    console.warn(
+      "[captureFlow] preparePreviewForSeries first attempt failed, retrying once...",
+      firstErr,
+    );
+
+    // Einmal sauber resetten und neu probieren
+    await PB.captureApi.liveviewStop?.().catch(() => {});
+    await PB.sleep(700);
+
+    try {
+      return await bootOnce();
+    } catch (secondErr) {
+      console.error(
+        "[captureFlow] preparePreviewForSeries failed after retry",
+        secondErr,
+      );
+      throw secondErr;
+    }
+  }
+}
   async function restorePreviewAfterFlow() {
     const wasStream = PB.captureFlow._previewWasStream === true;
 
@@ -910,6 +1277,7 @@ body.pb-capture-running #btnLiveviewToggle {
     };
 
     let renderRes;
+    let pendingPaperEmptyMessage = null;
 
     try {
       $(document).trigger("pb:captureSessionStarted", [session]);
@@ -982,17 +1350,17 @@ body.pb-capture-running #btnLiveviewToggle {
           earlyCaptureTask = betweenCountdownRes?.earlyTask || null;
         }
 
-    const triggerText =
-  PB._getDeep(CFG, "general.capture.text_triggering") ||
-  pbT(
-    "capture.working.trigger.text",
-    "The camera is taking the photo… please do not move.",
-  );
+        const triggerText =
+          PB._getDeep(CFG, "general.capture.text_triggering") ||
+          pbT(
+            "capture.working.trigger.text",
+            "The camera is taking the photo… please do not move.",
+          );
 
-PB.captureUI.show("Capture_working_trigger", {
-  text: triggerText,
-  onCancel: () => PB.captureFlow.cancel(),
-});
+        PB.captureUI.show("Capture_working_trigger", {
+          text: triggerText,
+          onCancel: () => PB.captureFlow.cancel(),
+        });
 
         await waitForUiPaint();
         PB.shutter.playIn(document, "#Capture_working_trigger");
@@ -1107,6 +1475,8 @@ PB.captureUI.show("Capture_working_trigger", {
         );
       }
 
+      storeLastSessionData(renderRes, session, CFG);
+
       session.status = "DONE";
       session.renderResult = renderRes;
       await snapshotWrite(session);
@@ -1115,10 +1485,18 @@ PB.captureUI.show("Capture_working_trigger", {
         { session, python: renderRes },
       ]);
 
-      const auto_print = !!PB._getDeep(
-        CFG,
-        "general.print.print_automatically_when_finish",
+      const cachedPaperCheck = getCachedPaperShortageResult();
+      if (!cachedPaperCheck?.ok && isPaperEmptyError(cachedPaperCheck)) {
+        pendingPaperEmptyMessage = cachedPaperCheck.message;
+      }
+
+      /*  ####################
+          Auto Print
+          ###################*/
+      const auto_print = PB.readBool(
+        PB._getDeep(CFG, "general.print.print_automatically_when_finish"),
       );
+
       if (auto_print) {
         const activeEventConfig = String(
           PB._getDeep(CFG, "activeEvent.active_event.config_path") || "",
@@ -1126,44 +1504,75 @@ PB.captureUI.show("Capture_working_trigger", {
           .trim()
           .replace(/[\/\\]+$/g, "");
 
-        const eventFile = activeEventConfig || null;
-
-        const copiesRaw =
-          PB._getDeep(CFG, "general.print.copies") ??
-          PB._getDeep(session, "print.printerCount") ??
-          1;
-
-        let copies = parseInt(copiesRaw, 10);
-        if (!Number.isFinite(copies) || copies < 1) copies = 1;
-        if (copies > 20) copies = 20;
+        const eventConfigPath = activeEventConfig || null;
 
         const printerName =
           String(PB._getDeep(CFG, "general.printer.printerName") || "").trim() ||
           null;
-        const imagePath = renderRes.output_path || null;
 
-        if (imagePath && eventFile) {
+        const imagePath =
+          renderRes?.output_path || renderRes?.outputPath || null;
+
+        if (imagePath && eventConfigPath) {
           try {
-            session.status = "PRINTING";
-            await snapshotWrite(session);
+            const paperCheck = await checkPaperBeforePrint();
 
-            const printRes = await PB.captureApi.printDefault({
-              image_path: imagePath,
-              event_file: eventFile,
-              copies,
-              printerName,
-            });
+            if (!paperCheck.ok) {
+              session.print = session.print || {};
+              session.print.autoPrint = true;
+              session.print.event_file = eventConfigPath;
+              session.print.image_path = imagePath;
+              session.print.autoPrintSkipped = true;
+              session.print.autoPrintSkipReason = paperCheck.error;
+              session.print.remainingPrints = paperCheck.remainingPrints ?? null;
+              session.print.autoPrintResult = paperCheck.response || paperCheck;
+              await snapshotWrite(session);
 
-            session.print = session.print || {};
-            session.print.autoPrint = true;
-            session.print.copies = copies;
-            session.print.event_file = eventFile;
-            session.print.image_path = imagePath;
-            session.print.autoPrintResult = printRes;
-            await snapshotWrite(session);
+              if (isPaperEmptyError(paperCheck)) {
+                pendingPaperEmptyMessage =
+                  paperCheck.message ||
+                  pbT(
+                    "capture.flow.err.paper_empty",
+                    "Printing is not possible. The paper is empty.",
+                  );
+              }
 
-            if (!printRes || printRes.ok !== true) {
-              console.warn("[captureFlow] autoPrint failed:", printRes);
+              console.warn("[captureFlow] autoPrint skipped:", paperCheck.error);
+            } else {
+              session.status = "PRINTING";
+              await snapshotWrite(session);
+
+              const printPayload = {
+                image_path: imagePath,
+                event_file: eventConfigPath,
+              };
+
+              if (printerName) {
+                printPayload.printerName = printerName;
+              }
+
+              const printRes = await PB.captureApi.printDefault(printPayload);
+
+              session.print = session.print || {};
+              session.print.autoPrint = true;
+              session.print.event_file = eventConfigPath;
+              session.print.image_path = imagePath;
+              session.print.remainingPrints = paperCheck.remainingPrints;
+              session.print.autoPrintResult = printRes;
+              await snapshotWrite(session);
+
+              if (!printRes || printRes.ok !== true) {
+                if (isPaperEmptyError(printRes)) {
+                  pendingPaperEmptyMessage =
+                    printRes?.message ||
+                    pbT(
+                      "capture.flow.err.paper_empty",
+                      "Printing is not possible. The paper is empty.",
+                    );
+                }
+
+                console.warn("[captureFlow] autoPrint failed:", printRes);
+              }
             }
           } catch (e) {
             console.warn("[captureFlow] autoPrint error:", e);
@@ -1179,19 +1588,35 @@ PB.captureUI.show("Capture_working_trigger", {
         PB._getDeep(CFG, "general.capture.text_done") ||
         pbT("capture.flow.text.done", "Done!");
 
-      const show_finish_image = !!PB._getDeep(
-        CFG,
-        "general.capture.show_finish_image",
+      const show_finish_image = PB.readBool(
+        PB._getDeep(CFG, "general.capture.show_finish_image"),
       );
       const close_after_seconds = PB._getDeep(
         CFG,
         "general.capture.show_finish_image_seconds",
       );
+      const allow_reprint = PB.readBool(
+        PB._getDeep(CFG, "activeEvent.active_event.allow_reprint"),
+      );
+
+      const finishImageSecondsNum = Number(
+        String(close_after_seconds ?? "").replace(",", "."),
+      );
+      const isFinishImageTimeoutZero =
+        Number.isFinite(finishImageSecondsNum) && finishImageSecondsNum === 0;
+      const canShowFinishImage =
+        show_finish_image && (allow_reprint || !isFinishImageTimeoutZero);
 
       const previewUrl =
         renderRes?.preview_url || renderRes?.previewUrl || null;
 
-      if (show_finish_image) {
+      $("#Capture_finish_with_img").css(
+        "display",
+        canShowFinishImage ? "block" : "none",
+      );
+      $("#print_again").css("display", allow_reprint ? "block" : "none");
+
+      if (canShowFinishImage) {
         await showFinishWithOptionalImage({
           text: finish_text,
           imgUrl: previewUrl,
@@ -1201,6 +1626,10 @@ PB.captureUI.show("Capture_working_trigger", {
         PB.captureUI.show("Capture_finish", { text: finish_text });
         await PB.sleep(800);
         PB.captureUI.hideAll();
+      }
+
+      if (pendingPaperEmptyMessage) {
+        await showCaptureErrorMessage(pendingPaperEmptyMessage);
       }
 
       await restorePreviewAfterFlow();

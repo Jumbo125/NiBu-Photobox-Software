@@ -39,6 +39,31 @@
           </h6>
 
           <div class="mb-3">
+            <div class="form-check form-switch">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="pbDnpPaperStatus"
+                data-json-group="printer"
+                data-json-parm="dnpPaperStatusQuery"
+                data-default-value="false"
+              />
+
+              <label
+                class="form-check-label"
+                for="pbDnpPaperStatus"
+                data-lang-key="overlay.printer_settings.dnp_paper_status.label"
+              >
+                <?= t('overlay.printer_settings.dnp_paper_status.label', 'DNP Drucker vorhanden. Papierstatus abfrage') ?>
+              </label>
+            </div>
+
+            <div class="form-text text-secondary mt-2" data-lang-key="overlay.printer_settings.dnp_paper_status.hint">
+              <?= t('overlay.printer_settings.dnp_paper_status.hint', 'Aktiviert die Papierstatus-Abfrage, wenn ein DNP-Drucker vorhanden ist.') ?>
+            </div>
+          </div>
+
+          <div class="mb-3">
             <label for="pbPrinterSelect" class="form-label" data-lang-key="overlay.printer_settings.printer.label">
               <?= t('overlay.printer_settings.printer.label', 'Windows printer') ?>
             </label>
