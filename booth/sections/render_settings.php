@@ -301,7 +301,90 @@
                         <h6 class="mt-2 mb-2" data-lang-key="overlay.render_settings.greenwall.section">
                             <?= t('overlay.render_settings.greenwall.section', 'Greenwall (Green Screen)') ?>
                         </h6>
+<!-- Greenwall reference image path -->
+<div class="mb-3">
+    <label
+        for="greenwallReferenceImagePath"
+        class="form-label"
+        data-lang-key="overlay.render_settings.greenwall.reference_image_path.label">
+        <?= t('overlay.render_settings.greenwall.reference_image_path.label', 'Referenzbild') ?>
+    </label>
 
+    <div class="input-group input-group-sm">
+        <input
+            class="form-control"
+            type="text"
+            id="greenwallReferenceImagePath"
+            placeholder="<?= t('overlay.render_settings.greenwall.reference_image_path.placeholder', 'C:/images/reference.jpg') ?>"
+            data-json-group="greenwall"
+            data-json-parm="reference_image_path"
+            data-default-value="">
+
+        <button
+            class="pb-pick-file btn btn-outline-warning"
+            type="button"
+            data-filter="Images|*.png;*.jpg;*.jpeg;*.gif|All|*.*"
+            data-subdir=""
+            data-prefix=""
+            data-overwrite="0"
+            data-target="#greenwallReferenceImagePath">
+            <span data-lang-key="form.pick_file">
+                <?= t('form.pick_file', 'Pick file') ?>
+            </span>
+        </button>
+    </div>
+
+    <div
+        class="form-text small"
+        data-lang-key="overlay.render_settings.greenwall.reference_image_path.help">
+        <?= t('overlay.render_settings.greenwall.reference_image_path.help', 'Wähle das Referenzbild aus. Der absolute Pfad wird gespeichert.') ?>
+    </div>
+</div>
+
+<!-- Generate greenwall profile -->
+<div class="mb-3">
+    <button
+        type="button"
+        id="btnGenerateGreenwallProfile"
+        class="btn btn-sm btn-warning">
+        <span data-lang-key="overlay.render_settings.greenwall.generate_profile.button">
+            <?= t('overlay.render_settings.greenwall.generate_profile.button', 'Referenzprofil generieren') ?>
+        </span>
+    </button>
+
+    <div
+        id="greenwallProfileGenerateStatus"
+        class="form-text small text-muted mt-1"
+        data-lang-key="overlay.render_settings.greenwall.generate_profile.status_idle">
+        <?= t('overlay.render_settings.greenwall.generate_profile.status_idle', 'Noch kein Referenzprofil generiert.') ?>
+    </div>
+</div>
+
+<!-- Greenwall reference profile path -->
+<div class="mb-3">
+    <label
+        for="renderGreenwallReferenceProfilePath"
+        class="form-label"
+        data-lang-key="overlay.render_settings.greenwall.reference_profile_path.label">
+        <?= t('overlay.render_settings.greenwall.reference_profile_path.label', 'Referenzprofil-Pfad') ?>
+    </label>
+
+    <input
+        type="text"
+        class="form-control form-control-sm"
+        id="renderGreenwallReferenceProfilePath"
+        placeholder="<?= t('overlay.render_settings.greenwall.reference_profile_path.placeholder', 'C:/profiles/reference-profile.npy') ?>"
+        readonly
+        data-json-group="greenwall"
+        data-json-parm="reference_profile_path"
+        data-default-value="" />
+
+    <div
+        class="form-text small"
+        data-lang-key="overlay.render_settings.greenwall.reference_profile_path.help">
+        <?= t('overlay.render_settings.greenwall.reference_profile_path.help', 'Hier wird später der Pfad des erzeugten Referenzprofils angezeigt.') ?>
+    </div>
+</div>
                         <!-- Greenwall switch -->
                         <div class="mb-3">
                             <label
@@ -327,7 +410,7 @@
                             </div>
                         </div>
 
-                        <!-- Greenwall mode -->
+                    <!-- Greenwall mode -->
                         <div class="mb-3">
                             <label
                                 for="renderGreenwallMode"

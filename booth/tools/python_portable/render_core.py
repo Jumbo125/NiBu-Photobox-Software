@@ -1,25 +1,58 @@
-# SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2026 Andreas Rottmann
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 render_core.py — Renderer-Modul für den Python Tool-Server
 
-- Bietet render_collage_api(payload, base_dir=...) -> Dict für Server JSON-Requests
-- Unterstützt:
-    - Template-XML parsing (width/height, greenwall, layers)
-    - Photo_n.* aus input_dir
-    - Assets aus template_dir und/oder input_dir (inkl assets/)
-    - Greenwall diff/chroma
-    - Speichern der Collage + Kopie der Originale
+Diese Datei ist der zentrale Renderer für den Booth-/Server-Flow.
+Sie kann auf zwei Arten verwendet werden:
 
-Neu:
-- render.resize_mode / render.mode: stretch|cover|contain (Default: stretch)
-- render.contain_bg / render.bg_color: Hintergrundfarbe für "contain"
-  - akzeptiert: "#RRGGBB", "#RRGGBBAA", "rgb(r,g,b)", "rgba(r,g,b,a)",
-                [r,g,b] / [r,g,b,a], "black"/"white"/"transparent"
+1) render_collage_api(payload, base_dir=...)
+   - Direkter API-/Payload-Weg.
+   - Erwartet alle nötigen Render-Pfade bereits im Payload.
+   - Geeignet für Endpunkte oder manuelle Server-Aufrufe.
 
-Layer-Effekte aus XML:
+2) render_from_session(session_folder, base_dir=...)
+   - Session-Weg für den normalen Capture-Flow.
+   - Liest session.json aus dem Capture-/TMP-Ordner.
+   - Nimmt bevorzugt Werte aus session["render"] und baut daraus intern
+     ein Payload für render_collage_api(...).
+   - Schreibt Status und Ergebnis zurück in dieselbe session.json.
+
+Wichtige Dateien / Datenquellen
+-------------------------------
+- session.json
+  Liegt im Capture-/Session-Ordner.
+  Enthält den aktuellen Booth-Status, die aufgenommenen Fotos und unter
+  session["render"] die Render-Parameter wie Template, Ausgabeordner,
+  Prefix, Dateiendung und optional render_config/render_config_inline.
+
+- render_config.json
+  Globale Render-/Greenwall-Konfiguration.
+  Standardpfad: booth/config/config/render_config.json
+  Sie wird mit DEFAULT_RENDER_CONFIG gemerged und zusätzlich durch
+  Legacy-/Alias-Namen normalisiert.
+
+- template.xml
+  Beschreibt Größe der finalen Collage, Layer-Reihenfolge, Position,
+  Rotation, optionale Greenwall-Flags sowie Layer-Effekte.
+
+- render_time.log
+  Wird bei jedem Render-Lauf neu überschrieben.
+  Speicherort: im aktuellen input_dir / Session-Ordner.
+  Die Datei enthält JSON-Zeilen mit Zeitstempeln für große Render-Schritte,
+  damit Performance-Probleme leicht nachvollziehbar sind.
+
+Greenwall-Modi
+--------------
+- Diff-Modus:
+  Vergleicht das aktuelle Foto pixelweise mit einem vorbereiteten
+  Referenzprofil (.npy/.npz).
+- Chroma-Modus:
+  Nutzt Farbton-/Schwellwert-Heuristiken, wenn kein Referenzprofil
+  vorhanden ist oder mode='chroma' erzwungen wird.
+- mode='auto':
+  Bevorzugt Diff, fällt sonst auf Chroma zurück.
+
+Layer-Effekte aus XML
+---------------------
 - radius="20"                     -> rounded corners
 - border="1" border_width="20" border_color="#fff" border_style="solid"
 - shadow="1" shadow_color="rgba(0,0,0,0.35)" shadow_x="0" shadow_y="6"
@@ -36,6 +69,7 @@ import shutil
 import sys
 import time
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -63,6 +97,7 @@ SHADOW_RENDER_SCALE = 0.7   # 0.5 = halb so groß rendern -> ~4x weniger Pixel f
 
 DEFAULT_RENDER_CONFIG: Dict[str, Any] = {
     "output": {
+        "format": "png",
         "jpeg_quality": 95,
         "jpeg_subsampling": 0,   # 0=4:4:4, 2=4:2:0
         "jpeg_optimize": True,
@@ -82,6 +117,10 @@ DEFAULT_RENDER_CONFIG: Dict[str, Any] = {
         "enabled": True,          # Master-Switch zusätzlich zum XML-Flag
         "mode": "auto",           # auto|diff|chroma
 
+        # Vorgefertigtes Referenzprofil für Diff-Keying (.npy/.npz).
+        # Wird bevorzugt verwendet, da damit Bildladen/Decodieren pro Render entfällt.
+        "ref_profile_path": "",
+
         # Diff-Key
         "diff_t0": 25,
         "diff_t1": 110,
@@ -93,6 +132,7 @@ DEFAULT_RENDER_CONFIG: Dict[str, Any] = {
         "chroma_t0": 20,
         "chroma_t1": 120,
         "bg_alpha_cap": 20,
+        "green_ratio": 0.0,
 
         # Mask-Postprocessing
         "blur_radius": 0.0,
@@ -129,7 +169,77 @@ def deep_merge(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]
     return out
 
 
+def _normalize_greenwall_mode(value: Any, default: str = "auto") -> str:
+    """
+    Normalisiert den Greenwall-Modus auf einen bekannten Wert.
+    Unbekannte Eingaben fallen bewusst auf 'auto' zurück, damit Tippfehler
+    in der Config den Render-Lauf nicht unbeabsichtigt deaktivieren.
+    """
+    mode = str(value or "").strip().lower()
+    if mode in ("auto", "diff", "chroma"):
+        return mode
+    return default
+
+
+def _normalize_legacy_render_config(cfg: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Normalisiert ältere/alternative Config-Namen auf die aktuell intern genutzten Keys.
+    So bleiben bestehende render_config.json-Dateien kompatibel, ohne die Render-Logik
+    überall mit Sonderfällen zu belasten.
+    """
+    out = json.loads(json.dumps(cfg or {}))
+
+    output_cfg = out.setdefault("output", {})
+    if "format" in output_cfg and output_cfg["format"] is not None:
+        output_cfg["format"] = str(output_cfg["format"]).strip().lower().lstrip(".")
+
+    gw_cfg = out.setdefault("greenwall", {})
+
+    # Vorgefertigtes Referenzprofil bevorzugen: mehrere Schreibweisen zulassen.
+    profile_value = None
+    for key in ("ref_profile_path", "ref_profile", "profile_path", "profile"):
+        val = gw_cfg.get(key)
+        if isinstance(val, str) and val.strip():
+            profile_value = val.strip()
+            break
+    if profile_value is not None:
+        gw_cfg["ref_profile_path"] = profile_value
+
+    # Greenwall-Modus robust normalisieren.
+    gw_cfg["mode"] = _normalize_greenwall_mode(gw_cfg.get("mode", "auto"), default="auto")
+
+    # Legacy-Aliase übernehmen, wenn die neuen Keys fehlen.
+    if "diff_t0" not in gw_cfg and "diff_threshold" in gw_cfg:
+        try:
+            gw_cfg["diff_t0"] = int(float(gw_cfg.get("diff_threshold")))
+        except Exception:
+            pass
+    if "diff_t1" not in gw_cfg and "diff_threshold" in gw_cfg:
+        try:
+            t0 = int(float(gw_cfg.get("diff_threshold")))
+            gw_cfg["diff_t1"] = max(t0 + 1, t0 + 85)
+        except Exception:
+            pass
+    if "chroma_min_g" not in gw_cfg and "green_min" in gw_cfg:
+        gw_cfg["chroma_min_g"] = gw_cfg.get("green_min")
+    if "blur_radius" not in gw_cfg and "feather" in gw_cfg:
+        gw_cfg["blur_radius"] = gw_cfg.get("feather")
+
+    return out
+
+
+# Pfade & Config
+# -----------------------------
 def load_render_config(explicit_path: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Lädt render_config.json, normalisiert Legacy-/Alias-Namen und merged die
+    Datei mit DEFAULT_RENDER_CONFIG.
+
+    Wichtig für Außenstehende:
+    - Diese Config ist die globale Render-Basis.
+    - Werte aus session.json bzw. Payload bestimmen *wo* gerendert wird.
+    - render_config.json bestimmt vor allem *wie* gerendert wird.
+    """
     booth_root = get_booth_root()
     cfg_path = Path(explicit_path).resolve() if explicit_path else (booth_root / "config" / "config" / "render_config.json")
 
@@ -139,6 +249,7 @@ def load_render_config(explicit_path: Optional[str] = None) -> Dict[str, Any]:
     try:
         with cfg_path.open("r", encoding="utf-8-sig") as f:
             user_cfg = json.load(f)
+            user_cfg = _normalize_legacy_render_config(user_cfg)
     except Exception as e:
         print(f"Warnung: render_config.json konnte nicht gelesen werden ({cfg_path}): {e}", file=sys.stderr)
         user_cfg = {}
@@ -454,35 +565,116 @@ def _prepare_photo_work_image(
 
 
 # -----------------------------
-# Greenwall helpers
+# Greenwall profile helpers
 # -----------------------------
-def _find_greenwall_reference(input_dir: Path, greenwall_src: str) -> Optional[Path]:
-    if greenwall_src.strip():
-        candidate = input_dir / _basename_from_src(greenwall_src.strip())
-        if candidate.exists():
-            return candidate
-        cand2 = input_dir / "assets" / _basename_from_src(greenwall_src.strip())
-        if cand2.exists():
-            return cand2
+class ReferenceProfile:
+    """
+    Hält ein vorberechnetes Referenzprofil im Speicher und liefert für
+    angeforderte Zielgrößen gecachte RGB-Arrays als int16.
 
-    for name in ("greenwall.png", "greenwall.jpg", "greenwall.jpeg", "Greenwall.png", "Greenwall.jpg", "Greenwall.jpeg"):
-        candidate = input_dir / name
-        if candidate.exists():
-            return candidate
-        cand2 = input_dir / "assets" / name
-        if cand2.exists():
-            return cand2
+    Zweck:
+    - Das Profil ersetzt das wiederholte Laden/Resizen eines Referenzprofiles.
+    - Für den Diff-Modus ist das schneller und ressourcenschonender.
+    - Das Profil beschreibt den *leeren* Hintergrund in derselben Kamera-
+      Perspektive wie die späteren Capture-Bilder.
 
-    for d in (input_dir, input_dir / "assets"):
-        if not d.exists():
+    Erwartete Formate:
+      - .npy  -> direktes Array (H,W,3) oder (H,W,4)
+      - .npz  -> bevorzugt Schlüssel ref_rgb / rgb / image / ref_image
+    """
+
+    def __init__(self, rgb_u8: np.ndarray, source_path: Path):
+        arr = np.asarray(rgb_u8)
+        if arr.ndim == 2:
+            arr = np.stack([arr, arr, arr], axis=2)
+        if arr.ndim != 3:
+            raise ValueError(f"Ungültiges Referenzprofil-Format: ndim={arr.ndim}")
+        if arr.shape[2] == 4:
+            arr = arr[:, :, :3]
+        if arr.shape[2] != 3:
+            raise ValueError(f"Ungültige Referenzprofil-Kanäle: shape={arr.shape}")
+        if arr.dtype != np.uint8:
+            arr = np.clip(arr, 0, 255).astype(np.uint8)
+
+        self.rgb_u8 = np.ascontiguousarray(arr)
+        self.source_path = Path(source_path)
+        self.cache: Dict[Tuple[int, int], np.ndarray] = {}
+        self.cache_hits = 0
+        self.cache_misses = 0
+
+    @property
+    def size(self) -> Tuple[int, int]:
+        h, w = self.rgb_u8.shape[:2]
+        return (w, h)
+
+    @classmethod
+    def load(cls, path: Path) -> "ReferenceProfile":
+        p = Path(path).expanduser().resolve()
+        suffix = p.suffix.lower()
+        if suffix == ".npy":
+            arr = np.load(p, allow_pickle=False)
+            return cls(arr, p)
+
+        if suffix == ".npz":
+            with np.load(p, allow_pickle=False) as data:
+                for key in ("ref_rgb", "rgb", "image", "ref_image"):
+                    if key in data:
+                        return cls(data[key], p)
+                if data.files:
+                    return cls(data[data.files[0]], p)
+            raise ValueError(f"NPZ-Profil enthält kein verwendbares Array: {p}")
+
+        raise ValueError(f"Nicht unterstütztes Referenzprofil-Format: {p.suffix}")
+
+    def get_rgb_int16(self, size: Tuple[int, int]) -> np.ndarray:
+        w = max(1, int(size[0]))
+        h = max(1, int(size[1]))
+        key = (w, h)
+        cached = self.cache.get(key)
+        if cached is not None:
+            self.cache_hits += 1
+            return cached
+
+        self.cache_misses += 1
+        if self.size == key:
+            arr = self.rgb_u8.astype(np.int16, copy=False)
+        else:
+            ref = Image.fromarray(self.rgb_u8, mode="RGB").resize((w, h), RES_BILINEAR)
+            arr = np.asarray(ref).astype(np.int16)
+        self.cache[key] = arr
+        return arr
+
+
+def _resolve_reference_profile_path(profile_value: str, input_dir: Path, template_dir: Path, booth_root: Path) -> Optional[Path]:
+    val = str(profile_value or "").strip()
+    if not val:
+        return None
+
+    raw = Path(val.replace("\\", "/"))
+    candidates: List[Path] = []
+    if raw.is_absolute():
+        candidates.append(raw)
+    else:
+        candidates.extend([
+            input_dir / raw,
+            input_dir / "assets" / raw.name,
+            template_dir / raw,
+            template_dir / "assets" / raw.name,
+            booth_root / raw,
+        ])
+
+    for cand in candidates:
+        try:
+            if cand.exists() and cand.is_file():
+                return cand.resolve()
+        except Exception:
             continue
-        for p in d.iterdir():
-            if p.is_file() and p.stem.lower() == "greenwall" and p.suffix.lower() in (".png", ".jpg", ".jpeg"):
-                return p
-
     return None
 
 
+# -----------------------------
+# Greenwall helpers
+# -----------------------------
 def _find_greenwall_background(input_dir: Path, greenwall_bg_src: str) -> Optional[Path]:
     search_dirs = [input_dir, input_dir / "assets"]
 
@@ -530,16 +722,16 @@ def _apply_close(alpha_img: Image.Image, iterations: int) -> Image.Image:
 
 def remove_green_background(
     photo_rgba: Image.Image,
-    ref_bg_rgb: Optional[Image.Image],
     gw_cfg: Dict[str, Any],
     debug_mask_path: Optional[Path] = None,
+    ref_profile: Optional[ReferenceProfile] = None,
 ) -> Image.Image:
     img = photo_rgba.convert("RGBA")
     rgb = img.convert("RGB")
     arr = np.asarray(rgb).astype(np.int16)
 
-    mode = str(gw_cfg.get("mode", "auto")).strip().lower()
-    have_ref = ref_bg_rgb is not None
+    mode = _normalize_greenwall_mode(gw_cfg.get("mode", "auto"), default="auto")
+    have_ref = ref_profile is not None
 
     use_diff = (mode == "diff") or (mode == "auto" and have_ref)
     use_chroma = (mode == "chroma") or (mode == "auto" and not have_ref)
@@ -547,11 +739,10 @@ def remove_green_background(
     if mode == "diff" and not have_ref:
         use_diff = False
         use_chroma = True
-        print("Warnung: greenwall.mode=diff, aber kein Referenzbild gefunden -> fallback zu chroma.", file=sys.stderr)
+        print("Warnung: greenwall.mode=diff, aber kein Referenzprofil gefunden -> fallback zu chroma.", file=sys.stderr)
 
-    if use_diff and ref_bg_rgb is not None:
-        ref = ref_bg_rgb.convert("RGB").resize(rgb.size, RES_BILINEAR)
-        ref_arr = np.asarray(ref).astype(np.int16)
+    if use_diff and have_ref:
+        ref_arr = ref_profile.get_rgb_int16(rgb.size)
         diff = np.abs(arr - ref_arr).sum(axis=2)  # 0..765
 
         t0 = int(gw_cfg.get("diff_t0", 25))
@@ -570,19 +761,27 @@ def remove_green_background(
         alpha_img = Image.fromarray(alpha, mode="L")
 
     elif use_chroma:
-        r = arr[:, :, 0]
-        g = arr[:, :, 1]
-        b = arr[:, :, 2]
+        r = arr[:, :, 0].astype(np.float32)
+        g = arr[:, :, 1].astype(np.float32)
+        b = arr[:, :, 2].astype(np.float32)
 
-        delta = int(gw_cfg.get("chroma_delta", 40))
-        min_g = int(gw_cfg.get("chroma_min_g", 100))
-        is_bg = (g > (r + delta)) & (g > (b + delta)) & (g > min_g)
+        delta = float(gw_cfg.get("chroma_delta", 40) or 0)
+        min_g = float(gw_cfg.get("chroma_min_g", 100) or 0)
+        ratio = float(gw_cfg.get("green_ratio", 0.0) or 0.0)
 
-        greenness = (g - np.maximum(r, b)).astype(np.int16)
-        t0 = int(gw_cfg.get("chroma_t0", 20))
-        t1 = int(gw_cfg.get("chroma_t1", 120))
+        is_bg = (g > min_g)
+        if delta > 0:
+            is_bg = is_bg & (g > (r + delta)) & (g > (b + delta))
+        if ratio > 0:
+            safe_r = np.maximum(r, 1.0)
+            safe_b = np.maximum(b, 1.0)
+            is_bg = is_bg & (g >= (safe_r * ratio)) & (g >= (safe_b * ratio))
 
-        a = 255 - np.clip((greenness - t0) * 255.0 / max(1, (t1 - t0)), 0, 255)
+        greenness = (g - np.maximum(r, b)).astype(np.float32)
+        t0 = float(gw_cfg.get("chroma_t0", 20) or 20)
+        t1 = float(gw_cfg.get("chroma_t1", 120) or 120)
+
+        a = 255 - np.clip((greenness - t0) * 255.0 / max(1.0, (t1 - t0)), 0, 255)
         alpha = a.astype(np.uint8)
 
         bg_cap = int(gw_cfg.get("bg_alpha_cap", 20))
@@ -913,6 +1112,44 @@ def save_jpeg(img: Image.Image, out_path: Path, out_cfg: Dict[str, Any]) -> None
         img.convert("RGB").save(out_path, "JPEG", **save_kwargs)
 
 
+class RenderProfiler:
+    """
+    Schreibt render_time.log als JSON-Lines-Datei.
+
+    Speicherort:
+    - build_collage(...) legt die Datei immer in input_dir/render_time.log ab.
+
+    Inhalt:
+    - Startzeit
+    - Kontext (Template, Pfade, vorhandene Fotos)
+    - Zeitstempel für große Verarbeitungsschritte
+    - Fehler / Ende des Render-Laufs
+    """
+    def __init__(self, log_path: Path, context: Optional[Dict[str, Any]] = None):
+        self.log_path = Path(log_path)
+        self.log_path.parent.mkdir(parents=True, exist_ok=True)
+        self.started_perf = time.perf_counter()
+        self._fh = self.log_path.open("w", encoding="utf-8")
+        self.log("render_start")
+        if context:
+            self.log("context", **context)
+
+    def _now(self) -> str:
+        return datetime.now().astimezone().isoformat(timespec="milliseconds")
+
+    def log(self, stage: str, **data: Any) -> None:
+        elapsed = time.perf_counter() - self.started_perf
+        payload = {"ts": self._now(), "elapsed_s": round(elapsed, 3), "stage": stage}
+        payload.update(data)
+        self._fh.write(json.dumps(payload, ensure_ascii=False) + "\n")
+        self._fh.flush()
+
+    def close(self, stage: str = "render_end", **data: Any) -> None:
+        if not self._fh.closed:
+            self.log(stage, **data)
+            self._fh.close()
+
+
 # -----------------------------
 # Main Collage builder
 # -----------------------------
@@ -925,152 +1162,297 @@ def build_collage(
     out_ext: str,
     cfg: Dict[str, Any],
 ) -> Dict[str, Any]:
-    width, height, greenwall_flag, greenwall_src, greenwall_bg_src, layers = parse_template_xml(template_xml)
+    """
+    Führt den eigentlichen Render-Lauf aus.
 
-    if width <= 0 or height <= 0:
-        raise ValueError(f"Ungültige Template-Größe: width={width}, height={height}")
+    input_dir ist der operative Arbeitsordner für den aktuellen Render.
+    Dort liegen in der Regel:
+    - Photo_1.jpg / Photo_2.jpg / ...
+    - session.json (wenn der Session-Weg genutzt wurde)
+    - render_time.log (wird hier neu geschrieben)
 
-    template_dir = template_xml.parent
-
-    output_collage = output_collage.resolve()
-    output_originals = output_originals.resolve()
-    output_collage.mkdir(parents=True, exist_ok=True)
-    output_originals.mkdir(parents=True, exist_ok=True)
-
-    out_cfg = cfg.get("output", {}) or {}
-    render_cfg = cfg.get("render", {}) or {}
-    gw_cfg = cfg.get("greenwall", {}) or {}
-
-    # Mode: akzeptiere "resize_mode" (neu) oder "mode" (alias)
-    resize_mode = _normalize_resize_mode(
-        render_cfg.get("resize_mode", render_cfg.get("mode", "stretch")),
-        default="stretch"
-    )
-
-    # BG Color: akzeptiere "contain_bg" (neu) oder "bg_color" (alias)
-    contain_bg = _parse_rgba(
-        render_cfg.get("contain_bg", render_cfg.get("bg_color", [0, 0, 0, 0])),
-        default=(0, 0, 0, 0)
+    Die Funktion rendert Layer für Layer auf die finale Canvas und gibt ein
+    Ergebnis-Dict zurück, das später in session.json unter renderResult
+    abgelegt werden kann.
+    """
+    # Performance-Log immer direkt im Session-/Input-Ordner ablegen, damit
+    # Log und verarbeitete Fotos am selben Ort liegen. Die Datei wird pro
+    # Render-Lauf neu überschrieben.
+    profiler = RenderProfiler(
+        input_dir / "render_time.log",
+        context={
+            "template": str(template_xml),
+            "input_dir": str(input_dir),
+            "output_collage": str(output_collage),
+            "output_originals": str(output_originals),
+            "prefix": prefix,
+            "ext": out_ext,
+            "photos_present": sorted(p.name for p in input_dir.glob("Photo_*")),
+        },
     )
 
     try:
-        photo_work_scale = float(render_cfg.get("photo_work_scale", render_cfg.get("photo_scale", 1.5)))
-    except Exception:
-        photo_work_scale = 1.5
-    if photo_work_scale <= 0:
-        photo_work_scale = 1.5
-
-    # Greenwall Aktivierung:
-    # - XML greenwall="1" ist die Basis
-    # - cfg.greenwall.enabled ist Master
-    # - optional legacy cfg.greenwall.switch: "on|off|auto" überschreibt
-    gw_enabled = bool(gw_cfg.get("enabled", True))
-    sw = str(gw_cfg.get("switch", "auto")).strip().lower()  # legacy support
-    if sw == "off":
-        greenwall_active = False
-    elif sw == "on":
-        greenwall_active = True and gw_enabled
-    else:
-        greenwall_active = bool(greenwall_flag) and gw_enabled
-
-    idx = next_output_index(output_collage, prefix=prefix, ext=out_ext)
-
-    ref_bg_path = _find_greenwall_reference(input_dir, greenwall_src) if greenwall_active else None
-    ref_bg_img = open_image_copy(ref_bg_path, "RGB") if ref_bg_path else None
-
-    greenwall_bg_path = _find_greenwall_background(input_dir, greenwall_bg_src) if greenwall_active else None
-    greenwall_bg_img = open_image_copy(greenwall_bg_path, "RGB") if greenwall_bg_path else None
-
-    greenwall_out_dir: Optional[Path] = None
-    if greenwall_active:
-        greenwall_out_dir = output_originals / "original_greenwall"
-        greenwall_out_dir.mkdir(parents=True, exist_ok=True)
-
-        if greenwall_bg_img is None:
-            print(
-                "Warnung: greenwall aktiv, aber kein Hintergrundbild gefunden. "
-                "Lege z.B. ___greenwall.jpg in input_dir oder input_dir/assets ab, "
-                "oder setze im XML greenwall-bg='...'.",
-                file=sys.stderr,
-            )
-
-    canvas = Image.new("RGBA", (width, height), (0, 0, 0, 0))
-    used_photo_paths: List[Path] = []
-    write_mask_debug = bool(gw_cfg.get("write_mask_debug", False))
-
-    for layer in layers:
-        img, src_path = load_asset_for_layer(layer, input_dir, template_dir)
-
-        if layer.type == "photo":
-            img = _prepare_photo_work_image(img, layer, photo_work_scale)
-
-        if layer.type == "photo" and src_path is not None:
-            used_photo_paths.append(src_path)
-
-        if greenwall_active and layer.type == "photo":
-            debug_path = None
-            if write_mask_debug and src_path is not None and greenwall_out_dir is not None:
-                debug_path = greenwall_out_dir / f"{prefix}{idx:06d}_{src_path.stem}_mask.png"
-
-            cutout = remove_green_background(img, ref_bg_img, gw_cfg, debug_mask_path=debug_path)
-
-            if greenwall_bg_img is not None:
-                bg_rgba = greenwall_bg_img.resize(cutout.size, RES_BILINEAR).convert("RGBA")
-                bg_rgba.alpha_composite(cutout.convert("RGBA"))
-                composed_rgb = bg_rgba.convert("RGB")
-
-                if greenwall_out_dir is not None and src_path is not None:
-                    try:
-                        gw_name = f"{prefix}{idx:06d}_{src_path.stem}_greenwall.jpg"
-                        save_jpeg(composed_rgb, greenwall_out_dir / gw_name, out_cfg)
-                    except Exception as _e:
-                        print(f"Warnung: Konnte Greenwall-Kopie nicht speichern ({src_path.name}): {_e}", file=sys.stderr)
-
-                img = composed_rgb.convert("RGBA")
-            else:
-                img = cutout
-
-        place_layer(
-            canvas=canvas,
-            layer_img=img,
-            layer=layer,
-            resize_mode=resize_mode,
-            contain_bg=contain_bg,
+        profiler.log("parse_template.start")
+        width, height, greenwall_flag, greenwall_src, greenwall_bg_src, layers = parse_template_xml(template_xml)
+        profiler.log(
+            "parse_template.done",
+            width=width,
+            height=height,
+            layer_count=len(layers),
+            xml_greenwall=bool(greenwall_flag),
+            xml_greenwall_src=greenwall_src,
+            xml_greenwall_bg=greenwall_bg_src,
         )
 
-    out_name = f"{prefix}{idx:06d}{out_ext}"
-    out_path = output_collage / out_name
+        if width <= 0 or height <= 0:
+            raise ValueError(f"Ungültige Template-Größe: width={width}, height={height}")
 
-    if out_ext.lower() in (".jpg", ".jpeg"):
-        save_jpeg(canvas, out_path, out_cfg)
-    else:
-        canvas.save(out_path)
+        template_dir = template_xml.parent
 
-    copied: List[str] = []
-    for p in used_photo_paths:
-        dest_name = f"{prefix}{idx:06d}_{p.name}"
-        shutil.copy2(p, output_originals / dest_name)
-        copied.append(dest_name)
+        output_collage = output_collage.resolve()
+        output_originals = output_originals.resolve()
+        output_collage.mkdir(parents=True, exist_ok=True)
+        output_originals.mkdir(parents=True, exist_ok=True)
 
-    return {
-        "ok": True,
-        "index": idx,
-        "output_path": str(out_path),
-        "output_name": out_name,
-        "template": str(template_xml),
-        "input_dir": str(input_dir),
-        "output_collage": str(output_collage),
-        "output_originals": str(output_originals),
-        "greenwall_active": bool(greenwall_active),
-        "greenwall_ref": str(ref_bg_path) if ref_bg_path else "",
-        "greenwall_bg": str(greenwall_bg_path) if greenwall_bg_path else "",
-        "used_photos": [str(p) for p in used_photo_paths],
-        "copied_originals": copied,
-        # Debug / Info:
-        "resize_mode": resize_mode,
-        "contain_bg": list(contain_bg),
-        "photo_work_scale": photo_work_scale,
-    }
+        out_cfg = cfg.get("output", {}) or {}
+        render_cfg = cfg.get("render", {}) or {}
+        gw_cfg = cfg.get("greenwall", {}) or {}
+
+        resize_mode = _normalize_resize_mode(
+            render_cfg.get("resize_mode", render_cfg.get("mode", "stretch")),
+            default="stretch"
+        )
+        contain_bg = _parse_rgba(
+            render_cfg.get("contain_bg", render_cfg.get("bg_color", [0, 0, 0, 0])),
+            default=(0, 0, 0, 0)
+        )
+
+        try:
+            photo_work_scale = float(render_cfg.get("photo_work_scale", render_cfg.get("photo_scale", 1.5)))
+        except Exception:
+            photo_work_scale = 1.5
+        if photo_work_scale <= 0:
+            photo_work_scale = 1.5
+
+        gw_enabled = bool(gw_cfg.get("enabled", True))
+        gw_mode = _normalize_greenwall_mode(gw_cfg.get("mode", "auto"), default="auto")
+        sw = str(gw_cfg.get("switch", "auto")).strip().lower()
+        if sw == "off":
+            greenwall_active = False
+        elif sw == "on":
+            greenwall_active = True and gw_enabled
+        else:
+            greenwall_active = bool(greenwall_flag) and gw_enabled
+
+        profiler.log(
+            "config.effective",
+            resize_mode=resize_mode,
+            contain_bg=list(contain_bg),
+            photo_work_scale=photo_work_scale,
+            greenwall_active=bool(greenwall_active),
+            greenwall_mode=gw_mode,
+            greenwall_ref_profile_cfg=str(gw_cfg.get("ref_profile_path") or ""),
+            greenwall_profile_configured=bool(str(gw_cfg.get("ref_profile_path") or "").strip()),
+            greenwall_ratio=float(gw_cfg.get("green_ratio", 0.0) or 0.0),
+        )
+
+        idx = next_output_index(output_collage, prefix=prefix, ext=out_ext)
+        profiler.log("output.index", index=idx)
+
+        ref_profile: Optional[ReferenceProfile] = None
+        ref_profile_path: Optional[Path] = None
+        if greenwall_active:
+            ref_profile_path = _resolve_reference_profile_path(
+                str(gw_cfg.get("ref_profile_path") or ""),
+                input_dir=input_dir,
+                template_dir=template_dir,
+                booth_root=get_booth_root(),
+            )
+            profiler.log(
+                "greenwall.reference_profile",
+                configured=str(gw_cfg.get("ref_profile_path") or ""),
+                path=str(ref_profile_path) if ref_profile_path else "",
+                found=bool(ref_profile_path),
+            )
+            if ref_profile_path is not None:
+                try:
+                    ref_profile = ReferenceProfile.load(ref_profile_path)
+                    profiler.log(
+                        "greenwall.reference_profile.loaded",
+                        size=list(ref_profile.size),
+                        source=str(ref_profile.source_path),
+                    )
+                except Exception as e:
+                    profiler.log("greenwall.reference_profile.error", message=str(e), path=str(ref_profile_path))
+                    ref_profile = None
+        profiler.log(
+            "greenwall.effective",
+            enabled=bool(greenwall_active),
+            mode=gw_mode,
+            profile_used=bool(ref_profile is not None),
+            profile_path=str(ref_profile.source_path) if ref_profile is not None else "",
+        )
+        # greenwall-src bleibt das Ersatz-Hintergrundbild aus dem Template.
+        bg_source = greenwall_src or greenwall_bg_src
+        greenwall_bg_path = _find_greenwall_background(input_dir, bg_source) if greenwall_active else None
+        profiler.log("greenwall.background", path=str(greenwall_bg_path) if greenwall_bg_path else "", found=bool(greenwall_bg_path), source=bg_source)
+        greenwall_bg_img = open_image_copy(greenwall_bg_path, "RGB") if greenwall_bg_path else None
+        if greenwall_bg_img is not None:
+            profiler.log("greenwall.background.loaded", size=list(greenwall_bg_img.size))
+
+        greenwall_out_dir: Optional[Path] = None
+        if greenwall_active:
+            greenwall_out_dir = output_originals / "original_greenwall"
+            greenwall_out_dir.mkdir(parents=True, exist_ok=True)
+
+            if greenwall_bg_img is None:
+                print(
+                    "Warnung: greenwall aktiv, aber kein Hintergrundbild gefunden. "
+                    "Lege das Bild aus greenwall-src im input_dir oder input_dir/assets ab.",
+                    file=sys.stderr,
+                )
+
+        canvas = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+        used_photo_paths: List[Path] = []
+        write_mask_debug = bool(gw_cfg.get("write_mask_debug", False))
+
+        for layer_idx, layer in enumerate(layers, start=1):
+            profiler.log(
+                "layer.start",
+                layer_index=layer_idx,
+                layer_type=layer.type,
+                z=layer.z,
+                box=[layer.x, layer.y, layer.w, layer.h],
+                rotation=layer.rotation,
+                photo_index=layer.index,
+                src=layer.src,
+            )
+
+            img, src_path = load_asset_for_layer(layer, input_dir, template_dir)
+            profiler.log(
+                "layer.asset_loaded",
+                layer_index=layer_idx,
+                path=str(src_path) if src_path else "",
+                size=list(img.size),
+            )
+
+            if layer.type == "photo":
+                before = img.size
+                img = _prepare_photo_work_image(img, layer, photo_work_scale)
+                profiler.log(
+                    "layer.photo_work_image",
+                    layer_index=layer_idx,
+                    before_size=list(before),
+                    after_size=list(img.size),
+                )
+
+            if layer.type == "photo" and src_path is not None:
+                used_photo_paths.append(src_path)
+
+            if greenwall_active and layer.type == "photo":
+                debug_path = None
+                if write_mask_debug and src_path is not None and greenwall_out_dir is not None:
+                    debug_path = greenwall_out_dir / f"{prefix}{idx:06d}_{src_path.stem}_mask.png"
+
+                profiler.log("layer.greenwall.start", layer_index=layer_idx, has_profile=bool(ref_profile), has_background=bool(greenwall_bg_img))
+                cutout = remove_green_background(
+                    img,
+                    gw_cfg,
+                    debug_mask_path=debug_path,
+                    ref_profile=ref_profile,
+                )
+                profiler.log("layer.greenwall.cutout_done", layer_index=layer_idx, size=list(cutout.size))
+
+                if greenwall_bg_img is not None:
+                    bg_rgba = greenwall_bg_img.resize(cutout.size, RES_BILINEAR).convert("RGBA")
+                    bg_rgba.alpha_composite(cutout.convert("RGBA"))
+                    composed_rgb = bg_rgba.convert("RGB")
+                    profiler.log("layer.greenwall.background_composite", layer_index=layer_idx, size=list(composed_rgb.size))
+
+                    if greenwall_out_dir is not None and src_path is not None:
+                        try:
+                            gw_name = f"{prefix}{idx:06d}_{src_path.stem}_greenwall.jpg"
+                            save_jpeg(composed_rgb, greenwall_out_dir / gw_name, out_cfg)
+                            profiler.log("layer.greenwall.saved_original", layer_index=layer_idx, filename=gw_name)
+                        except Exception as _e:
+                            print(f"Warnung: Konnte Greenwall-Kopie nicht speichern ({src_path.name}): {_e}", file=sys.stderr)
+                            profiler.log("layer.greenwall.saved_original_failed", layer_index=layer_idx, error=str(_e))
+
+                    img = composed_rgb.convert("RGBA")
+                else:
+                    img = cutout
+
+            place_layer(
+                canvas=canvas,
+                layer_img=img,
+                layer=layer,
+                resize_mode=resize_mode,
+                contain_bg=contain_bg,
+            )
+            profiler.log("layer.placed", layer_index=layer_idx)
+
+        out_name = f"{prefix}{idx:06d}{out_ext}"
+        out_path = output_collage / out_name
+
+        profiler.log("output.save.start", path=str(out_path), canvas_size=list(canvas.size))
+        if out_ext.lower() in (".jpg", ".jpeg"):
+            save_jpeg(canvas, out_path, out_cfg)
+        else:
+            canvas.save(out_path)
+        profiler.log("output.save.done", path=str(out_path), exists=bool(out_path.exists()))
+
+        copied: List[str] = []
+        for p in used_photo_paths:
+            dest_name = f"{prefix}{idx:06d}_{p.name}"
+            shutil.copy2(p, output_originals / dest_name)
+            copied.append(dest_name)
+            profiler.log("output.original_copied", src=str(p), dest=str(output_originals / dest_name))
+
+        result = {
+            "ok": True,
+            "index": idx,
+            "output_path": str(out_path),
+            "output_name": out_name,
+            "template": str(template_xml),
+            "input_dir": str(input_dir),
+            "output_collage": str(output_collage),
+            "output_originals": str(output_originals),
+            "greenwall_active": bool(greenwall_active),
+            "greenwall_ref_profile": str(ref_profile.source_path) if ref_profile is not None else "",
+            "greenwall_bg": str(greenwall_bg_path) if greenwall_bg_path else "",
+            "used_photos": [str(p) for p in used_photo_paths],
+            "copied_originals": copied,
+            "resize_mode": resize_mode,
+            "contain_bg": list(contain_bg),
+            "photo_work_scale": photo_work_scale,
+            "effective_greenwall_cfg": {
+                "enabled": gw_enabled,
+                "switch": sw,
+                "mode": gw_mode,
+                "ref_profile_path": str(gw_cfg.get("ref_profile_path") or ""),
+                "diff_t0": gw_cfg.get("diff_t0"),
+                "diff_t1": gw_cfg.get("diff_t1"),
+                "diff_gamma": gw_cfg.get("diff_gamma"),
+                "chroma_delta": gw_cfg.get("chroma_delta"),
+                "chroma_min_g": gw_cfg.get("chroma_min_g"),
+                "chroma_t0": gw_cfg.get("chroma_t0"),
+                "chroma_t1": gw_cfg.get("chroma_t1"),
+                "bg_alpha_cap": gw_cfg.get("bg_alpha_cap"),
+                "green_ratio": gw_cfg.get("green_ratio"),
+                "blur_radius": gw_cfg.get("blur_radius"),
+                "close_iter": gw_cfg.get("close_iter"),
+                "spill_suppression": gw_cfg.get("spill_suppression"),
+                "write_mask_debug": gw_cfg.get("write_mask_debug"),
+            },
+            "render_time_log": str((input_dir / "render_time.log").resolve()),
+        }
+        profiler.close("render_success", output_path=str(out_path))
+        return result
+
+    except Exception as e:
+        profiler.log("render_exception", error=str(e))
+        profiler.close("render_failed", error=str(e))
+        raise
 
 
 # -----------------------------
@@ -1087,6 +1469,11 @@ def _resolve_path(p: str, base_dir: Optional[Path]) -> Path:
 
 def render_collage_api(payload: Dict[str, Any], base_dir: Optional[Path] = None) -> Dict[str, Any]:
     """
+    Direkter API-Einstieg für den Renderer.
+
+    Dieser Weg wird verwendet, wenn der Aufrufer bereits alle Render-Pfade
+    kennt und kein session.json-basierter Booth-Flow nötig ist.
+
     Erwartet JSON wie:
     {
       "template": ".../template.xml",
@@ -1123,9 +1510,7 @@ def render_collage_api(payload: Dict[str, Any], base_dir: Optional[Path] = None)
             }
 
         prefix = str(payload.get("prefix") or "collage_")
-        ext = str(payload.get("ext") or ".png").strip()
-        if not ext.startswith("."):
-            ext = "." + ext
+        payload_ext = str(payload.get("ext") or "").strip()
 
         booth_root = get_booth_root()
 
@@ -1146,7 +1531,15 @@ def render_collage_api(payload: Dict[str, Any], base_dir: Optional[Path] = None)
         inline = payload.get("render_config_inline")
         inline_used = bool(isinstance(inline, dict) and inline)
         if inline_used:
-            cfg = deep_merge(cfg, inline)
+            cfg = deep_merge(cfg, _normalize_legacy_render_config(inline))
+
+        ext = payload_ext
+        if not ext:
+            ext = str((cfg.get("output") or {}).get("format") or ".png").strip()
+        if ext and not ext.startswith("."):
+            ext = "." + ext
+        if not ext:
+            ext = ".png"
 
         # -----------------------------
         # Pfade auflösen
@@ -1183,6 +1576,9 @@ def render_collage_api(payload: Dict[str, Any], base_dir: Optional[Path] = None)
             res["render_config_source"] = cfg_source
             res["render_config_inline_used"] = inline_used
             res["effective_render_cfg"] = (cfg.get("render") or {})
+            res["effective_output_cfg"] = (cfg.get("output") or {})
+            # effective_greenwall_cfg wird bereits in build_collage(...) mit den
+            # tatsächlich genutzten Werten und Alias-Auflösungen zurückgegeben.
 
         return res
 
@@ -1248,8 +1644,28 @@ def _find_template_xml(booth_root: Path) -> Optional[Path]:
 
 def render_from_session(session_folder: str | Path, base_dir: Optional[Path] = None) -> Dict[str, Any]:
     """
-    Rendert basierend auf session.json im Capture-Ordner.
-    Deterministisch: bevorzugt session["render"] Werte.
+    Session-basierter Renderer für den normalen Capture-Flow.
+
+    Erwartet einen Capture-/TMP-Ordner, in dem session.json liegt.
+    Der Ablauf ist:
+    1. session.json laden
+    2. Status auf RENDERING setzen
+    3. session["render"] bevorzugt auslesen
+    4. daraus ein internes Payload für render_collage_api(...) bauen
+    5. Rendering ausführen
+    6. renderResult / Fehler und finalen Status zurück in session.json schreiben
+
+    Wichtige Felder in session.json:
+    - session["render"]["template"]
+    - session["render"]["output_collage"]
+    - session["render"]["output_originals"]
+    - session["render"]["prefix"]
+    - session["render"]["ext"]
+    - session["render"]["render_config"]
+    - session["render"]["render_config_inline"]
+
+    Deterministisch bedeutet hier: Wenn session["render"] Werte gesetzt sind,
+    werden diese bevorzugt und nur bei Bedarf durch Fallbacks ergänzt.
     """
     folder = Path(session_folder).resolve()
     session = _load_session_json(folder)
@@ -1262,6 +1678,9 @@ def render_from_session(session_folder: str | Path, base_dir: Optional[Path] = N
         session["status"] = "RENDERING"
         _write_session_json(folder, session)
 
+        # session["render"] ist die fachliche Verbindung zwischen Capture-Flow
+        # und Renderer. Hier stehen Template, Output-Ordner, Prefix, Endung und
+        # optionale Render-Config-Overrides für genau diese Session.
         render = session.get("render") if isinstance(session.get("render"), dict) else {}
 
         # Template: bevorzugt aus session.render.template, sonst Fallback scan
@@ -1284,7 +1703,7 @@ def render_from_session(session_folder: str | Path, base_dir: Optional[Path] = N
         output_originals = str(render.get("output_originals") or (Path(event_path) / "original_copies"))
 
         prefix = str(render.get("prefix") or "collage_")
-        ext = str(render.get("ext") or ".jpg").strip()
+        ext = str(render.get("ext") or "").strip()
         if ext and not ext.startswith("."):
             ext = "." + ext
 
@@ -1294,8 +1713,9 @@ def render_from_session(session_folder: str | Path, base_dir: Optional[Path] = N
             "output_collage": output_collage,
             "output_originals": output_originals,
             "prefix": prefix,
-            "ext": ext,
         }
+        if ext:
+            payload["ext"] = ext
 
         # Optional: render_config file path
         rc = render.get("render_config")

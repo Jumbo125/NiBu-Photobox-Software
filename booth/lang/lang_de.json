@@ -260,9 +260,9 @@
   "overlay.render_settings.greenwall.switch.help": "Auto nutzt das Template-Flag (z.B. greenwall=\"1\"). Ein/Aus überschreibt global.",
 
   "overlay.render_settings.greenwall.mode.label": "Modus",
-  "overlay.render_settings.greenwall.mode.opt.auto": "Auto (Diff bei Referenz, sonst Chroma)",
-  "overlay.render_settings.greenwall.mode.opt.diff": "Diff (Referenzvergleich)",
-  "overlay.render_settings.greenwall.mode.opt.chroma": "Chroma (Grün-Dominanz)",
+  "overlay.render_settings.greenwall.mode.opt.auto": "Automatisch (mit Profil, sonst Farberkennung)",
+"overlay.render_settings.greenwall.mode.opt.diff": "Mit Profildatei, dazu bitte oberhalb ein Referenzprofil erstellen lassen",
+"overlay.render_settings.greenwall.mode.opt.chroma": "Ohne Profildatei (Farberkennung)",
   "overlay.render_settings.greenwall.mode.help": "Wähle, wie die Maske erzeugt wird: Diff (mit Referenz) oder Chroma-Key (Grün-Dominanz).",
 
   "overlay.render_settings.greenwall.diff_threshold.label": "Diff-Schwelle",
@@ -811,5 +811,15 @@
   "capture.error.paper.title": "Papierproblem",
 "capture.error.paper.text": "Drucken ist nicht möglich.",
 "capture.error.printer.title": "Druckerfehler",
-"capture.error.printer.text": "Der Druck ist fehlgeschlagen."
+"capture.error.printer.text": "Der Druck ist fehlgeschlagen.","overlay.render_settings.greenwall.reference_image_path.label": "Referenzbild",
+  "overlay.render_settings.greenwall.reference_image_path.placeholder": "C:/bilder/referenz.jpg",
+  "overlay.render_settings.greenwall.reference_image_path.help": "Wähle das Referenzbild aus. Der absolute Pfad wird gespeichert.",
+  "overlay.render_settings.greenwall.generate_profile.button": "Referenzprofil generieren",
+  "overlay.render_settings.greenwall.generate_profile.status_idle": "Noch kein Referenzprofil generiert.",
+  "overlay.render_settings.greenwall.generate_profile.no_image_path": "Bitte zuerst ein Referenzbild auswählen.",
+  "overlay.render_settings.greenwall.generate_profile.generating": "Referenzprofil wird generiert...",
+  "overlay.render_settings.greenwall.generate_profile.failed": "Referenzprofil konnte nicht generiert werden.",
+  "overlay.render_settings.greenwall.generate_profile.no_profile_path": "Die API hat keinen Profilpfad zurückgegeben.",
+  "overlay.render_settings.greenwall.generate_profile.success": "Referenzprofil erfolgreich generiert.",
+  "overlay.render_settings.greenwall.generate_profile.server_unreachable": "Python-Server nicht erreichbar."
 }

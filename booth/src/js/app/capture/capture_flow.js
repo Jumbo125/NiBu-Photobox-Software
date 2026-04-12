@@ -2,13 +2,42 @@
 // Copyright (c) 2026 Andreas Rottmann
 
 /**
- * booth/js/capture_flow.js — vereinfachter Capture-Flow
- * ----------------------------------------------------
- * Ziel dieser Version:
- *   - JS macht primär UX / Countdown / Overlay / session.json
- *   - C# / Backend macht die Kamera-Transaktion
- *   - JS startet/stellt LiveView nur an den Flow-Grenzen wieder her
- *   - Zwischen den Shots wird LiveView nicht mehr aktiv von JS hin- und hergeschaltet
+ * booth/js/capture_flow.js — Capture-Flow / Orchestrierung der Fotoserie
+ * ---------------------------------------------------------------------
+ * Rolle im Gesamtsystem:
+ *   - Diese Datei ist die fachliche Ablaufsteuerung der kompletten Serie.
+ *   - Hier wird entschieden, WANN Countdown, Capture, Rendern und Drucken
+ *     passieren und welche UI dabei sichtbar ist.
+ *
+ * Architektur im Hintergrund:
+ *   Browser / JS
+ *     -> PB.bridge (Browser-Bridge)
+ *     -> ApiServer
+ *     -> Bridge Worker
+ *     -> Kamera-SDK
+ *
+ * Wichtige Konsequenz daraus:
+ *   - Diese Datei steuert den Ablauf, aber sie steuert NICHT direkt die
+ *     Kamera-Hardware.
+ *   - Ein einzelner Shot wird backendseitig als eigene Operation behandelt.
+ *   - LiveView stoppen/starten, temporäre Kamera-Settings und serielle
+ *     Kamera-Zugriffe werden im Worker abgesichert.
+ *   - Rendern und Drucken laufen separat über den Python-Service.
+ *
+ * Grobe Reihenfolge:
+ *   1) Start prüfen und Session aufbauen
+ *   2) Preview vorbereiten / LiveView warm machen
+ *   3) Countdown und Capture pro Slot
+ *   4) session.json nach wichtigen Schritten aktualisieren
+ *   5) Nach dem letzten Bild Rendern starten
+ *   6) Optional automatisch drucken
+ *   7) Finish-UI zeigen und Preview zurücksetzen
+ *
+ * Abgrenzung:
+ *   - Technische API-Aufrufe liegen in capture_api.js
+ *   - DOM-Startbindung liegt in capture_bindings.js
+ *   - Diese Datei soll hauptsächlich Ablauf, Status und UX steuern
+ *   - Backend/C# übernimmt die eigentliche Kamera-Transaktion
  */
 
 (function ($) {
@@ -97,6 +126,10 @@ body.pb-capture-running #btnLiveviewToggle {
 
   // -----------------------------------------------------------------------
   // Snapshot Writer (PHP endpoint)
+  // ---------------------------------------------------------
+  // session.json ist das zentrale Übergabeobjekt zwischen Flow,
+  // Rendern und Debugging. Deshalb wird an kritischen Stellen nicht nur
+  // im Speicher gearbeitet, sondern der Stand aktiv weggeschrieben.
   // -----------------------------------------------------------------------
   PB.writeSessionSnapshot =
     PB.writeSessionSnapshot ||
@@ -126,6 +159,10 @@ body.pb-capture-running #btnLiveviewToggle {
 
   // -----------------------------------------------------------------------
   // Fixed UI Helper
+  // ---------------------------------------------------------
+  // Kapselt die Overlay-/Layer-Steuerung für den Capture-Flow.
+  // Andere Teile des Flows sollen nur noch sagen "zeige Zustand X" und
+  // nicht jedes Mal selbst DOM-Details kennen müssen.
   // -----------------------------------------------------------------------
   PB.captureUI =
     PB.captureUI ||
@@ -259,9 +296,16 @@ body.pb-capture-running #btnLiveviewToggle {
     return Number.isFinite(n) ? n : null;
   }
 
-  function getCachedPaperShortageResult() {
+  // Prüft den zuletzt bekannten Papierstand ohne neuen API-Aufruf.
+  // Diese Funktion wird als schneller Vorab-Check verwendet, bevor später
+  // der echte DNP-Status geprüft wird.
+  function getCachedPaperShortageResult(requiredCountOverride) {
     const remainingPrints = getCachedRemainingPrintCount();
-    const requiredPrintCount = getRequiredPrintCount();
+    const override = parseInt(requiredCountOverride, 10);
+    const requiredPrintCount =
+      Number.isFinite(override) && override > 0
+        ? override
+        : getRequiredPrintCount();
 
     if (
       !Number.isFinite(remainingPrints) ||
@@ -300,7 +344,10 @@ body.pb-capture-running #btnLiveviewToggle {
   }
 
 
-  async function checkPaperBeforePrint() {
+  // Zentrale Papierprüfung vor jedem Druck.
+  // Bevorzugt den aktuellen API-Wert, fällt bei 429 / timer_too_short aber
+  // kontrolliert auf den gecachten Wert zurück.
+  async function checkPaperBeforePrint(requiredCountOverride) {
     const dnpRes =
       typeof PB._getDnpPaperState === "function"
         ? await PB._getDnpPaperState()
@@ -330,7 +377,11 @@ body.pb-capture-running #btnLiveviewToggle {
         ? cachedRemainingPrints
         : NaN;
 
-    const requiredPrintCount = getRequiredPrintCount();
+    const override = parseInt(requiredCountOverride, 10);
+    const requiredPrintCount =
+      Number.isFinite(override) && override > 0
+        ? override
+        : getRequiredPrintCount();
 
     if (!dnpRes?.ok && !(isTooManyRequests && Number.isFinite(cachedRemainingPrints))) {
       return {
@@ -344,7 +395,7 @@ body.pb-capture-running #btnLiveviewToggle {
       };
     }
 
-    if (Number.isFinite(remainingPrints) && remainingPrints <= 1) {
+    if (Number.isFinite(remainingPrints) && remainingPrints <= 0) {
       return {
         ok: false,
         error: "paper_empty",
@@ -430,6 +481,9 @@ body.pb-capture-running #btnLiveviewToggle {
     });
   }
 
+  // Reprint-Funktion für das zuletzt gerenderte Ergebnis.
+  // Bewusst getrennt vom eigentlichen Serienablauf, damit Reprint später
+  // auch separat vom UI ausgelöst werden kann.
   PB.printLastSession =
     PB.printLastSession ||
     async function () {
@@ -494,7 +548,7 @@ body.pb-capture-running #btnLiveviewToggle {
           };
         }
 
-        const paperCheck = await checkPaperBeforePrint();
+        const paperCheck = await checkPaperBeforePrint(1);
         if (!paperCheck.ok) {
           return paperCheck;
         }
@@ -502,6 +556,7 @@ body.pb-capture-running #btnLiveviewToggle {
         const printPayload = {
           image_path: imagePath,
           event_file: eventConfigPath,
+          copies: 1,
         };
 
         if (printerName) {
@@ -731,17 +786,84 @@ body.pb-capture-running #btnLiveviewToggle {
 
   // -----------------------------------------------------------------------
   // Flow State
+  // ---------------------------------------------------------
+  // running/cancelled/currentRun bilden den minimalen Laufzeitzustand des
+  // aktuellen Flows. Damit werden Doppelstarts, Cancel und das Verteilen
+  // des Cancel-Signals auf Unteroperationen gesteuert.
   // -----------------------------------------------------------------------
   let running = false;
   let cancelled = false;
+  let currentRun = null;
+
+  function createCancelledError() {
+    const e = new Error("__CANCELLED__");
+    e.__cancelled = true;
+    e.code = "flow_cancelled";
+    return e;
+  }
+
+  // Erzeugt ein simples Cancel-Signal-Objekt für genau einen Flow-Lauf.
+  // Unterfunktionen können sich darauf registrieren, ohne globale Variablen
+  // oder DOM-Events direkt beobachten zu müssen.
+  function createRunContext() {
+    const listeners = new Set();
+
+    return {
+      cancelled: false,
+      reason: null,
+      onCancel(fn) {
+        if (typeof fn !== "function") return () => {};
+
+        if (this.cancelled) {
+          fn(this.reason || createCancelledError());
+          return () => {};
+        }
+
+        listeners.add(fn);
+        return () => listeners.delete(fn);
+      },
+      cancel() {
+        if (this.cancelled) return;
+
+        this.cancelled = true;
+        this.reason = this.reason || createCancelledError();
+
+        listeners.forEach((fn) => {
+          try {
+            fn(this.reason);
+          } catch (_) {}
+        });
+
+        listeners.clear();
+      },
+    };
+  }
+
+  function getActiveCancelSignal() {
+    return currentRun || null;
+  }
 
   PB.captureFlow.isRunning = PB.captureFlow.isRunning || (() => running);
 
+  // Cancel auf Flow-Ebene:
+  // - stoppt weitere Schritte des Serienablaufs
+  // - bricht laufende Render-/Print-Requests im Browser aktiv ab
+  // - ein bereits gestarteter Einzel-Capture im Worker läuft dabei in der
+  //   Regel kontrolliert zu Ende, weil jeder Shot backendseitig separat
+  //   ausgeführt wird
   PB.captureFlow.cancel =
     PB.captureFlow.cancel ||
     async function () {
       if (!running) return;
       cancelled = true;
+
+      if (currentRun) {
+        currentRun.cancel();
+      }
+
+      if (PB.captureApi?.abortActiveOperations) {
+        PB.captureApi.abortActiveOperations("flow_cancelled");
+      }
 
       PB.captureUI.show("Capture_working_abort");
       await PB.sleep(300);
@@ -752,13 +874,12 @@ body.pb-capture-running #btnLiveviewToggle {
 
       PB.captureUI.hideAll();
       running = false;
+      currentRun = null;
     };
 
   function guardCancelled() {
     if (!cancelled) return;
-    const e = new Error("__CANCELLED__");
-    e.__cancelled = true;
-    throw e;
+    throw createCancelledError();
   }
 
   // -----------------------------------------------------------------------
@@ -863,6 +984,9 @@ body.pb-capture-running #btnLiveviewToggle {
   // -----------------------------------------------------------------------
   // Countdown (User-Zeit)
   // -----------------------------------------------------------------------
+  // Universeller Countdown für erstes Bild und Zwischenbilder.
+  // Unterstützt optional einen "frühen" Trigger, damit der eigentliche
+  // Capture-Aufruf kurz vor Ende des Countdowns schon anlaufen kann.
   async function flowCountdown(seconds, phase, options) {
     let n = Number(seconds || 0);
     if (!Number.isFinite(n) || n < 0) n = 0;
@@ -952,6 +1076,14 @@ body.pb-capture-running #btnLiveviewToggle {
   // -----------------------------------------------------------------------
   // Preview Prepare / Restore (LiveView nur an den Flow-Grenzen)
   // -----------------------------------------------------------------------
+  // Bereitet LiveView/Preview direkt vor dem Serienstart vor.
+  // Wichtig: "API sagt ok" bedeutet noch nicht automatisch, dass im Browser
+  // schon echte Frames sichtbar sind. Deshalb wird hier sowohl backendseitig
+  // auf Frames als auch frontendseitig auf ein tatsächlich gemaltes Bild
+  // gewartet.
+  //
+  // Der erste Start ist absichtlich toleranter, weil Kaltstarts mehr Zeit
+  // brauchen als spätere Wiederanläufe innerhalb derselben Sitzung.
   async function preparePreviewForSeries() {
   const isFirstLiveviewWarmup = PB.captureFlow._liveviewWarm !== true;
 
@@ -1063,10 +1195,29 @@ body.pb-capture-running #btnLiveviewToggle {
     ).trim();
     if (!folder) return { ok: false, error: "missing_captureFolderHint" };
 
+    session.updatedAt = new Date().toISOString();
+
     return PB.writeSessionSnapshot(folder, session).catch((err) => {
       console.warn("[snapshot] write failed:", err?.message || err);
       return { ok: false, error: "snapshot_write_failed" };
     });
+  }
+
+  async function requireSnapshotWrite(session, code, fallbackMessage) {
+    const res = await snapshotWrite(session);
+
+    if (res?.ok) return res;
+
+    const err = new Error(
+      fallbackMessage ||
+        pbT(
+          "capture.flow.err.snapshot_write_failed",
+          "Session snapshot could not be written.",
+        ),
+    );
+    err.code = code || "snapshot_write_failed";
+    err.detail = res;
+    throw err;
   }
 
   // -----------------------------------------------------------------------
@@ -1146,6 +1297,21 @@ body.pb-capture-running #btnLiveviewToggle {
 
   // -----------------------------------------------------------------------
   // Main Start
+  // ---------------------------------------------------------
+  // Herzstück des fachlichen Flows. Ab hier wird aus den vorbereiteten
+  // Startdaten ein kompletter Lauf von Capture bis optionalem Druck.
+  //
+  // Vereinfacht gesagt macht diese Funktion Folgendes:
+  //   - Session initialisieren
+  //   - Preview/LiveView vor dem ersten Bild sicher bereitstellen
+  //   - für jeden Fotoslot einen eigenen Capture auslösen
+  //   - nach jedem relevanten Schritt session.json schreiben
+  //   - nach dem letzten Bild Rendern und optional Drucken
+  //   - danach Finish-UI zeigen und den Startzustand wiederherstellen
+  //
+  // Jeder einzelne Shot ist dabei ein eigener Backend-Aufruf. Diese Datei
+  // orchestriert also die Serie, während der Worker die eigentliche Kamera-
+  // Operation seriell und kameraspezifisch ausführt.
   // -----------------------------------------------------------------------
   PB.captureFlow.start = async function (required, photoTarget) {
     if (running) return;
@@ -1210,6 +1376,7 @@ body.pb-capture-running #btnLiveviewToggle {
 
     running = true;
     cancelled = false;
+    currentRun = createRunContext();
 
     PB.captureFlow._previewWasStream =
       PB.preview && typeof PB.preview.isStreamVisible === "function"
@@ -1222,6 +1389,9 @@ body.pb-capture-running #btnLiveviewToggle {
     const filePrefix = String(PB.CAPTURE_TMP_Prefix || "Photo_");
     const nowIso = () => new Date().toISOString();
 
+    // session ist das zentrale Laufzeitobjekt dieser Serie.
+    // Es dient gleichzeitig als Debug-/Statusobjekt und als Grundlage für
+    // session.json, die später vom Python-Renderpfad gelesen wird.
     const session = {
       id: null,
       createdAt: nowIso(),
@@ -1281,8 +1451,11 @@ body.pb-capture-running #btnLiveviewToggle {
 
     try {
       $(document).trigger("pb:captureSessionStarted", [session]);
-      await snapshotWrite(session);
+      await requireSnapshotWrite(session, "snapshot_init_failed");
 
+      // Preview möglichst vor dem ersten Countdown in einen stabilen
+      // Zustand bringen, damit der Benutzer nicht in einen "kalten" Start
+      // fotografiert.
       await preparePreviewForSeries();
 
       await preCountdownPause();
@@ -1290,12 +1463,14 @@ body.pb-capture-running #btnLiveviewToggle {
       const firstCapturePayload = {
         slot: 1,
         applySettings: !!r.useSettings,
+        resetAfterShoot: target <= 1,
         iso: r.iso,
         shutter: r.shutter,
         wb: r.wb,
         aperture: r.aperture,
         exposure: r.exposure,
         startLiveViewAfterCapture: true,
+        cancelSignal: getActiveCancelSignal(),
       };
       const firstCountdownRes = await flowCountdown(r.counter_first_image, "first", {
         earlyTriggerMs: fasterCaptureEffectMs,
@@ -1309,8 +1484,11 @@ body.pb-capture-running #btnLiveviewToggle {
       });
 
       session.status = "CAPTURING";
-      await snapshotWrite(session);
+      await requireSnapshotWrite(session, "snapshot_capture_start_failed");
 
+      // Hauptschleife der Serie: pro Slot wird ein Bild aufgenommen,
+      // der Session-Stand aktualisiert und optional ein Zwischenbild im UI
+      // gezeigt.
       for (let slot = 1; slot <= target; slot++) {
         guardCancelled();
 
@@ -1319,11 +1497,13 @@ body.pb-capture-running #btnLiveviewToggle {
         const capturePayload = {
           slot,
           applySettings: !!r.useSettings,
+          resetAfterShoot: slot >= target,
           iso: r.iso,
           shutter: r.shutter,
           wb: r.wb,
           aperture: r.aperture,
           exposure: r.exposure,
+          cancelSignal: getActiveCancelSignal(),
         };
 
         if (slot > 1) {
@@ -1399,6 +1579,10 @@ body.pb-capture-running #btnLiveviewToggle {
         const shotPreviewUrl = captureFileToPreviewUrl(file);
         const previewImgTime = getPreviewImgTimeSeconds();
 
+        // Zwischenlogik:
+        //  - Vorletzte/zwischenliegende Bilder können kurz gezeigt werden.
+        //  - Beim letzten Bild wird parallel bereits das Rendering gestartet,
+        //    um gefühlte Wartezeit zu verkürzen.
         if (slot < target && shotPreviewUrl && previewImgTime > 0) {
           await waitUntilImageLoads(shotPreviewUrl, 1200).catch(() => false);
           await showPreviewBetweenShotsImage({
@@ -1407,12 +1591,15 @@ body.pb-capture-running #btnLiveviewToggle {
           });
         } else if (slot === target && shotPreviewUrl && previewImgTime > 0) {
           session.status = "CAPTURE_DONE";
-          await snapshotWrite(session);
+          await requireSnapshotWrite(session, "snapshot_capture_done_failed");
 
           session.status = "RENDERING";
-          await snapshotWrite(session);
+          await requireSnapshotWrite(session, "snapshot_render_start_failed");
 
-          const renderPayload = { captureFolderHint: session.captureFolderHint };
+          const renderPayload = {
+            captureFolderHint: session.captureFolderHint,
+            cancelSignal: getActiveCancelSignal(),
+          };
           const trackedRender = createTrackedPromise(
             PB.captureApi.runPython(renderPayload),
           );
@@ -1453,7 +1640,7 @@ body.pb-capture-running #btnLiveviewToggle {
 
       if (typeof renderRes === "undefined") {
         session.status = "CAPTURE_DONE";
-        await snapshotWrite(session);
+        await requireSnapshotWrite(session, "snapshot_capture_done_failed");
 
         const working_text =
           PB._getDeep(CFG, "general.capture.text_processing") ||
@@ -1462,10 +1649,17 @@ body.pb-capture-running #btnLiveviewToggle {
         PB.captureUI.show("Capture_working_render", { text: working_text });
 
         session.status = "RENDERING";
-        await snapshotWrite(session);
+        await requireSnapshotWrite(session, "snapshot_render_start_failed");
 
-        const renderPayload = { captureFolderHint: session.captureFolderHint };
+        const renderPayload = {
+          captureFolderHint: session.captureFolderHint,
+          cancelSignal: getActiveCancelSignal(),
+        };
         renderRes = await PB.captureApi.runPython(renderPayload);
+      }
+
+      if (renderRes?.error === "flow_cancelled") {
+        throw createCancelledError();
       }
 
       if (!renderRes || renderRes.ok !== true) {
@@ -1477,13 +1671,9 @@ body.pb-capture-running #btnLiveviewToggle {
 
       storeLastSessionData(renderRes, session, CFG);
 
-      session.status = "DONE";
+      session.status = "RENDER_DONE";
       session.renderResult = renderRes;
-      await snapshotWrite(session);
-
-      $(document).trigger("pb:captureFlowDone", [
-        { session, python: renderRes },
-      ]);
+      await requireSnapshotWrite(session, "snapshot_render_done_failed");
 
       const cachedPaperCheck = getCachedPaperShortageResult();
       if (!cachedPaperCheck?.ok && isPaperEmptyError(cachedPaperCheck)) {
@@ -1492,10 +1682,23 @@ body.pb-capture-running #btnLiveviewToggle {
 
       /*  ####################
           Auto Print
-          ###################*/
+          ###################
+          Der Druck ist bewusst NACH dem erfolgreichen Rendern angeordnet.
+          Dadurch bleibt die Verantwortung sauber getrennt:
+          - Kamera-Serie zuerst vollständig abschließen
+          - danach gerendertes Ergebnis verwenden
+          - erst dann an den Python-Druckpfad übergeben
+
+          Dabei gilt:
+          - Auto-Print nutzt multiple_print aus dem Event
+          - Reprint ist separat und nutzt immer 1 Kopie
+          - die Papierprüfung muss immer zur echten Kopienzahl passen
+      */
       const auto_print = PB.readBool(
         PB._getDeep(CFG, "general.print.print_automatically_when_finish"),
       );
+      const requestedCopies = getRequiredPrintCount() || 1;
+      let finalStatus = "DONE";
 
       if (auto_print) {
         const activeEventConfig = String(
@@ -1522,11 +1725,13 @@ body.pb-capture-running #btnLiveviewToggle {
               session.print.autoPrint = true;
               session.print.event_file = eventConfigPath;
               session.print.image_path = imagePath;
+              session.print.copies = requestedCopies;
               session.print.autoPrintSkipped = true;
               session.print.autoPrintSkipReason = paperCheck.error;
               session.print.remainingPrints = paperCheck.remainingPrints ?? null;
               session.print.autoPrintResult = paperCheck.response || paperCheck;
-              await snapshotWrite(session);
+              finalStatus = "DONE_WITH_PRINT_WARNING";
+              await requireSnapshotWrite(session, "snapshot_print_skip_failed");
 
               if (isPaperEmptyError(paperCheck)) {
                 pendingPaperEmptyMessage =
@@ -1540,11 +1745,13 @@ body.pb-capture-running #btnLiveviewToggle {
               console.warn("[captureFlow] autoPrint skipped:", paperCheck.error);
             } else {
               session.status = "PRINTING";
-              await snapshotWrite(session);
+              await requireSnapshotWrite(session, "snapshot_print_start_failed");
 
               const printPayload = {
                 image_path: imagePath,
                 event_file: eventConfigPath,
+                copies: requestedCopies,
+                cancelSignal: getActiveCancelSignal(),
               };
 
               if (printerName) {
@@ -1553,15 +1760,21 @@ body.pb-capture-running #btnLiveviewToggle {
 
               const printRes = await PB.captureApi.printDefault(printPayload);
 
+              if (printRes?.error === "flow_cancelled") {
+                throw createCancelledError();
+              }
+
               session.print = session.print || {};
               session.print.autoPrint = true;
               session.print.event_file = eventConfigPath;
               session.print.image_path = imagePath;
+              session.print.copies = requestedCopies;
               session.print.remainingPrints = paperCheck.remainingPrints;
               session.print.autoPrintResult = printRes;
-              await snapshotWrite(session);
 
               if (!printRes || printRes.ok !== true) {
+                finalStatus = "DONE_WITH_PRINT_WARNING";
+
                 if (isPaperEmptyError(printRes)) {
                   pendingPaperEmptyMessage =
                     printRes?.message ||
@@ -1573,16 +1786,35 @@ body.pb-capture-running #btnLiveviewToggle {
 
                 console.warn("[captureFlow] autoPrint failed:", printRes);
               }
+
+              await requireSnapshotWrite(session, "snapshot_print_result_failed");
             }
           } catch (e) {
+            if (e?.__cancelled || e?.message === "__CANCELLED__") {
+              throw e;
+            }
+
             console.warn("[captureFlow] autoPrint error:", e);
             session.print = session.print || {};
             session.print.autoPrint = true;
             session.print.autoPrintError = String(e?.message || e);
-            await snapshotWrite(session);
+            finalStatus = "DONE_WITH_PRINT_WARNING";
+            await requireSnapshotWrite(session, "snapshot_print_error_failed");
           }
         }
       }
+
+      // Erst ganz am Ende wird der finale Status gesetzt.
+      // So vermeiden wir, dass der Flow schon als "DONE" gilt, obwohl
+      // z. B. gerade noch gedruckt oder ein Print-Warning verarbeitet wird.
+      session.status = finalStatus;
+      await requireSnapshotWrite(session, "snapshot_done_failed");
+
+      // Externes Event für andere UI-/App-Teile erst auslösen, wenn der
+      // komplette Ablauf wirklich fertig bewertet wurde.
+      $(document).trigger("pb:captureFlowDone", [
+        { session, python: renderRes },
+      ]);
 
       const finish_text =
         PB._getDeep(CFG, "general.capture.text_done") ||
@@ -1638,6 +1870,7 @@ body.pb-capture-running #btnLiveviewToggle {
 
       PB.captureUI.hideAll();
       running = false;
+      currentRun = null;
 
       return { ok: true, session, python: renderRes };
     } catch (err) {
@@ -1650,6 +1883,7 @@ body.pb-capture-running #btnLiveviewToggle {
 
         PB.captureUI.hideAll();
         running = false;
+        currentRun = null;
         return null;
       }
 
@@ -1673,6 +1907,7 @@ body.pb-capture-running #btnLiveviewToggle {
       });
 
       running = false;
+      currentRun = null;
       throw err;
     }
   };
