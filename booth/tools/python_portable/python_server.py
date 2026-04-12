@@ -28,6 +28,8 @@ NEU (Service-Wrapper für deine Server.exe via service_core.py):
   - POST /service/restart  { "exe":"...", "api_key":"..." }
 
 NEU (Renderer / Collage):
+  - POST /greenwall/profile     (lokal, OHNE API-Key)  { "reference_image_path": "C:/.../ref.jpg" }
+
   - POST /render/collage        (Key geschützt)
 
 NEU (Renderer / Session Snapshot):
@@ -60,6 +62,7 @@ Absicherung:
   - AUSNAHME: /dnp/info ist lokal erreichbar und benötigt absichtlich keinen API-Key
 """
 
+import io
 import json
 import mimetypes
 import os
@@ -183,6 +186,18 @@ except Exception as e:
     get_booth_root = None
 else:
     _RENDER_IMPORT_ERROR = ""
+
+# -----------------------------
+# Greenwall profile import
+# -----------------------------
+try:
+    from greenwall_profile import create_greenwall_profile_from_path, get_default_profile_dir
+except Exception as e:
+    _GREENWALL_PROFILE_IMPORT_ERROR = str(e)
+    create_greenwall_profile_from_path = None
+    get_default_profile_dir = None
+else:
+    _GREENWALL_PROFILE_IMPORT_ERROR = ""
 
 # -----------------------------
 # DNP import
@@ -389,6 +404,7 @@ def parse_body(handler: BaseHTTPRequestHandler) -> Dict[str, Any]:
         return {k: v[0] for k, v in parse_qs(raw.decode("utf-8", errors="replace")).items()}
     except Exception:
         return {}
+
 
 
 def _get_api_key_from_request(handler: BaseHTTPRequestHandler, qs: Dict[str, Any], body: Dict[str, Any]) -> str:
@@ -832,6 +848,7 @@ class Handler(BaseHTTPRequestHandler):
                 "closebrowser_import_error": _CLOSEBROWSER_IMPORT_ERROR,
                 "printer_import_error": _PRINTER_IMPORT_ERROR,
                 "render_import_error": _RENDER_IMPORT_ERROR,
+                "greenwall_profile_import_error": _GREENWALL_PROFILE_IMPORT_ERROR,
                 "service_import_error": _SERVICE_IMPORT_ERROR,
                 "dnp_import_error": _DNP_IMPORT_ERROR,
                 "debug_flags": {
@@ -1090,6 +1107,7 @@ class Handler(BaseHTTPRequestHandler):
         u = urlparse(self.path)
         path = u.path
         qs = parse_qs(u.query)
+
         data = parse_body(self)
 
         if path == "/closebrowser":
@@ -1127,6 +1145,60 @@ class Handler(BaseHTTPRequestHandler):
             self._send_json(200, {"ok": True, "shuttingDown": True, "pid": os.getpid()})
             threading.Thread(target=self.server.shutdown, daemon=True).start()
             return
+
+        if path == "/greenwall/profile":
+            if create_greenwall_profile_from_path is None or get_default_profile_dir is None:
+                return self._send_json(500, {
+                    "ok": False,
+                    "error": "greenwall_profile_import_failed",
+                    "detail": _GREENWALL_PROFILE_IMPORT_ERROR,
+                })
+
+            reference_image_path = str(
+                data.get("reference_image_path")
+                or data.get("image_path")
+                or data.get("path")
+                or ""
+            ).strip()
+            if not reference_image_path:
+                return self._send_json(400, {
+                    "ok": False,
+                    "error": "missing_reference_image_path",
+                    "message": "Provide an absolute source image path in 'reference_image_path'.",
+                    "need": ["reference_image_path"],
+                })
+
+            src = Path(reference_image_path).expanduser()
+            if not src.is_absolute():
+                return self._send_json(400, {
+                    "ok": False,
+                    "error": "path_not_absolute",
+                    "message": "reference_image_path must be an absolute path.",
+                    "reference_image_path": reference_image_path,
+                })
+
+            base_dir = Path(HERE).resolve()
+            requested_output_dir = str(data.get("output_dir") or "").strip()
+            profile_name = str(data.get("profile_name") or "").strip() or None
+
+            if requested_output_dir:
+                output_dir = Path(_resolve_under_booth_root(requested_output_dir)).expanduser().resolve()
+            else:
+                output_dir = get_default_profile_dir(base_dir=base_dir)
+
+            try:
+                result = create_greenwall_profile_from_path(
+                    image_path=str(src.resolve()),
+                    output_dir=output_dir,
+                    profile_name=profile_name,
+                )
+            except FileNotFoundError as e:
+                return self._send_json(404, {"ok": False, "error": "reference_image_not_found", "message": str(e)})
+            except Exception as e:
+                return self._send_json(500, {"ok": False, "error": "greenwall_profile_create_failed", "message": str(e)})
+
+            code = 200 if result.get("ok") else 400
+            return self._send_json(code, result)
 
         if path == "/render/collage":
             auth = _auth_or_403(self, qs, data)
@@ -1385,6 +1457,7 @@ def main():
         f"  POST /service/start        {{\"exe\":\"...\",\"api_key\":\"...\"}}\n"
         f"  POST /service/stop         {{\"exe\":\"...\",\"api_key\":\"...\"}}\n"
         f"  POST /service/restart      {{\"exe\":\"...\",\"api_key\":\"...\"}}\n"
+        f"  POST /greenwall/profile    {{\"reference_image_path\":\"C:/.../ref.jpg\"}}\n"
         f"  POST /render/collage       {{...}}\n"
         f"  POST /render_from_session  {{\"session_folder\":\"...\"}}\n"
         f"  GET  /preview/session?api_key=...&session_folder=...\n"

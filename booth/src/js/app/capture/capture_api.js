@@ -4,11 +4,32 @@
 /* ===========================================================
  * booth/js/capture_api.js
  * -----------------------------------------------------------
- * Zweck:
- *  - Zentrale JS-API für Kamera-Capture & LiveView (Wrapper/Shim)
- *  - Delegiert Kamera-Aktionen an:
- *      → PB.bridge (CameraBridge API-Server)
- *      → PB.pythonSvc (Rendering / Tools)
+ * Rolle im Gesamtsystem:
+ *  - Diese Datei ist die technische API-Schicht für den Capture-Flow.
+ *  - Sie kapselt alle Aufrufe, die aus dem UI-/Flow-Code heraus an
+ *    externe Dienste gehen.
+ *
+ * Architektur im Hintergrund:
+ *  - Kamera-/LiveView-/Capture-Aufrufe gehen über PB.bridge an den
+ *    ApiServer und von dort weiter an den Bridge Worker.
+ *  - Der Worker serialisiert kritische Kamera-Operationen und kümmert sich
+ *    um kameraabhängige Details wie LiveView-Stop/Restart, Busy-Retries,
+ *    temporäre Settings und Dateitransfer.
+ *  - Rendern und Drucken laufen nicht über den CameraBridge-Worker, sondern
+ *    separat über den Python-Service.
+ *
+ * Zuständigkeiten dieser Datei:
+ *  - Browserseitige Requests zentral ausführen
+ *  - Parameter normalisieren
+ *  - Timeouts / Abort / Cancel einheitlich behandeln
+ *  - Antworten aus Bridge und Python-Service in ein brauchbares Format
+ *    für capture_flow.js überführen
+ *
+ * Wichtig für andere Entwickler:
+ *  - capture_flow.js soll möglichst wenig HTTP-/Bridge-Details kennen.
+ *  - Fehlerformate der externen Dienste werden hier vereinheitlicht.
+ *  - Wenn sich API-Endpunkte oder Request-Parameter ändern, ist diese
+ *    Datei der erste Ort für Anpassungen.
  * =========================================================== */
 (function () {
   'use strict';
@@ -114,6 +135,171 @@
     };
 
   /* ===========================================================
+   * HILFSFUNKTIONEN
+   * ===========================================================
+   * Diese Helfer halten technische Details aus den eigentlichen API-
+   * Methoden heraus. Hier werden z. B. Zahlen aus der Config gelesen,
+   * Timeouts vereinheitlicht und Fehlerobjekte in ein konsistentes Format
+   * gebracht.
+   */
+  function readNumberConfig(paths, fallback) {
+    const list = Array.isArray(paths) ? paths : [paths];
+
+    for (const path of list) {
+      const raw = PB._getDeep?.(window.PB_CONFIG, path);
+      if (raw == null || String(raw).trim() === '') continue;
+
+      const n = Number(String(raw).trim().replace(',', '.'));
+      if (Number.isFinite(n) && n >= 0) return Math.round(n);
+    }
+
+    return fallback;
+  }
+
+  function buildOpError(code, message, detail) {
+    const err = new Error(message || code || 'Operation failed.');
+    err.code = code || 'operation_failed';
+    if (detail != null) err.detail = detail;
+    return err;
+  }
+
+  function normalizeTimeoutMs(value, fallback) {
+    const n = Number(value);
+    if (Number.isFinite(n) && n > 0) return Math.round(n);
+    return Math.round(fallback);
+  }
+
+  // Jeder laufende Fetch mit AbortController wird hier registriert,
+  // damit der Capture-Flow bei "Abbrechen" zentral alle relevanten
+  // Render-/Print-Requests beenden kann.
+  function registerAbortController(controller) {
+    if (!controller) return () => {};
+
+    PB.captureApi = PB.captureApi || {};
+    PB.captureApi._activeAbortControllers =
+      PB.captureApi._activeAbortControllers || new Set();
+
+    PB.captureApi._activeAbortControllers.add(controller);
+    return () => {
+      try {
+        PB.captureApi._activeAbortControllers.delete(controller);
+      } catch (_) {}
+    };
+  }
+
+  // Verknüpft das Flow-interne Cancel-Signal mit einem konkreten
+  // AbortController. So kann capture_flow.js einen laufenden Request
+  // abbrechen, ohne die Fetch-Logik selbst kennen zu müssen.
+  function bindCancelSignal(controller, cancelSignal) {
+    if (!controller || !cancelSignal || typeof cancelSignal.onCancel !== 'function') {
+      return () => {};
+    }
+
+    if (cancelSignal.cancelled) {
+      try {
+        controller.abort(cancelSignal.reason || 'flow_cancelled');
+      } catch (_) {}
+      return () => {};
+    }
+
+    return cancelSignal.onCancel((reason) => {
+      try {
+        controller.abort(reason || 'flow_cancelled');
+      } catch (_) {}
+    });
+  }
+
+  function createCancelPromise(cancelSignal) {
+    if (!cancelSignal || typeof cancelSignal.onCancel !== 'function') return null;
+
+    if (cancelSignal.cancelled) {
+      return Promise.reject(
+        cancelSignal.reason ||
+          buildOpError(
+            'flow_cancelled',
+            tr('capture.flow.err.cancelled', 'Capture flow cancelled.')
+          )
+      );
+    }
+
+    return new Promise((_, reject) => {
+      const off = cancelSignal.onCancel((reason) => {
+        try {
+          off && off();
+        } catch (_) {}
+
+        reject(
+          reason instanceof Error
+            ? reason
+            : buildOpError(
+                'flow_cancelled',
+                tr('capture.flow.err.cancelled', 'Capture flow cancelled.')
+              )
+        );
+      });
+    });
+  }
+
+  // Führt eine Operation gegen Timeout und optionales Cancel-Signal aus.
+  // Das wird bewusst als generischer Wrapper gebaut, damit Capture,
+  // Rendern und Drucken dasselbe Verhalten haben.
+  function raceWithGuards(promise, opts) {
+    const timeoutMs = normalizeTimeoutMs(opts?.timeoutMs, 0);
+    const races = [Promise.resolve(promise)];
+
+    if (timeoutMs > 0) {
+      races.push(
+        new Promise((_, reject) => {
+          setTimeout(() => {
+            reject(
+              buildOpError(
+                opts?.timeoutCode || 'timeout',
+                opts?.timeoutMessage || tr('capture.err.timeout', 'Operation timed out.'),
+                { timeoutMs }
+              )
+            );
+          }, timeoutMs);
+        })
+      );
+    }
+
+    const cancelPromise = createCancelPromise(opts?.cancelSignal);
+    if (cancelPromise) races.push(cancelPromise);
+
+    return Promise.race(races);
+  }
+
+  function getCaptureTimeoutMs(overrideMs) {
+    return normalizeTimeoutMs(
+      overrideMs,
+      readNumberConfig(
+        ['general.capture.capture_timeout_ms', 'general.capture.capture_timeout'],
+        25000
+      )
+    );
+  }
+
+  function getRenderTimeoutMs(overrideMs) {
+    return normalizeTimeoutMs(
+      overrideMs,
+      readNumberConfig(
+        ['general.capture.render_timeout_ms', 'general.capture.render_timeout'],
+        120000
+      )
+    );
+  }
+
+  function getPrintTimeoutMs(overrideMs) {
+    return normalizeTimeoutMs(
+      overrideMs,
+      readNumberConfig(
+        ['general.print.print_timeout_ms', 'general.print.print_timeout'],
+        45000
+      )
+    );
+  }
+
+  /* ===========================================================
    * HILFSFUNKTION: Response vereinheitlichen
    * =========================================================== */
   function normalizeOk(res) {
@@ -131,8 +317,25 @@
 
   /* ===========================================================
    * CAPTURE API (öffentliche JS-Schnittstelle)
-   * =========================================================== */
+   * ===========================================================
+   * Ab hier liegen die Methoden, die der restliche Booth-Code direkt
+   * verwenden darf. Alles darunter ist bewusst als öffentliche Fassade
+   * gedacht, damit andere Dateien keine Bridge-/Fetch-Details duplizieren.
+   */
   PB.captureApi = PB.captureApi || {};
+
+  // Bricht alle aktuell registrierten Render-/Print-Requests ab.
+  // Das ist kein globaler Kamera-Stopp, sondern eine gezielte Hilfe für
+  // laufende Netzwerkoperationen innerhalb des Flows.
+  PB.captureApi.abortActiveOperations = function (reason) {
+    const ctrls = Array.from(PB.captureApi._activeAbortControllers || []);
+    ctrls.forEach((controller) => {
+      try {
+        controller.abort(reason || 'flow_cancelled');
+      } catch (_) {}
+    });
+    return { ok: true, aborted: ctrls.length };
+  };
 
   /* -----------------------------------------------------------
    * STATUS
@@ -235,7 +438,17 @@
 
   /* ===========================================================
    * CAPTURE (hier wird das Foto ausgelöst)
-   * =========================================================== */
+   * ===========================================================
+   * Wichtig:
+   *  - Jeder Shot wird einzeln über die Bridge/API ausgelöst.
+   *  - Diese Methode baut den Dateipfad für den Shot auf und reicht nur
+   *    die nötigen Parameter an die Bridge weiter.
+   *  - Optional können pro Shot Kamera-Settings mitgesendet werden.
+   *  - Der Browser löst also nur den Shot an; die eigentliche Sequenz
+   *    "Settings anwenden -> ggf. LiveView stoppen -> Capture -> Transfer ->
+   *    Settings zurücksetzen -> LiveView wieder starten" wird backendseitig
+   *    vom Worker abgewickelt.
+   */
   PB.captureApi.captureOnce = async function (opts) {
     if (!PB.bridge?.capture) {
       throw new Error(
@@ -286,6 +499,8 @@
       ? PB.joinAndNormalizePath(dir, fileName)
       : dir.replace(/[\/\\]+$/, '') + '\\' + fileName;
 
+    // Das Bridge-Backend speichert direkt in eine Datei. Deshalb wird
+    // hier schon der vollständige Zielpfad gebaut und nicht nur ein Slot.
     const payload = {
       mode: 'file',
       overwrite: true,
@@ -296,10 +511,13 @@
       payload.startLiveViewAfterCapture = !!o.startLiveViewAfterCapture;
     }
 
-    // Optionale Shot-spezifische Settings
+    // Optionale Shot-spezifische Settings.
+    // Diese Logik bleibt in der API-Datei, damit capture_flow.js nur noch
+    // fachlich entscheidet, OB Settings verwendet werden sollen.
 if (o.applySettings === true) {
   payload.applySettings = true;
-  payload.resetAfterShoot = true;
+  payload.resetAfterShoot =
+    o.resetAfterShoot != null ? !!o.resetAfterShoot : true;
 
   const iso = (o.iso != null)
     ? String(o.iso).trim()
@@ -343,8 +561,24 @@ if (o.applySettings === true) {
 
 
 
-    const res = await PB.bridge.capture(payload);
-    return normalizeOk(res);
+    // Der eigentliche Capture-Aufruf wird zusätzlich gegen Timeout und
+    // Flow-Cancel abgesichert, damit der JS-Flow nicht endlos hängen bleibt.
+    // Das ist bewusst nur ein browserseitiger Schutz. Ein bereits gestarteter
+    // Einzel-Capture im Worker wird dabei nicht "halb" gestoppt, sondern der
+    // Flow verhindert vor allem Hänger und weitere Folgeschritte.
+    const capturePromise = Promise.resolve()
+      .then(() => PB.bridge.capture(payload))
+      .then((res) => normalizeOk(res));
+
+    return raceWithGuards(capturePromise, {
+      timeoutMs: getCaptureTimeoutMs(o.timeoutMs),
+      timeoutCode: 'capture_timeout',
+      timeoutMessage: tr(
+        'capture.capture_once.err.timeout',
+        'Capture timed out.'
+      ),
+      cancelSignal: o.cancelSignal
+    });
   };
 
   /* -----------------------------------------------------------
@@ -385,11 +619,22 @@ if (o.applySettings === true) {
 
   /* ===========================================================
    * PYTHON RENDERING STARTEN
-   * =========================================================== */
+   * ===========================================================
+   * Das Rendering arbeitet auf Basis der zuvor geschriebenen session.json.
+   * Der Capture-Flow muss deshalb vor diesem Aufruf sicherstellen, dass der
+   * Session-Snapshot vollständig und aktuell ist.
+   *
+   * Wichtig zur Architektur:
+   *   - Rendern hat nichts mit dem CameraBridge-Worker zu tun.
+   *   - Ab hier wird der separate Python-Service angesprochen.
+   */
   /**
    * Startet das Rendering basierend auf session.json
    * Erwartet: payload.captureFolderHint → Ordner mit session.json
    */
+  // Startet das Rendering für eine komplette Session.
+  // Rückgabeformat und Fehlerbehandlung werden hier vereinheitlicht,
+  // damit der Flow nur noch auf ok/error prüfen muss.
   PB.captureApi.runPython = async function (payload) {
     const sessionFolder =
       String(payload?.captureFolderHint || PB.CAPTURE_TMP_DIR || '').trim();
@@ -410,26 +655,78 @@ if (o.applySettings === true) {
 
     const base = String(PB.PYTHON_BASE || '').replace(/\/+$/g, '');
     const url = base + '/render_from_session';
+    const timeoutMs = getRenderTimeoutMs(payload?.timeoutMs);
 
     const headers = {
       'Content-Type': 'application/json',
       'X-Api-Key': PYTHON_API_KEY
     };
 
+    // Render-Request wird registriert, damit ein Flow-Abbruch aktiv auf
+    // den laufenden Fetch durchschlägt.
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const unregisterController = registerAbortController(controller);
+    const unbindCancel = bindCancelSignal(controller, payload?.cancelSignal);
+
     let response;
     try {
-      response = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ session_folder: sessionFolder })
-      });
+      response = await raceWithGuards(
+        fetch(url, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ session_folder: sessionFolder }),
+          signal: controller ? controller.signal : undefined
+        }),
+        {
+          timeoutMs,
+          timeoutCode: 'render_timeout',
+          timeoutMessage: tr(
+            'python.render.err.timeout',
+            'Render timed out.'
+          ),
+          cancelSignal: payload?.cancelSignal
+        }
+      );
     } catch (e) {
+      unregisterController();
+      unbindCancel();
+
+      if (e?.name === 'AbortError') {
+        return {
+          ok: false,
+          error: payload?.cancelSignal?.cancelled ? 'flow_cancelled' : 'render_aborted',
+          message: payload?.cancelSignal?.cancelled
+            ? tr('capture.flow.err.cancelled', 'Capture flow cancelled.')
+            : tr('python.render.err.aborted', 'Render was aborted.')
+        };
+      }
+
+      if (e?.code === 'render_timeout') {
+        return {
+          ok: false,
+          error: 'render_timeout',
+          message: tr('python.render.err.timeout', 'Render timed out.'),
+          detail: e?.detail || { timeoutMs }
+        };
+      }
+
+      if (e?.code === 'flow_cancelled') {
+        return {
+          ok: false,
+          error: 'flow_cancelled',
+          message: tr('capture.flow.err.cancelled', 'Capture flow cancelled.')
+        };
+      }
+
       return {
         ok: false,
         error: 'python_unreachable',
         message: tr('python.err.unreachable', 'Python server is unreachable.'),
         detail: String(e)
       };
+    } finally {
+      unregisterController();
+      unbindCancel();
     }
 
     let json = {};
@@ -452,7 +749,6 @@ if (o.applySettings === true) {
       );
     }
 
-    // Preview-URL (binär fürs <img>); Query ist für <img> am einfachsten.
     const previewUrl =
       base +
       '/preview/session?api_key=' +
@@ -468,7 +764,11 @@ if (o.applySettings === true) {
 
   /* ===========================================================
    * CAPTURE FLOW UTILS
-   * =========================================================== */
+   * ===========================================================
+   * Kleine Brückenfunktionen für capture_flow.js. Diese Methoden hängen
+   * technisch an der API-Schicht, werden aber bewusst für den Flow als
+   * Hilfsmittel bereitgestellt.
+   */
   PB.captureFlow = PB.captureFlow || {};
   PB.captureFlow.utils = PB.captureFlow.utils || {};
 
@@ -500,7 +800,11 @@ if (o.applySettings === true) {
 
   /* ===========================================================
    * PREVIEW SICHER STARTEN
-   * =========================================================== */
+   * ===========================================================
+   * Preview/LiveView soll für den Benutzer möglichst schnell wieder da
+   * sein, darf den Flow aber nicht endlos blockieren. Deshalb wird hier
+   * bewusst "best effort" gearbeitet.
+   */
   PB.ensurePreviewReady = async function (opts) {
     opts = opts || {};
     const timeoutMs = opts.timeoutMs ?? 3000;
@@ -540,7 +844,16 @@ PB.shutter.playIn = function (root = document, selector = null) {
 };
   /* ===========================================================
    * PYTHON PRINT (default)
-   * =========================================================== */
+   * ===========================================================
+   * Standard-Druckpfad für fertig gerenderte Bilder. Auch hier werden
+   * Timeouts, Abbruch und Antwort-Normalisierung zentral behandelt.
+   *
+   * Wichtig zur Architektur:
+   *   - Gedruckt wird nicht aus der Kamera-Pipeline heraus.
+   *   - Der Druck erhält nur das fertige Bild, die Event-Datei und die
+   *     gewünschte Kopienzahl.
+   *   - Dadurch bleibt die Trennung sauber: Kamera -> Rendern -> Drucken.
+   */
   /**
    * Druckt ein Bild über /print/default
    * Erwartet:
@@ -549,6 +862,9 @@ PB.shutter.playIn = function (root = document, selector = null) {
    *   payload.copies      → optional (default 1, max 20)
    *   payload.printerName → optional (Printername)
    */
+  // Druckt eine fertige Datei über den Python-Service.
+  // Der Capture-Flow übergibt hier nur noch fertige Daten wie Bildpfad,
+  // Event-Datei und gewünschte Kopienzahl.
   PB.captureApi.printDefault = async function (payload) {
     const imagePath = String(payload?.image_path || '').trim();
     const eventFile = String(payload?.event_file || '').trim();
@@ -576,7 +892,6 @@ PB.shutter.playIn = function (root = document, selector = null) {
       };
     }
 
-    // copies clamp 1..20 (Spec)
     let copies = parseInt(payload?.copies ?? 1, 10);
     if (!Number.isFinite(copies) || copies < 1) copies = 1;
     if (copies > 20) copies = 20;
@@ -586,13 +901,15 @@ PB.shutter.playIn = function (root = document, selector = null) {
 
     const base = String(PB.PYTHON_BASE || '').replace(/\/+$/g, '');
     const url = base + '/print/default';
+    const timeoutMs = getPrintTimeoutMs(payload?.timeoutMs);
 
     const headers = {
       'Content-Type': 'application/json',
       'X-Api-Key': PYTHON_API_KEY
     };
 
-    // Body bauen + optional printerName
+    // Request-Body bewusst schlank halten: Der Python-Service soll genau
+    // die finalen Druckdaten erhalten und nicht nochmals Flow-Logik kennen.
     const body = {
       image_path: imagePath,
       event_file: eventFile,
@@ -600,20 +917,69 @@ PB.shutter.playIn = function (root = document, selector = null) {
     };
     if (printerName) body.printerName = printerName;
 
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const unregisterController = registerAbortController(controller);
+    const unbindCancel = bindCancelSignal(controller, payload?.cancelSignal);
+
     let response;
     try {
-      response = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(body)
-      });
+      response = await raceWithGuards(
+        fetch(url, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(body),
+          signal: controller ? controller.signal : undefined
+        }),
+        {
+          timeoutMs,
+          timeoutCode: 'print_timeout',
+          timeoutMessage: tr(
+            'python.print.err.timeout',
+            'Print timed out.'
+          ),
+          cancelSignal: payload?.cancelSignal
+        }
+      );
     } catch (e) {
+      unregisterController();
+      unbindCancel();
+
+      if (e?.name === 'AbortError') {
+        return {
+          ok: false,
+          error: payload?.cancelSignal?.cancelled ? 'flow_cancelled' : 'print_aborted',
+          message: payload?.cancelSignal?.cancelled
+            ? tr('capture.flow.err.cancelled', 'Capture flow cancelled.')
+            : tr('python.print.err.aborted', 'Print was aborted.')
+        };
+      }
+
+      if (e?.code === 'print_timeout') {
+        return {
+          ok: false,
+          error: 'print_timeout',
+          message: tr('python.print.err.timeout', 'Print timed out.'),
+          detail: e?.detail || { timeoutMs }
+        };
+      }
+
+      if (e?.code === 'flow_cancelled') {
+        return {
+          ok: false,
+          error: 'flow_cancelled',
+          message: tr('capture.flow.err.cancelled', 'Capture flow cancelled.')
+        };
+      }
+
       return {
         ok: false,
         error: 'python_unreachable',
         message: tr('python.err.unreachable', 'Python server is unreachable.'),
         detail: String(e)
       };
+    } finally {
+      unregisterController();
+      unbindCancel();
     }
 
     let json = {};
@@ -636,7 +1002,6 @@ PB.shutter.playIn = function (root = document, selector = null) {
       );
     }
 
-    // UI / Config updaten, wenn Counter vom Server kommt
     try {
       const counterAfter = json?.counter_after;
 

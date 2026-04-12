@@ -17,6 +17,10 @@
  *   #btnPythonStart
  *   #btnPythonStop
  *   #btnPythonRestart
+ *   #greenwallReferenceImagePath
+ *   #renderGreenwallReferenceProfilePath
+ *   #greenwallProfileGenerateStatus
+ *   #btnGenerateGreenwallProfile
  */
 
 (function ($) {
@@ -30,6 +34,9 @@
       vars[k] === undefined || vars[k] === null ? `{${k}}` : String(vars[k])
     );
   };
+
+  const tr = (key, fallback) =>
+    typeof window.pbT === "function" ? window.pbT(key, fallback) : fallback;
 
   window.PB = window.PB || {};
   const PB = window.PB;
@@ -85,6 +92,7 @@
   UI.setMsg = (text, isError = false) => {
     const $el = UI.$msg();
     if (!$el.length) return;
+
     $el
       .text(text || "")
       .attr("class", "small mt-1 " + (isError ? "text-danger" : "text-success"));
@@ -126,7 +134,6 @@
     const port = UI.getPort();
     SVC.port = port;
 
-    // Erst ping
     const okPing = await SVC.ping(port);
     if (!okPing) {
       UI.setState(
@@ -148,7 +155,6 @@
       return false;
     }
 
-    // Dann /runtime für Details
     try {
       const json = await SVC.fetch("/runtime", { port, timeoutMs: 1500 });
       if (json && json.ok) {
@@ -257,6 +263,149 @@
   };
 
   // ------------------------------------------------------------
+  // Greenwall Profile UI
+  // ------------------------------------------------------------
+  UI.$greenwallImagePath = () => $("#greenwallReferenceImagePath");
+  UI.$greenwallProfilePath = () => $("#renderGreenwallReferenceProfilePath");
+  UI.$greenwallStatus = () => $("#greenwallProfileGenerateStatus");
+  UI.$greenwallGenerateBtn = () => $("#btnGenerateGreenwallProfile");
+
+  UI.setGreenwallProfileStatus = (message, type) => {
+    const $el = UI.$greenwallStatus();
+    if (!$el.length) return;
+
+    $el
+      .text(message || "")
+      .removeClass("text-muted text-success text-danger text-warning")
+      .addClass(
+        type === "success"
+          ? "text-success"
+          : type === "error"
+            ? "text-danger"
+            : type === "warning"
+              ? "text-warning"
+              : "text-muted"
+      );
+  };
+
+  UI.extractProfilePath = (json) => {
+    if (!json || typeof json !== "object") return "";
+
+    return (
+      json.profile_path ||
+      json.reference_profile_path ||
+      json.output_path ||
+      json.path ||
+      ""
+    );
+  };
+
+  PB.generateGreenwallReferenceProfile = async function generateGreenwallReferenceProfile() {
+    const $imagePathInput = UI.$greenwallImagePath();
+    const $profilePathInput = UI.$greenwallProfilePath();
+
+    if (!$imagePathInput.length || !$profilePathInput.length) {
+      console.warn("[Greenwall] Required input fields not found.");
+      return { ok: false, error: "missing_elements" };
+    }
+
+    const imagePath = $.trim(String($imagePathInput.val() || ""));
+    if (!imagePath) {
+      UI.setGreenwallProfileStatus(
+        tr(
+          "overlay.render_settings.greenwall.generate_profile.no_image_path",
+          "Bitte zuerst ein Referenzbild auswählen."
+        ),
+        "warning"
+      );
+      return { ok: false, error: "missing_image_path" };
+    }
+
+    UI.setGreenwallProfileStatus(
+      tr(
+        "overlay.render_settings.greenwall.generate_profile.generating",
+        "Referenzprofil wird generiert..."
+      ),
+      "default"
+    );
+
+    const port = UI.getPort();
+    const url = `http://127.0.0.1:${port}/greenwall/profile`;
+
+    try {
+      const json = await $.ajax({
+        url,
+        method: "POST",
+        contentType: "application/json",
+        dataType: "json",
+        data: JSON.stringify({
+          path: imagePath
+        }),
+        timeout: 15000
+      });
+
+      const profilePath = UI.extractProfilePath(json);
+      if (!profilePath) {
+        UI.setGreenwallProfileStatus(
+          tr(
+            "overlay.render_settings.greenwall.generate_profile.no_profile_path",
+            "Die API hat keinen Profilpfad zurückgegeben."
+          ),
+          "error"
+        );
+        return { ok: false, error: "missing_profile_path", response: json };
+      }
+
+      $profilePathInput
+        .val(profilePath)
+        .trigger("input")
+        .trigger("change");
+
+      UI.setGreenwallProfileStatus(
+        tr(
+          "overlay.render_settings.greenwall.generate_profile.success",
+          "Referenzprofil erfolgreich generiert."
+        ),
+        "success"
+      );
+
+      return { ok: true, profile_path: profilePath, response: json };
+    } catch (xhrOrError) {
+      console.error("[Greenwall] Request failed:", xhrOrError);
+
+      let message = tr(
+        "overlay.render_settings.greenwall.generate_profile.server_unreachable",
+        "Python-Server nicht erreichbar."
+      );
+
+      if (xhrOrError && xhrOrError.responseJSON) {
+        message =
+          xhrOrError.responseJSON.message ||
+          xhrOrError.responseJSON.error ||
+          message;
+      }
+
+      UI.setGreenwallProfileStatus(message, "error");
+
+      return {
+        ok: false,
+        error: "network_or_http_error",
+        status: xhrOrError?.status || 0,
+        response: xhrOrError?.responseJSON || null,
+        details: xhrOrError
+      };
+    }
+  };
+
+  PB.initGreenwallReferenceProfileUI = function initGreenwallReferenceProfileUI() {
+    UI.$greenwallGenerateBtn()
+      .off("click.pbGreenwallProfile")
+      .on("click.pbGreenwallProfile", async function () {
+        await PB.generateGreenwallReferenceProfile();
+      });
+  };
+
+  // ------------------------------------------------------------
   // Wire buttons + initial refresh
   // ------------------------------------------------------------
   UI.bind = () => {
@@ -265,7 +414,11 @@
     $("#btnPythonStop").off("click.pbPythonUI").on("click.pbPythonUI", UI.stop);
     $("#btnPythonRestart").off("click.pbPythonUI").on("click.pbPythonUI", UI.restart);
 
-    UI.$elPort().off("change.pbPythonUI").on("change.pbPythonUI", () => setTimeout(UI.status, 150));
+    UI.$elPort()
+      .off("change.pbPythonUI")
+      .on("change.pbPythonUI", () => setTimeout(UI.status, 150));
+
+    PB.initGreenwallReferenceProfileUI();
 
     // optional: Polling
     // setInterval(UI.status, 2500);
@@ -274,4 +427,5 @@
   };
 
   $(UI.bind);
+
 })(jQuery);
