@@ -47,6 +47,32 @@ Browser-basierte Steuerung für eine Fotobox im Kioskbetrieb: **Startscreen**, *
 - **Remote-Zugriff** – Zugriff über Netzwerk, Tablet oder andere Geräte ist möglich, abhängig von der API-/Server-Konfiguration.
 - **Mehrsprachig** – Oberfläche und wichtige Bereiche sind mehrsprachig ausgelegt.
 
+### Quick-Installation
+
+1. Download
+2. Entpacken
+3. Launcher mit Adminnistratorrechten öffnen
+4. Erweitert -> Vollinstallation anklicken
+5. Optional** Erweitert -> Manuelle Installation -> Desktop verknüpfung erstellen 
+    -> Es wird automatisch im Ordner auch eine Verknüpfung erstellt, frei zum Kopieren nach Bedarf
+6. Optional (Für Vollbild Autostart der APP)** Erweitert -> Manuelle Installation -> Autostartordner öffnen -> Verknüpfung aus Ordner manuell einfügen 
+7. Fertig!
+
+Der Launcher dient zum Überprüfen ob alle Funktionen laufen. Neustart, Stop und Start hiermit möglich
+
+Die Vollinstallation installiert automatisch Windows-Services, damit alle Funktionen im Autostart ausgeführt werden. Nur das Öffnen der App muss manuell (Punkt 6) erfolgen
+
+### Quickstart
+
+1. Webserver starten (z. B. Caddy / IIS / Apache / eingebetteter Server) und UI öffnen.
+2. Unten rechts prüfen, ob **CameraBridge** erreichbar ist.
+   - Falls „offline/unknown“: **Start CameraBridge** klicken.
+3. **Active Event** setzen (Eventname & Speicherordner, optional Template ZIP).
+4. **Select Device**: Devices laden → Kamera auswählen → Speichern.
+5. Optional: **Druckereinstellungen** (Drucker + Kopien) und **Auto-Print** prüfen.
+6. Zurück zum Startscreen → **„Tap to start“**.
+
+
 ## Support
 
 Donate with PayPal ☕
@@ -171,16 +197,6 @@ Tools/Services:
 - **CameraBridge API-Server** (Standard-Port `8052`)
 - **Python Tool-Server** (Standard-Port `8053`, Auth per `X-Api-Key`)
 
-### Quickstart
-
-1. Webserver starten (z. B. Caddy / IIS / Apache / eingebetteter Server) und UI öffnen.
-2. Unten rechts prüfen, ob **CameraBridge** erreichbar ist.
-   - Falls „offline/unknown“: **Start CameraBridge** klicken.
-3. **Active Event** setzen (Eventname & Speicherordner, optional Template ZIP).
-4. **Select Device**: Devices laden → Kamera auswählen → Speichern.
-5. Optional: **Druckereinstellungen** (Drucker + Kopien) und **Auto-Print** prüfen.
-6. Zurück zum Startscreen → **„Tap to start“**.
-
 ### Konfiguration
 
 Wichtige Dateien (typisch):
@@ -275,6 +291,22 @@ Browser-based controller for a kiosk-style photo booth: **start screen**, **capt
 - **Adjustable green tone settings** – greenscreen/greenwall parameters can be tuned for different backgrounds and lighting conditions.
 - **Remote access** – access over network, tablet, or other devices is possible depending on the API/server configuration.
 - **Multilingual** – the interface and core areas are designed to support multiple languages.
+
+### Quick Installation
+
+1. Download
+2. Extract
+3. Open the launcher with administrator rights
+4. Click **Advanced → Full Installation**
+5. Optional: **Advanced → Manual Installation → Create desktop shortcut**  
+   → A shortcut will also be created automatically in the folder. You can copy it wherever needed.
+6. Optional, for fullscreen app autostart: **Advanced → Manual Installation → Open startup folder**  
+   → Manually copy the shortcut from the folder into the startup folder.
+7. Done!
+
+The launcher is used to check whether all functions are running. You can restart, stop, and start the functions from there.
+
+The full installation automatically installs Windows services so that all functions run on startup. Only opening the app must be done manually, as described in step 6.
 
 ## Support
 
