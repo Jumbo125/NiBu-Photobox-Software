@@ -537,7 +537,16 @@
   "capture.defaults.text_done": "Fertig!",
 
   "nav.browser_reload": "Browser neu laden",
+  "nav.browser_kiosk": "Wechsel zwischen Kiosk-Modus",
   "nav.browser_close": "Browser schließen",
+
+   "windows.hostapp.err.unavailable": "Host-Anwendungsschnittstelle nicht verfügbar",
+    "windows.hostapp.err.close_missing": "hostApp.close/exit nicht verfügbar",
+    "windows.hostapp.err.minimize_missing": "hostApp.minimize nicht verfügbar",
+    "windows.hostapp.err.kiosk_on_missing": "hostApp.setKiosk/maximize nicht verfügbar",
+    "windows.hostapp.err.kiosk_toggle_missing": "hostApp.toggleKioskMode/setKiosk nicht verfügbar",
+    "windows.hostapp.err.kiosk_off_missing": "hostApp.setKiosk/restore nicht verfügbar",
+    "windows.hostapp.err.restore_missing": "hostApp.restore nicht verfügbar",
 
   "screen.main.liveview_toggle.title": "LiveView umschalten",
   "screen.main.live_frame.title": "Kamera-Stream",

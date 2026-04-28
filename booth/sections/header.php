@@ -12,6 +12,7 @@
         <?= t('app.title', 'Photobooth Control') ?>
       </span>
 
+      <!-- ######### Aktive Event ################# -->
       <div id="active_event_header_info">
         <span class="navbar-brand mb-0 h1 active_event_title"></span>
 
@@ -22,6 +23,7 @@
         <span class="navbar-brand mb-0 h1 active_event_counter"></span>
       </div>
 
+    <!-- ######### DNP Drucker  ################# -->
        <div id="printer_paper_remaining">
     
 
@@ -32,29 +34,41 @@
         <span class="navbar-brand mb-0 h1 paper_remaining_value"></span>
       </div>
 
+<!-- ######### Buttons  ################# -->
       <button
-        id="btnUiReload"
-        class="btn btn-warning btn rounded-circle d-inline-flex align-items-center justify-content-center pb-close-browser"
-        title="<?= t('nav.browser_reload', 'Reload browser') ?>"
-        data-force="1"
-        aria-label="<?= t('nav.browser_reload', 'Reload browser') ?>"
-        data-action="closeBrowser"
-      >
-        <i class="bi bi-arrow-clockwise"></i>
-      </button>
+  id="btnUiReload"
+  class="btn btn-warning btn rounded-circle d-inline-flex align-items-center justify-content-center btnUiReload"
+  title="<?= t('nav.browser_reload', 'Reload browser') ?>"
+  data-force="1"
+  aria-label="<?= t('nav.browser_reload', 'Reload browser') ?>"
+>
+  <i class="bi bi-arrow-clockwise"></i>
+</button>
 
-      &nbsp;&nbsp;
+&nbsp;&nbsp;
 
-      <button
-        type="button"
-        class="btn btn-danger btn rounded-circle d-inline-flex align-items-center justify-content-center pb-close-browser"
-        title="<?= t('nav.browser_close', 'Close browser') ?>"
-        data-force="1"
-        aria-label="<?= t('nav.browser_close', 'Close browser') ?>"
-        data-action="closeBrowser"
-      >
-        <i class="bi bi-x-lg"></i>
-      </button>
+<button
+  type="button"
+  class="btn btn-primary btn rounded-circle d-inline-flex align-items-center justify-content-center pb-toggle-kiosk"
+  title="<?= t('nav.browser_kiosk', 'Toggle kiosk mode') ?>"
+  aria-label="<?= t('nav.browser_kiosk', 'Toogle kiosk Mode') ?>"
+>
+  <i class="bi bi-fullscreen"></i>
+</button>
+
+&nbsp;&nbsp;
+
+<button
+  type="button"
+  class="btn btn-danger btn rounded-circle d-inline-flex align-items-center justify-content-center pb-close-browser"
+  title="<?= t('nav.browser_close', 'Close browser') ?>"
+  data-force="1"
+  aria-label="<?= t('nav.browser_close', 'Close browser') ?>"
+  data-action="closeBrowser"
+>
+  <i class="bi bi-x-lg"></i>
+</button>
+
 
       &nbsp;&nbsp;
 
