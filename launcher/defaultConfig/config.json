@@ -39,7 +39,8 @@
     },
     "printer": {
         "printerName": "",
-        "printerCount": 1
+        "printerCount": 1,
+		"dnpMinIntervalSec": 60
     },
     "activeTemplate": {
         "path": "__BASE_DIR__\\booth\\activeTemplate\\"

@@ -536,7 +536,16 @@
   "capture.defaults.text_done": "Done!",
 
   "nav.browser_reload": "Reload browser",
+  "nav.browser_kiosk": "Toggle Kiosk-Mode",
   "nav.browser_close": "Close browser",
+
+    "windows.hostapp.err.unavailable": "Host application interface not available",
+    "windows.hostapp.err.close_missing": "hostApp.close/exit not available",
+    "windows.hostapp.err.minimize_missing": "hostApp.minimize not available",
+    "windows.hostapp.err.kiosk_on_missing": "hostApp.setKiosk/maximize not available",
+    "windows.hostapp.err.kiosk_toggle_missing": "hostApp.toggleKioskMode/setKiosk not available",
+    "windows.hostapp.err.kiosk_off_missing": "hostApp.setKiosk/restore not available",
+    "windows.hostapp.err.restore_missing": "hostApp.restore not available",
 
   "screen.main.liveview_toggle.title": "Toggle LiveView",
   "screen.main.live_frame.title": "Camera stream",

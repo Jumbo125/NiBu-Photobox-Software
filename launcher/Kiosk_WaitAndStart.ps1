@@ -12,6 +12,9 @@ $ErrorActionPreference = 'Stop'
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $CaddyJsonPath = Join-Path $ScriptDir 'caddy_php_port.json'
 
+$BrowserExePath = [System.IO.Path]::GetFullPath((Join-Path $ScriptDir '..\browser\Fotobox.WebView2Host.exe'))
+$BrowserDir     = Split-Path -Parent $BrowserExePath
+
 $LogDir  = Join-Path $ScriptDir 'logs'
 $LogFile = Join-Path $LogDir 'kiosk_autostart.log'
 if (-not (Test-Path -LiteralPath $LogDir)) {
@@ -110,21 +113,18 @@ function Ensure-AutostartShortcut {
 
     $LinkName = 'Photobox Kiosk.lnk'
     $LnkPath = Join-Path $StartupDir $LinkName
-    $BatPath = Join-Path $ScriptDir 'open_app.bat'
+    $KioskCmdPath = Join-Path $ScriptDir 'Kiosk_WaitAndStart.cmd'
     $CmdExe = (Get-Command cmd.exe -ErrorAction Stop).Source
 
     $IcoPath = $null
-    $IcoDir = Join-Path $ScriptDir 'ico'
-    if (Test-Path -LiteralPath $IcoDir) {
-      $firstIco = Get-ChildItem -LiteralPath $IcoDir -Filter *.ico -File -ErrorAction SilentlyContinue | Select-Object -First 1
-      if ($firstIco) {
-        $IcoPath = $firstIco.FullName
-      }
+    $browserIco = Join-Path $BrowserDir 'Assets\app.ico'
+    if (Test-Path -LiteralPath $browserIco) {
+      $IcoPath = $browserIco
     }
 
-    $desiredTarget = $CmdExe
-    if (Test-Path -LiteralPath $BatPath) {
-      $desiredArgs = '/c "' + $BatPath + '"'
+    if (Test-Path -LiteralPath $KioskCmdPath) {
+      $desiredTarget = $CmdExe
+      $desiredArgs = '/c "' + $KioskCmdPath + '"'
     }
     else {
       $psExe = (Get-Command powershell.exe -ErrorAction Stop).Source
@@ -206,7 +206,6 @@ function Test-HttpOk {
       if ($resp -is [System.Net.HttpWebResponse]) {
         return ([int]$resp.StatusCode -ge 200 -and [int]$resp.StatusCode -lt 300)
       }
-
       return $true
     }
     finally {
@@ -219,7 +218,6 @@ function Test-HttpOk {
       $_.Exception.Response.Close()
       return ($status -ge 200 -and $status -lt 300)
     }
-
     return $false
   }
   catch {
@@ -227,79 +225,51 @@ function Test-HttpOk {
   }
 }
 
-function Kiosk-AlreadyRunning {
-  param([string]$Url)
+function Host-AlreadyRunning {
+  param([string]$ExePath)
 
   try {
-    $procs = Get-CimInstance Win32_Process -Filter "Name='chrome.exe' OR Name='msedge.exe'" -ErrorAction SilentlyContinue
+    $procName = [System.IO.Path]::GetFileName($ExePath)
+    $procs = Get-CimInstance Win32_Process -Filter "Name='$procName'" -ErrorAction SilentlyContinue
     foreach ($p in $procs) {
-      $cmd = $p.CommandLine
-      if ([string]::IsNullOrWhiteSpace($cmd)) { continue }
-      if ($cmd -match '--kiosk' -and $cmd -like "*$Url*") {
+      if ($p.ExecutablePath -and ([System.IO.Path]::GetFullPath($p.ExecutablePath) -eq $ExePath)) {
+        return $true
+      }
+      if ($p.CommandLine -and $p.CommandLine -like "*$ExePath*") {
         return $true
       }
     }
   }
   catch {
+    Log ("WARN: Laufende Instanz konnte nicht sauber geprueft werden: {0}" -f $_.Exception.Message)
   }
 
   return $false
 }
 
-function Find-ChromeExe {
-  $cmd = Get-Command chrome.exe -ErrorAction SilentlyContinue
-  if ($cmd -and $cmd.Source) { return $cmd.Source }
-
-  $c = Join-Path $env:LOCALAPPDATA 'Google\Chrome\Application\chrome.exe'
-  if (Test-Path -LiteralPath $c) { return $c }
-
-  $c = Join-Path ${env:ProgramFiles} 'Google\Chrome\Application\chrome.exe'
-  if (Test-Path -LiteralPath $c) { return $c }
-
-  $pf86 = ${env:ProgramFiles(x86)}
-  if ($pf86) {
-    $c = Join-Path $pf86 'Google\Chrome\Application\chrome.exe'
-    if (Test-Path -LiteralPath $c) { return $c }
-  }
-
-  return $null
-}
-
-function Find-EdgeExe {
-  $cmd = Get-Command msedge.exe -ErrorAction SilentlyContinue
-  if ($cmd -and $cmd.Source) { return $cmd.Source }
-
-  $e = Join-Path $env:LOCALAPPDATA 'Microsoft\Edge\Application\msedge.exe'
-  if (Test-Path -LiteralPath $e) { return $e }
-
-  $pf86 = ${env:ProgramFiles(x86)}
-  if ($pf86) {
-    $e = Join-Path $pf86 'Microsoft\Edge\Application\msedge.exe'
-    if (Test-Path -LiteralPath $e) { return $e }
-  }
-
-  $e = Join-Path ${env:ProgramFiles} 'Microsoft\Edge\Application\msedge.exe'
-  if (Test-Path -LiteralPath $e) { return $e }
-
-  return $null
-}
-
 Log ("Start. Script={0}" -f $MyInvocation.MyCommand.Path)
+
 if ($EnsureAutostart) {
   Ensure-AutostartShortcut
 }
 
-$caddyPort = Read-CaddyPort -Fallback $DefaultCaddyPort
-$baseUrl = "http://127.0.0.1:$caddyPort/"
-$healthCaddy = "http://127.0.0.1:$caddyPort/watchdog/_health.txt"
-$healthPhp = "http://127.0.0.1:$caddyPort/watchdog/_php_ping.php"
+if (-not (Test-Path -LiteralPath $BrowserExePath)) {
+  Log ("ERROR: Browser-EXE nicht gefunden: {0}" -f $BrowserExePath)
+  exit 3
+}
 
+$caddyPort   = Read-CaddyPort -Fallback $DefaultCaddyPort
+$baseUrl     = "http://127.0.0.1:$caddyPort/"
+$healthCaddy = "http://127.0.0.1:$caddyPort/watchdog/_health.txt"
+$healthPhp   = "http://127.0.0.1:$caddyPort/watchdog/_php_ping.php"
+
+Log ("BrowserExe={0}" -f $BrowserExePath)
 Log ("CADDY_PORT={0}" -f $caddyPort)
 Log ("HealthCaddy={0}" -f $healthCaddy)
 Log ("HealthPhp={0}" -f $healthPhp)
 
-if (Kiosk-AlreadyRunning -Url $baseUrl) {
-  Log ("Kiosk bereits aktiv ({0}). Exit." -f $baseUrl)
+if (Host-AlreadyRunning -ExePath $BrowserExePath) {
+  Log ("Browser-App bereits aktiv. Exit.")
   exit 0
 }
 
@@ -312,7 +282,7 @@ while ($true) {
   $ok2 = Test-HttpOk -Url $healthPhp -TimeoutMs $HttpTimeoutMs
 
   if ($ok1 -and $ok2) {
-    Log ("Health OK nach {0} Versuchen. Starte Kiosk: {1}" -f $tries, $baseUrl)
+    Log ("Health OK nach {0} Versuchen. Starte Browser-App auf: {1}" -f $tries, $baseUrl)
     break
   }
 
@@ -323,7 +293,7 @@ while ($true) {
   if ($MaxWaitSeconds -gt 0) {
     $elapsed = (Get-Date) - $start
     if ($elapsed.TotalSeconds -ge $MaxWaitSeconds) {
-      Log ("Timeout nach {0} s. Kiosk wird NICHT gestartet." -f $MaxWaitSeconds)
+      Log ("Timeout nach {0} s. Browser-App wird NICHT gestartet." -f $MaxWaitSeconds)
       exit 2
     }
   }
@@ -331,39 +301,12 @@ while ($true) {
   Start-Sleep -Milliseconds $SleepMs
 }
 
-$ChromeProfile = Join-Path $ScriptDir 'chrome_kiosk_profile'
-$EdgeProfile = Join-Path $ScriptDir 'edge_kiosk_profile'
+$BrowserArgs = @(
+  "--url=$baseUrl",
+  "--port=$caddyPort",
+  "--kiosk=true"
+)
 
-$chrome = Find-ChromeExe
-if ($chrome) {
-  $args = @(
-    '--kiosk', $baseUrl,
-    '--new-window',
-    '--no-first-run',
-    '--disable-session-crashed-bubble',
-    "--user-data-dir=$ChromeProfile"
-  )
-
-  Start-Process -FilePath $chrome -ArgumentList $args -WorkingDirectory $ScriptDir | Out-Null
-  Log ("Chrome gestartet: {0}" -f $chrome)
-  exit 0
-}
-
-$edge = Find-EdgeExe
-if ($edge) {
-  $args = @(
-    '--kiosk', $baseUrl,
-    '--edge-kiosk-type=fullscreen',
-    '--no-first-run',
-    '--disable-session-crashed-bubble',
-    "--user-data-dir=$EdgeProfile"
-  )
-
-  Start-Process -FilePath $edge -ArgumentList $args -WorkingDirectory $ScriptDir | Out-Null
-  Log ("Edge gestartet: {0}" -f $edge)
-  exit 0
-}
-
-Start-Process $baseUrl | Out-Null
-Log 'Fallback: Default Browser gestartet.'
+Start-Process -FilePath $BrowserExePath -ArgumentList $BrowserArgs -WorkingDirectory $BrowserDir | Out-Null
+Log ("Browser-App gestartet: {0} {1}" -f $BrowserExePath, ($BrowserArgs -join ' '))
 exit 0

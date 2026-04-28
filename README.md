@@ -1,25 +1,15 @@
 <!-- Language switch -->
 [Deutsch](#de) | [English](#en)
-![Logo](Logo/Logo.png)
 
+![Logo](Logo/logo.png)
 
-
-
-# Photobox Control (Kiosk UI) · CameraBridge · Python Renderer (Beta-Version)
-
-![startbild](Logo/startbild.jpg)
-
-
+# Photobooth Control (Kiosk UI) · CameraBridge · Python Renderer
 
 ![Python](https://camo.githubusercontent.com/e14a118e41ec77a1d51020fe2687bc9a24f81af4a389739afb876306ee7a64c6/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f507974686f6e2d332e782d626c75653f6c6f676f3d707974686f6e)  
 ![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL--3.0--or--later-blue.svg)
 ![PHP](https://img.shields.io/badge/PHP-8%2B-777BB4?logo=php&logoColor=white)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-5-7952B3?logo=bootstrap&logoColor=white)
 ![Caddy](https://img.shields.io/badge/Caddy-Server-1F88C0?logo=caddy&logoColor=white)
-![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=000)
-![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
-![jQuery](https://img.shields.io/badge/jQuery-0769AD?logo=jquery&logoColor=white)
-
 
 ---
 
@@ -32,85 +22,8 @@ Browser-basierte Steuerung für eine Fotobox im Kioskbetrieb: **Startscreen**, *
 
 **Geplant:** Eine zusätzliche Schnittstelle/Integration für **DNP Drucker** ist vorgesehen.
 
-### Features / Überblick
-
-- **Einfache Handhabung** – die Photobox ist so aufgebaut, dass sie auch im Eventbetrieb schnell und unkompliziert bedient werden kann.
-- **Standarddrucker setzen** – der gewünschte Drucker kann direkt ausgewählt und als Standarddrucker verwendet werden.
-- **Maximale Ausdrucke festlegen** – pro Event kann eine feste Obergrenze für Ausdrucke definiert werden.
-- **Mehrfachdruck freigeben** – mehrere Ausdrucke pro Session oder Nachdrucke können erlaubt werden.
-- **Einfacher Template Editor** – Templates lassen sich ohne komplizierten Workflow direkt erstellen und anpassen.
-- **Schatten und runde Ecken** – Layout-Elemente können mit Schatten, Rahmen und abgerundeten Ecken gestaltet werden.
-- **Ebenen-Funktion** – Objekte können in Vorder- und Hintergrund angeordnet und sauber organisiert werden.
-- **Drag & Drop** – Elemente und Ebenen lassen sich komfortabel per Drag & Drop verschieben.
-- **Greenwall / Greenscreen** – Greenwall-Unterstützung ist integriert und kann im Workflow verwendet werden.
-- **Farbauswahl des Grüntons** – Greenscreen-/Greenwall-Parameter lassen sich an unterschiedliche Hintergründe und Lichtbedingungen anpassen.
-- **Remote-Zugriff** – Zugriff über Netzwerk, Tablet oder andere Geräte ist möglich, abhängig von der API-/Server-Konfiguration.
-- **Mehrsprachig** – Oberfläche und wichtige Bereiche sind mehrsprachig ausgelegt.
-
-### Quick-Installation
-
-1. Download
-2. Entpacken
-3. Launcher mit Adminnistratorrechten öffnen
-4. Erweitert -> Vollinstallation anklicken
-5. Optional** Erweitert -> Manuelle Installation -> Desktop verknüpfung erstellen 
-    -> Es wird automatisch im Ordner auch eine Verknüpfung erstellt, frei zum Kopieren nach Bedarf
-6. Optional (Für Vollbild Autostart der APP)** Erweitert -> Manuelle Installation -> Autostartordner öffnen -> Verknüpfung aus Ordner manuell einfügen 
-7. Fertig!
-
-Der Launcher dient zum Überprüfen ob alle Funktionen laufen. Neustart, Stop und Start hiermit möglich
-
-Die Vollinstallation installiert automatisch Windows-Services, damit alle Funktionen im Autostart ausgeführt werden. Nur das Öffnen der App muss manuell (Punkt 6) erfolgen
-
-### Quickstart
-
-1. Webserver starten (z. B. Caddy / IIS / Apache / eingebetteter Server) und UI öffnen.
-2. Unten rechts prüfen, ob **CameraBridge** erreichbar ist.
-   - Falls „offline/unknown“: **Start CameraBridge** klicken.
-3. **Active Event** setzen (Eventname & Speicherordner, optional Template ZIP).
-4. **Select Device**: Devices laden → Kamera auswählen → Speichern.
-5. Optional: **Druckereinstellungen** (Drucker + Kopien) und **Auto-Print** prüfen.
-6. Zurück zum Startscreen → **„Tap to start“**.
-
-
-## Support
-
-Donate with PayPal ☕
-Wenn dir das Projekt hilft und du mir einen Kaffee ausgeben willst:
-
-[![Donate with PayPal ☕](https://img.shields.io/badge/Donate-PayPal-00457C?logo=paypal&logoColor=white)](https://www.paypal.me/andreasrottmann92)
-
-### Launcher (Controll Panel)
-
-Der **NiBu Photobooth Launcher** ist der einfache Startpunkt für Operatoren. Er prüft die wichtigsten Dienste und startet/stoppt sie gesammelt.
-
-![Launcher – Hauptfenster](Logo/launcher2.jpg)
-
-**Wichtigste Buttons (Hauptfenster):**
-- **Start** – startet die komplette Umgebung (Caddy, PHP, Bridge API, Python).
-- **Stop** – stoppt die Umgebung.
-- **Neustart** – Stop + Start (sauberer Re-Start).
-- **App öffnen** – öffnet die Photobox-WebUI im Browser.
-- **Log-Dateien** – öffnet den Log-Ordner.
-- **Erweitert…** – Installation, Ports, Firewall/Tasks, Kiosk-Tweaks.
-
-![Launcher – Erweitert / Vollinstallation](Logo/launcher1.jpg)
-
-**Vollinstallation (1 Klick):**
-- **Vollinstallation** installiert bzw. richtet die Umgebung mit einem Klick ein (Konfiguration, Ports/Setup-Schritte, je nach Paket auch Firewall/Tasks).  
-- Danach im Hauptfenster **Start** klicken und mit **App öffnen** die Photobox starten.
-
-Hinweis: Autostart wird bewusst **manuell** über eine Verknüpfung eingerichtet (um Probleme mit Security-Software zu vermeiden).
-
-## Camera Control
-
-Die Kamerasteuerung für dieses Projekt wurde in ein eigenes Repository ausgelagert.
-
-Repository:
-[NiBu Camera Control](https://github.com/Jumbo125/NiBu-Camera-Control)
-
 ### Architektur (Überblick)
-![Architektur-Skizze](config-skizze/photobox_architektur.png)
+![Architektur-Skizze](config_skizze/architektur_skizze.png)
 
 Die WebUI arbeitet mit einem separaten Kamera-Subsystem. Die Kamera wird durch **worker.exe** (Kamera-Worker) gesteuert. Der **ApiServer.exe** stellt die HTTP/JSON-API bereit, übersetzt Requests in **Named-Pipe-IPC** zum Worker und liefert u. a. den **MJPEG-LiveView-Stream**. Die WebUI kommuniziert mit dem API-Server (HTTP/JSON) und nutzt dessen Stream für die Vorschau.
 
@@ -118,13 +31,13 @@ Die WebUI arbeitet mit einem separaten Kamera-Subsystem. Die Kamera wird durch *
 
 ```mermaid
 flowchart LR
-  U["User / Touchscreen"] -->|"Tap to start / Settings"| W["WebUI (Browser)"]
-  W -->|"HTTP / JSON"| A["ApiServer.exe<br>(CameraBridge API-Server)"]
-  A -->|"Start / Control"| K["worker.exe<br>(Camera Worker)"]
-  K -->|"Canon SDK / Nikon Pro"| C["Kamera"]
-  W -->|"HTTP (optional)"| P["Python Tool-Server<br>(Render / Print / Service)"]
-  P -->|"Dateipfade"| FS["Event-/Session-Files"]
-  A -->|"MJPEG / LiveView"| W
+  U[User / Touchscreen] -->|Tap to start / Settings| W[WebUI (Browser)]
+  W -->|HTTP / JSON| A[ApiServer.exe<br/>(CameraBridge API-Server)]
+  A -->|Start/Control| K[worker.exe<br/>(Camera Worker)]
+  K -->|Canon SDK / Nikon Pro| C[(Kamera)]
+  W -->|HTTP (optional)| P[Python Tool-Server<br/>(Render / Print / Service)]
+  P -->|Dateipfade| FS[(Event-/Session-Files)]
+  A -->|MJPEG / LiveView| W
 ```
 
 
@@ -196,6 +109,16 @@ Tools/Services:
 
 - **CameraBridge API-Server** (Standard-Port `8052`)
 - **Python Tool-Server** (Standard-Port `8053`, Auth per `X-Api-Key`)
+
+### Quickstart
+
+1. Webserver starten (z. B. Caddy / IIS / Apache / eingebetteter Server) und UI öffnen.
+2. Unten rechts prüfen, ob **CameraBridge** erreichbar ist.
+   - Falls „offline/unknown“: **Start CameraBridge** klicken.
+3. **Active Event** setzen (Eventname & Speicherordner, optional Template ZIP).
+4. **Select Device**: Devices laden → Kamera auswählen → Speichern.
+5. Optional: **Druckereinstellungen** (Drucker + Kopien) und **Auto-Print** prüfen.
+6. Zurück zum Startscreen → **„Tap to start“**.
 
 ### Konfiguration
 
@@ -277,75 +200,9 @@ Browser-based controller for a kiosk-style photo booth: **start screen**, **capt
 
 **Planned:** An additional interface/integration for **DNP printers** is planned.
 
-## Features / Overview
-
-- **Easy to use** – the photobooth is designed for quick and simple operation, even during live events.
-- **Set default printer** – the preferred printer can be selected directly and used as the default printer.
-- **Define maximum prints** – a fixed print limit can be configured per event.
-- **Allow multiple prints** – multiple prints per session or reprints can be enabled.
-- **Simple template editor** – templates can be created and adjusted directly without a complicated workflow.
-- **Shadows and rounded corners** – layout elements can be styled with shadows, borders, and rounded corners.
-- **Layer support** – objects can be arranged in front of or behind each other and managed cleanly.
-- **Drag & drop** – elements and layers can be moved comfortably via drag and drop.
-- **Greenwall / greenscreen support** – integrated Greenwall support is available in the workflow.
-- **Adjustable green tone settings** – greenscreen/greenwall parameters can be tuned for different backgrounds and lighting conditions.
-- **Remote access** – access over network, tablet, or other devices is possible depending on the API/server configuration.
-- **Multilingual** – the interface and core areas are designed to support multiple languages.
-
-### Quick Installation
-
-1. Download
-2. Extract
-3. Open the launcher with administrator rights
-4. Click **Advanced → Full Installation**
-5. Optional: **Advanced → Manual Installation → Create desktop shortcut**  
-   → A shortcut will also be created automatically in the folder. You can copy it wherever needed.
-6. Optional, for fullscreen app autostart: **Advanced → Manual Installation → Open startup folder**  
-   → Manually copy the shortcut from the folder into the startup folder.
-7. Done!
-
-The launcher is used to check whether all functions are running. You can restart, stop, and start the functions from there.
-
-The full installation automatically installs Windows services so that all functions run on startup. Only opening the app must be done manually, as described in step 6.
-
-## Support
-
-Donate with PayPal ☕
-
-[![Donate with PayPal ☕](https://img.shields.io/badge/Donate-PayPal-00457C?logo=paypal&logoColor=white)](https://www.paypal.me/andreasrottmann92)
-
-### Launcher (Controll Panel)
-
-The **NiBu Photobooth Launcher** is the operator-friendly entry point. It checks core services and starts/stops them as a bundle.
-
-![Launcher – Main window](Logo/launcher2.jpg)
-
-**Key buttons (main window):**
-- **Start** – starts the full stack (Caddy, PHP, Bridge API, Python).
-- **Stop** – stops the stack.
-- **Restart** – clean stop + start.
-- **Open App** – opens the Photobooth Web UI in your browser.
-- **Open Logs** – opens the log folder.
-- **Advanced…** – installation, ports, firewall/tasks, kiosk tweaks.
-
-![Launcher – Advanced / Full install](Logo/launcher1.jpg)
-
-**Full install (one click):**
-- **Full Install** sets up everything with one click (configs, ports/setup steps, and depending on the package also firewall/tasks).  
-- Then use **Start** and **Open App** to launch the Photobooth UI.
-
-Note: Autostart is intentionally configured **manually** via a shortcut (to avoid issues with security software).
-
-## Camera Control
-
-The camera control for this project has been moved to a separate repository.
-
-Repository:
-[NiBu Camera Control](https://github.com/Jumbo125/NiBu-Camera-Control)
-
 ### Architecture (overview)
 
-![Architektur-Skizze](config-skizze/photobox_architektur.png)
+![Architektur-Skizze](config_skizze/architektur_skizze.png)
 
 The Web UI uses a separate camera subsystem. The camera is controlled by **worker.exe** (camera worker). **ApiServer.exe** provides the HTTP/JSON API, translates requests to the worker via **named-pipe IPC**, and exposes the **MJPEG live view stream**. The Web UI talks to the API server over HTTP/JSON and uses the stream for preview.
 
@@ -353,13 +210,13 @@ The Web UI uses a separate camera subsystem. The camera is controlled by **worke
 
 ```mermaid
 flowchart LR
-  U["User / Touchscreen"] -->|"Tap to start / Settings"| W["WebUI (Browser)"]
-  W -->|"HTTP / JSON"| A["ApiServer.exe<br>(CameraBridge API-Server)"]
-  A -->|"Start / Control"| K["worker.exe<br>(Camera Worker)"]
-  K -->|"Canon SDK / Nikon Pro"| C["Kamera"]
-  W -->|"HTTP (optional)"| P["Python Tool-Server<br>(Render / Print / Service)"]
-  P -->|"Dateipfade"| FS["Event-/Session-Files"]
-  A -->|"MJPEG / LiveView"| W
+  U[User / Touchscreen] -->|Tap to start / Settings| W[Web UI (Browser)]
+  W -->|HTTP / JSON| A[ApiServer.exe<br/>(CameraBridge API Server)]
+  A -->|Start/Control| K[worker.exe<br/>(Camera Worker)]
+  K -->|Canon SDK / Nikon Pro| C[(Camera)]
+  W -->|HTTP (optional)| P[Python Tool Server<br/>(Render / Print / Service)]
+  P -->|File paths| FS[(Event / Session files)]
+  A -->|MJPEG / LiveView| W
 ```
 
 

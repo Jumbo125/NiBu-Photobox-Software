@@ -20,7 +20,7 @@
     },
     "Worker": {
         "ExePath": "__BASE_DIR__\\booth\\tools\\camerabridge\\Worker\\CameraWorker.exe",
-        "Args": "--one-instance --no-select --headless --log=__BASE_DIR__\\booth\\tools\\camerabridge\\Worker\\Worker_log.txt",
+        "Args": "--one-instance --no-select --headless --tray --log=__BASE_DIR__\\booth\\tools\\camerabridge\\Worker\\Worker_log.txt",
         "AutoStartOnBoot": true,
         "AutoStartWhenUnreachable": true,
         "StartCooldownMs": 8000,
