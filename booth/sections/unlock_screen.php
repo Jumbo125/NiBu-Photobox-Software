@@ -35,7 +35,8 @@
                class="form-control form-control-sm"
                id="exitFullscreenPassword"
                autocomplete="off"
-               inputmode="numeric"
+               inputmode="none"
+               readonly
                placeholder="<?= t('overlay.exit_fullscreen.placeholder', 'Password') ?>">
 
         <div class="pb-keypad mt-3" id="exitFullscreenKeypad">

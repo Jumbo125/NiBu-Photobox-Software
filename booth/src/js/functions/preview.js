@@ -109,8 +109,12 @@
       const always = PB.readBool(
         PB._getDeep?.(window.PB_CONFIG, "camera.camera_settings.liveview_always_active")
       );
+      const showOnStart = PB.readBool(
+        PB._getDeep?.(window.PB_CONFIG, "camera.camera_settings.liveview_show_on_startscreen")
+      );
 
-      if (always) showVideo();
+      // LiveView sichtbar nur wenn beides aktiv: always_active UND show_on_startscreen
+      if (always && showOnStart) showVideo();
       else showStatic();
 
       state.initialViewApplied = true;

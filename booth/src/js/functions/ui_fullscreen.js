@@ -55,4 +55,40 @@
   PB.updateFullscreenState = PB.updateFullscreenState || function () {
     return PB.applyFullscreenFromConfig(window.PB_CONFIG);
   };
+
+  // Cursor-Idle-Timer: nach IDLE_MS ohne Mausbewegung wird pb-cursor-idle gesetzt
+  const IDLE_MS = 3000;
+  const IDLE_CLS = "pb-cursor-idle";
+  let _idleTimer = null;
+
+  function _resetIdleTimer() {
+    if (!PB.isFullscreen()) return;
+    document.body.classList.remove(IDLE_CLS);
+    clearTimeout(_idleTimer);
+    _idleTimer = setTimeout(function () {
+      if (PB.isFullscreen()) {
+        document.body.classList.add(IDLE_CLS);
+      }
+    }, IDLE_MS);
+  }
+
+  function _clearIdleTimer() {
+    clearTimeout(_idleTimer);
+    _idleTimer = null;
+    document.body.classList.remove(IDLE_CLS);
+  }
+
+  document.addEventListener("mousemove", _resetIdleTimer, { passive: true });
+
+  // Wenn Fullscreen aktiviert wird: sofort Timer starten; beim Deaktivieren: aufräumen
+  const _origSetFullscreenUI = PB.setFullscreenUI;
+  PB.setFullscreenUI = function (on) {
+    const result = _origSetFullscreenUI(on);
+    if (on) {
+      _resetIdleTimer();
+    } else {
+      _clearIdleTimer();
+    }
+    return result;
+  };
 })();

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // sections/template_editor.php
 // Modal: Template Editor (90vw)
 ?>
@@ -9,7 +9,7 @@
     aria-labelledby="modalTemplateEditorLabel"
     aria-hidden="true"
 >
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-template-editor">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-template-editor">
         <div class="modal-content bg-dark text-light border border-secondary">
             <div class="modal-header border-secondary">
                 <h5

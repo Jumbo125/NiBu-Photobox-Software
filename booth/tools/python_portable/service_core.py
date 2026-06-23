@@ -135,7 +135,7 @@ def _win_query_processes_by_name(exe_name: str) -> Dict[str, Any]:
     cmd = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps]
 
     try:
-        p = subprocess.run(cmd, capture_output=True, text=True, timeout=3, shell=False)
+        p = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=3, shell=False)
         if p.returncode != 0:
             return {"ok": False, "error": "powershell_failed", "rc": p.returncode, "err": (p.stderr or "").strip()}
         raw = (p.stdout or "").strip()
@@ -174,7 +174,7 @@ def _win_tasklist_fallback(exe_name: str) -> Dict[str, Any]:
     """
     cmd = ["cmd", "/c", "tasklist", "/FI", f"IMAGENAME eq {exe_name}", "/FO", "CSV", "/NH"]
     try:
-        p = subprocess.run(cmd, capture_output=True, text=True, timeout=3, shell=False)
+        p = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=3, shell=False)
         out = (p.stdout or "").strip()
         if not out or "No tasks are running" in out:
             return {"ok": True, "items": []}
@@ -320,7 +320,7 @@ def stop_service(exe_path: str) -> Dict[str, Any]:
             # Fallback: kill by image name
             cmd = ["cmd", "/c", "taskkill", "/IM", exe_name, "/F", "/T"]
             try:
-                p = subprocess.run(cmd, capture_output=True, text=True, timeout=5, shell=False)
+                p = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=5, shell=False)
                 out = (p.stdout or "").strip()
                 err = (p.stderr or "").strip()
                 # nachher nochmal status
@@ -333,7 +333,7 @@ def stop_service(exe_path: str) -> Dict[str, Any]:
         for pid in pids:
             cmd = ["cmd", "/c", "taskkill", "/PID", str(pid), "/F", "/T"]
             try:
-                p = subprocess.run(cmd, capture_output=True, text=True, timeout=5, shell=False)
+                p = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=5, shell=False)
                 killed.append({"pid": pid, "rc": p.returncode, "out": (p.stdout or "").strip(), "err": (p.stderr or "").strip()})
             except Exception as e:
                 killed.append({"pid": pid, "rc": -1, "error": str(e)})

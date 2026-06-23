@@ -87,6 +87,19 @@
      "adv.btn.btnWindowstweaksUninstall": "WindowsTweaks Uninstall",
 
   "confirm.winTweaks.title": "Notice",
-  "confirm.winTweaks.msg": "Notice: This action changes Windows settings (Registry/Policies). Administrator privileges are required. Some changes only take effect after sign-out/sign-in or a reboot.\n\nThe following settings will be applied:\n\nDisable lock screen (Policy: NoLockScreen=1)\n\nDisable Microsoft Consumer Features (Policy: DisableWindowsConsumerFeatures=1)\n\nDisable toast notifications for current user (ToastEnabled=0 under HKCU)\n\nDisable toast notifications via policy (system-wide) (NoToastApplicationNotification=1)\n\nOnly run this if you want these adjustments."
+  "confirm.winTweaks.msg": "Notice: This action changes Windows settings (Registry/Policies). Administrator privileges are required. Some changes only take effect after sign-out/sign-in or a reboot.\n\nThe following settings will be applied:\n\nDisable lock screen (Policy: NoLockScreen=1)\n\nDisable Microsoft Consumer Features (Policy: DisableWindowsConsumerFeatures=1)\n\nDisable toast notifications for current user (ToastEnabled=0 under HKCU)\n\nDisable toast notifications via policy (system-wide) (NoToastApplicationNotification=1)\n\nOnly run this if you want these adjustments.",
+  
+    "adv.chk.kioskAutostart": "Start kiosk mode program via Windows startup",
+  "msg.autostartShortcutMissing.title": "Autostart not possible",
+  "msg.autostartShortcutMissing.body": "The shortcut 'NibuBox_Autostart.lnk' was not found.\n\nPlease run 'Create desktop shortcut' first.",
+  "msg.autostartFailed.title": "Autostart could not be changed",
+
+   "adv.lbl.kioskAutostartHint": "For autostart, please manually copy the shortcut 'NibuBox_Autostart.lnk' into the Windows startup folder.",
+  "adv.link.openStartupFolder": "Open startup folder",
+  "msg.startupFolderInfo.title": "Set up autostart manually",
+  "msg.startupFolderInfo.body": "Please manually copy the shortcut 'NibuBox_Autostart.lnk' into the opened Windows startup folder.\n\nIf the shortcut does not exist yet, run 'Create desktop shortcut' first.",
+  "msg.startupFolderOpenFailed.title": "Startup folder could not be opened",
+
+  "chk.debugMode": "Debug mode (show console windows)"
 
 }

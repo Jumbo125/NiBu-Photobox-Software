@@ -3,7 +3,7 @@ param(
   [int]$MaxWaitSeconds = 0,
   [int]$SleepMs = 600,
   [int]$HttpTimeoutMs = 800,
-  [switch]$EnsureAutostart = $true
+  [int]$FallbackStartAfterSecs = 30
 )
 
 Set-StrictMode -Version Latest
@@ -104,78 +104,6 @@ function Read-CaddyPort {
   return $Fallback
 }
 
-function Ensure-AutostartShortcut {
-  try {
-    $StartupDir = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Startup'
-    if (-not (Test-Path -LiteralPath $StartupDir)) {
-      New-Item -ItemType Directory -Path $StartupDir -Force | Out-Null
-    }
-
-    $LinkName = 'Photobox Kiosk.lnk'
-    $LnkPath = Join-Path $StartupDir $LinkName
-    $KioskCmdPath = Join-Path $ScriptDir 'Kiosk_WaitAndStart.cmd'
-    $CmdExe = (Get-Command cmd.exe -ErrorAction Stop).Source
-
-    $IcoPath = $null
-    $browserIco = Join-Path $BrowserDir 'Assets\app.ico'
-    if (Test-Path -LiteralPath $browserIco) {
-      $IcoPath = $browserIco
-    }
-
-    if (Test-Path -LiteralPath $KioskCmdPath) {
-      $desiredTarget = $CmdExe
-      $desiredArgs = '/c "' + $KioskCmdPath + '"'
-    }
-    else {
-      $psExe = (Get-Command powershell.exe -ErrorAction Stop).Source
-      $thisScript = $MyInvocation.MyCommand.Path
-      $desiredTarget = $psExe
-      $desiredArgs = '-NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $thisScript + '"'
-    }
-
-    $desiredWorkDir = $ScriptDir
-    $desiredIcon = $null
-    if ($IcoPath) {
-      $desiredIcon = "$IcoPath,0"
-    }
-
-    $wsh = New-Object -ComObject WScript.Shell
-    $sc = $wsh.CreateShortcut($LnkPath)
-
-    $needsSave = $false
-
-    if ($sc.TargetPath -ne $desiredTarget) {
-      $sc.TargetPath = $desiredTarget
-      $needsSave = $true
-    }
-
-    if ($sc.Arguments -ne $desiredArgs) {
-      $sc.Arguments = $desiredArgs
-      $needsSave = $true
-    }
-
-    if ($sc.WorkingDirectory -ne $desiredWorkDir) {
-      $sc.WorkingDirectory = $desiredWorkDir
-      $needsSave = $true
-    }
-
-    if ($desiredIcon -and $sc.IconLocation -ne $desiredIcon) {
-      $sc.IconLocation = $desiredIcon
-      $needsSave = $true
-    }
-
-    if ($needsSave) {
-      $sc.Save()
-      Log ("Autostart-Link erstellt/aktualisiert: {0} -> {1} {2}" -f $LnkPath, $desiredTarget, $desiredArgs)
-    }
-    else {
-      Log ("Autostart-Link ok (keine Aenderung): {0}" -f $LnkPath)
-    }
-  }
-  catch {
-    Log ("WARN: Autostart-Link konnte nicht erstellt/aktualisiert werden: {0}" -f $_.Exception.Message)
-  }
-}
 
 function Test-HttpOk {
   param(
@@ -247,11 +175,12 @@ function Host-AlreadyRunning {
   return $false
 }
 
-Log ("Start. Script={0}" -f $MyInvocation.MyCommand.Path)
+$StartBatPath = Join-Path $ScriptDir 'start.bat'
+$TaskStartBat = Join-Path $ScriptDir 'task_start.bat'
 
-if ($EnsureAutostart) {
-  Ensure-AutostartShortcut
-}
+Log ("Start. Script={0}" -f $MyInvocation.MyCommand.Path)
+[Console]::WriteLine("[NiBuBox] Starte NiBuBox Kiosk...")
+
 
 if (-not (Test-Path -LiteralPath $BrowserExePath)) {
   Log ("ERROR: Browser-EXE nicht gefunden: {0}" -f $BrowserExePath)
@@ -275,27 +204,57 @@ if (Host-AlreadyRunning -ExePath $BrowserExePath) {
 
 $start = Get-Date
 $tries = 0
+$fallbackTriggered = $false
+
 while ($true) {
   $tries++
+  $elapsed = ((Get-Date) - $start).TotalSeconds
 
   $ok1 = Test-HttpOk -Url $healthCaddy -TimeoutMs $HttpTimeoutMs
   $ok2 = Test-HttpOk -Url $healthPhp -TimeoutMs $HttpTimeoutMs
 
   if ($ok1 -and $ok2) {
-    Log ("Health OK nach {0} Versuchen. Starte Browser-App auf: {1}" -f $tries, $baseUrl)
+    Log ("Health OK nach {0} Versuchen ({1} s). Starte Browser-App auf: {2}" -f $tries, [int]$elapsed, $baseUrl)
+    [Console]::WriteLine(("[NiBuBox] Server bereit nach {0} s. Starte Browser..." -f [int]$elapsed))
     break
   }
 
   if ($tries -eq 1 -or ($tries % 10 -eq 0)) {
-    Log ("Warte... (try={0}) caddy={1} php={2}" -f $tries, $ok1, $ok2)
+    Log ("Warte... (try={0}, {1} s) caddy={2} php={3}" -f $tries, [int]$elapsed, $ok1, $ok2)
+    [Console]::WriteLine(("[NiBuBox] Versuch {0} ({1} s): warte auf Server... caddy={2} php={3}" -f $tries, [int]$elapsed, $ok1, $ok2))
   }
 
-  if ($MaxWaitSeconds -gt 0) {
-    $elapsed = (Get-Date) - $start
-    if ($elapsed.TotalSeconds -ge $MaxWaitSeconds) {
-      Log ("Timeout nach {0} s. Browser-App wird NICHT gestartet." -f $MaxWaitSeconds)
-      exit 2
+  # Fallback: wenn Server nach FallbackStartAfterSecs noch nicht laufen, einmalig start.bat aufrufen
+  if (-not $fallbackTriggered -and $elapsed -ge $FallbackStartAfterSecs) {
+    $fallbackTriggered = $true
+    Log ("FALLBACK nach {0} s: versuche task_start.bat oder start.bat" -f [int]$elapsed)
+    [Console]::WriteLine(("[NiBuBox] Server nach {0} s nicht erreichbar - versuche Watchdog/Server zu starten..." -f [int]$elapsed))
+
+    # Erst Watchdog-Task starten (bevorzugt), sonst direkt start.bat
+    if (Test-Path -LiteralPath $TaskStartBat) {
+      try {
+        Start-Process -FilePath 'cmd.exe' -ArgumentList ('/c "' + $TaskStartBat + '"') -WindowStyle Hidden | Out-Null
+        Log "Fallback: task_start.bat gestartet"
+      } catch {
+        Log ("WARN: task_start.bat fehlgeschlagen: {0}" -f $_.Exception.Message)
+      }
+    } elseif (Test-Path -LiteralPath $StartBatPath) {
+      try {
+        Start-Process -FilePath 'cmd.exe' -ArgumentList ('/c "' + $StartBatPath + ' /nopause"') -WindowStyle Hidden | Out-Null
+        Log "Fallback: start.bat gestartet"
+      } catch {
+        Log ("WARN: start.bat fehlgeschlagen: {0}" -f $_.Exception.Message)
+      }
+    } else {
+      Log "WARN: Weder task_start.bat noch start.bat gefunden"
+      [Console]::WriteLine("[NiBuBox] WARNUNG: Kein Start-Script gefunden!")
     }
+  }
+
+  if ($MaxWaitSeconds -gt 0 -and $elapsed -ge $MaxWaitSeconds) {
+    Log ("Timeout nach {0} s. Browser-App wird NICHT gestartet." -f $MaxWaitSeconds)
+    [Console]::WriteLine(("[NiBuBox] Timeout nach {0} s. Browser wird nicht gestartet." -f $MaxWaitSeconds))
+    exit 2
   }
 
   Start-Sleep -Milliseconds $SleepMs

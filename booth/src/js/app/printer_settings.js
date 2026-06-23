@@ -621,6 +621,52 @@
     }
   };
 
+  function getDnpManualRefreshCooldownMs() {
+    const raw =
+      getDeep(window.PB_CONFIG, 'general.printer.dnpManualRefreshCooldownMs', null) ??
+      getDeep(window.PB_CONFIG, 'general.printer.dnp_manual_refresh_cooldown_ms', null);
+    const n = Number(raw);
+    if (Number.isFinite(n) && n > 0) {
+      return Math.min(Math.max(Math.round(n), 1000), 30000);
+    }
+    return 5000;
+  }
+
+  function waitMs(ms) {
+    return new Promise((resolve) => setTimeout(resolve, Math.max(0, ms || 0)));
+  }
+
+  $(document)
+    .off('click.pbDnpRefresh', '#btnDnpPaperRefresh')
+    .on('click.pbDnpRefresh', '#btnDnpPaperRefresh', async function (e) {
+      e.preventDefault();
+
+      const btn = this;
+      const now = Date.now();
+      const cooldownUntil = Number(PB._dnpManualRefreshCooldownUntil || 0);
+      if (btn.disabled || now < cooldownUntil) {
+        return;
+      }
+
+      const cooldownMs = getDnpManualRefreshCooldownMs();
+      PB._dnpManualRefreshCooldownUntil = now + cooldownMs;
+      btn.classList.add('is-refreshing');
+      btn.disabled = true;
+
+      try {
+        await PB.syncDnpPaperStatusQuery({ force: true, manual: true });
+      } finally {
+        const remainingCooldownMs = Number(PB._dnpManualRefreshCooldownUntil || 0) - Date.now();
+        if (remainingCooldownMs > 0) {
+          btn.classList.add('is-cooling');
+          await waitMs(remainingCooldownMs);
+        }
+        btn.disabled = false;
+        btn.classList.remove('is-refreshing');
+        btn.classList.remove('is-cooling');
+      }
+    });
+
   /**
    * PB._getDnpPaperState
    * ------------------------------------------------------------
@@ -658,7 +704,8 @@
     }
 
     try {
-      const res = await PB._callPrinterApi('/dnp/info', {
+      const path = opts.force ? '/dnp/info?force=1' : '/dnp/info';
+      const res = await PB._callPrinterApi(path, {
         method: 'GET',
         headers: { Accept: 'application/json' },
         timeoutMs: Math.max(1000, Number(opts.timeoutMs || 10000)),

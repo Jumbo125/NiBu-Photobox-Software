@@ -90,6 +90,7 @@ $dom = new DOMDocument('1.0', 'UTF-8');
 $dom->formatOutput = true;
 
 $root = $dom->createElement('template');
+$root->setAttribute('name', $name);
 $root->setAttribute('width', (string)$w);
 $root->setAttribute('height', (string)$h);
 $root->setAttribute('greenwall', $greenwall ? '1' : '0');

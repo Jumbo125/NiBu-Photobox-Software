@@ -18,6 +18,51 @@
 </div>
 
 
+<!-- Prepare / Warmup State -->
+<div id="Capture_prepare" class="pb-capture-layer d-none">
+  <div class="pb-capture-box pb-capture-prepare-box">
+    <div class="pb-capture-prepare-mark" aria-hidden="true">
+      <i class="bi bi-stars"></i>
+    </div>
+
+    <div class="pb-capture-text mt-3" data-role="text">
+      <?= t('capture.prepare.text', "Mach dich bereit.\nDer Timer beginnt in wenigen Sekunden.") ?>
+    </div>
+
+    <button type="button" class="btn btn-danger btn-lg mt-3" data-role="cancel">
+      <i class="bi bi-x-circle me-1"></i>
+      <span data-lang-key="form.cancel"><?= t('form.cancel', 'Cancel') ?></span>
+    </button>
+  </div>
+</div>
+
+<!-- LiveView Waiting State -->
+<div id="Liveview_waiting_stream" class="pb-capture-layer d-none">
+  <div class="pb-capture-box pb-capture-prepare-box">
+    <div class="spinner-border mb-3" role="status" aria-hidden="true"></div>
+
+    <div
+      class="pb-capture-title mt-2"
+      data-lang-key="liveview.waiting.title"
+      data-placeholder-key="liveview.waiting.title"
+      data-placeholder="Bitte warten"
+    >
+      <?= t('liveview.waiting.title', 'Bitte warten') ?>
+    </div>
+
+    <div
+      class="pb-capture-text mt-2"
+      data-role="text"
+      data-lang-key="liveview.waiting.text"
+      data-placeholder-key="liveview.waiting.text"
+      data-placeholder="Der Livestream wird gestartet…"
+    >
+      <?= t('liveview.waiting.text', 'Der Livestream wird gestartet…') ?>
+    </div>
+  </div>
+</div>
+
+
 
 <!-- Render / Print Working (Backend-Zeit) -->
 <div id="Capture_working_render" class="pb-capture-layer d-none">
@@ -143,8 +188,8 @@
       <?= t('capture.working.trigger.title', 'Please hold still') ?>
     </div>
 
-    <div class="pb-capture-text mt-2" data-role="text" data-lang-key="capture.working.trigger.text">
-      <?= t('capture.working.trigger.text_triggering', 'The camera is taking the photo… please do not move.') ?>
+    <div class="pb-capture-text mt-2" data-role="text" data-lang-key="capture.working.trigger.text_triggering">
+      <?= t('capture.working.trigger.text_triggering', "The camera is taking the photo…\nplease do not move.") ?>
     </div>
   </div>
 </div>

@@ -1063,7 +1063,9 @@ def place_layer(
     ch = max(1, ch)
 
     # 1) resize Content in die "Innenbox"
-    content = resize_to_box(layer_img, cw, ch, resize_mode, contain_bg=contain_bg)
+    # image-Layer dürfen nie mit contain_bg eingefärbt werden — das zerstört ihre Transparenz.
+    effective_contain_bg = (0, 0, 0, 0) if layer.type == "image" else contain_bg
+    content = resize_to_box(layer_img, cw, ch, resize_mode, contain_bg=effective_contain_bg)
 
     # 2) Content in Outer-Box einsetzen (damit Border nicht im Bild liegt)
     if bw > 0:

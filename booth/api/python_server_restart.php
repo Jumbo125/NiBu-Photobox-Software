@@ -126,6 +126,23 @@ function start_async(bool $isWindows, string $pythonExe, string $script, int $po
   return ['ok' => true, 'cmd' => $cmd];
 }
 
+function ends_with(string $value, string $suffix): bool {
+  if ($suffix === '') return true;
+  return substr($value, -strlen($suffix)) === $suffix;
+}
+
+function process_context(): array {
+  $user = getenv('USERNAME') ?: '';
+  $session = getenv('SESSIONNAME') ?: '';
+  return [
+    'user' => $user,
+    'userDomain' => getenv('USERDOMAIN') ?: '',
+    'sessionName' => $session,
+    'isInteractive' => ($session !== '' && !ends_with($user, '$')),
+    'isMachineAccount' => ends_with($user, '$'),
+  ];
+}
+
 // ------------------------------------------------------
 // Config laden
 // ------------------------------------------------------
@@ -185,7 +202,8 @@ if ($ping['ok']) {
     'started' => false,
     'reason' => 'already_running',
     'ping' => $ping,
-    'port' => $port
+    'port' => $port,
+    'phpContext' => process_context()
   ]);
 }
 
@@ -201,7 +219,8 @@ if (!$force && $cooldownMs > 0 && $cool['active']) {
     'reason' => 'cooldown',
     'cooldown' => $cool,
     'ping' => $ping,
-    'port' => $port
+    'port' => $port,
+    'phpContext' => process_context()
   ]);
 }
 
@@ -218,6 +237,7 @@ json_out([
   'port' => $port,
   'exe_in' => $pythonExe,
   'script' => $script,
+  'phpContext' => process_context(),
   'cfg' => [
     'host' => $host,
     'pingPath' => $pingPath,

@@ -192,6 +192,15 @@
           console.warn(e);
         }
       }
+
+      // 9) Echten OS-Status für Autostart + Task-Planer/systemd mit config.json synchronisieren
+      if (typeof PB.syncSystemServiceStatusFromPython === "function") {
+        try {
+          await PB.syncSystemServiceStatusFromPython();
+        } catch (e) {
+          console.warn(e);
+        }
+      }
     };
 
   // Active Event UI: aktuellen Eventnamen + Druckzähler anzeigen
@@ -371,6 +380,219 @@
       input.addEventListener("input", handler); // live während Tippen
       input.addEventListener("change", handler); // fallback
     };
+
+
+  // 9) System-Service Status aus Python mit general.system.* synchronisieren
+  //    Quelle der Wahrheit ist hier der echte OS-Zustand der Python-Endpunkte.
+  PB.syncSystemServiceStatusFromPython = PB.syncSystemServiceStatusFromPython || async function () {
+    const boolOrNull = (value) => {
+      if (typeof value === "boolean") return value;
+      if (typeof value === "number") return value !== 0;
+      if (typeof value === "string") {
+        const v = value.trim().toLowerCase();
+        if (["1", "true", "yes", "y", "on", "enabled", "installed", "active"].includes(v)) return true;
+        if (["0", "false", "no", "n", "off", "disabled", "missing", "inactive"].includes(v)) return false;
+      }
+      return null;
+    };
+
+    const extractEnabled = (json) => {
+      if (!json || typeof json !== "object") return null;
+      const candidates = [
+        json.enabled,
+        json.installed,
+        json.active,
+        json.is_enabled,
+        json.isEnabled,
+        json.status && json.status.enabled,
+        json.status && json.status.installed,
+        json.result && json.result.enabled,
+        json.result && json.result.installed,
+      ];
+      for (const c of candidates) {
+        const b = boolOrNull(c);
+        if (b !== null) return b;
+      }
+      return null;
+    };
+
+    const getPort = () => {
+      try {
+        if (PB.pythonUi && typeof PB.pythonUi.getPort === "function") {
+          return PB.pythonUi.getPort();
+        }
+      } catch (_) {}
+
+      const el = document.getElementById("settingPythonPort");
+      const fromInput = parseInt(String(el?.value ?? ""), 10);
+      if (Number.isFinite(fromInput) && fromInput > 0) return fromInput;
+
+      const candidates = [
+        PB._getDeep?.(window.PB_CONFIG, "general.Python_ServerPort"),
+        PB._getDeep?.(window.PB_CONFIG, "general.pythonServer.port"),
+        PB._getDeep?.(window.PB_CONFIG, "pythonServer.Python_ServerPort"),
+        PB._getDeep?.(window.PB_CONFIG, "pythonServer.port"),
+      ];
+
+      for (const c of candidates) {
+        const n = parseInt(String(c ?? ""), 10);
+        if (Number.isFinite(n) && n > 0) return n;
+      }
+
+      return 8053;
+    };
+
+    const fetchStatus = async (endpoint) => {
+      const port = getPort();
+      const url = `http://127.0.0.1:${port}${endpoint}`;
+      const res = await fetch(url, {
+        method: "GET",
+        headers: { "Accept": "application/json" },
+        cache: "no-store",
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json || json.ok === false) {
+        throw new Error(json?.message || json?.error || `status_failed:${endpoint}`);
+      }
+      return json;
+    };
+
+    const setCheckboxIfPresent = (id, enabled) => {
+      const el = document.getElementById(id);
+      if (!el || typeof enabled !== "boolean") return;
+      el.checked = enabled;
+    };
+
+    const currentAuto = boolOrNull(PB._getDeep?.(window.PB_CONFIG, "general.system.autostart"));
+    const currentTask = boolOrNull(PB._getDeep?.(window.PB_CONFIG, "general.system.task_planer_service"));
+
+    let autostartEnabled = null;
+    let taskPlanerEnabled = null;
+
+    try {
+      const [autostartStatus, taskPlanerStatus] = await Promise.allSettled([
+        fetchStatus("/autostart/status"),
+        fetchStatus("/task_planer_service/status"),
+      ]);
+
+      if (autostartStatus.status === "fulfilled") {
+        autostartEnabled = extractEnabled(autostartStatus.value);
+      } else {
+        console.warn("[SystemStatusSync] /autostart/status failed:", autostartStatus.reason);
+      }
+
+      if (taskPlanerStatus.status === "fulfilled") {
+        taskPlanerEnabled = extractEnabled(taskPlanerStatus.value);
+      } else {
+        console.warn("[SystemStatusSync] /task_planer_service/status failed:", taskPlanerStatus.reason);
+      }
+    } catch (e) {
+      console.warn("[SystemStatusSync] failed:", e);
+      return { ok: false, error: "status_fetch_failed", details: e };
+    }
+
+    const systemPatch = {};
+
+    if (typeof autostartEnabled === "boolean" && currentAuto !== autostartEnabled) {
+      systemPatch.autostart = autostartEnabled;
+    }
+
+    if (typeof taskPlanerEnabled === "boolean" && currentTask !== taskPlanerEnabled) {
+      systemPatch.task_planer_service = taskPlanerEnabled;
+    }
+
+    // UI sofort an den echten Status anpassen, auch wenn kein Speichern nötig ist.
+    setCheckboxIfPresent("settingAutostartEnabled", autostartEnabled);
+    setCheckboxIfPresent("settingTaskPlanerServiceEnabled", taskPlanerEnabled);
+
+    if (!Object.keys(systemPatch).length) {
+      return {
+        ok: true,
+        changed: false,
+        autostart: autostartEnabled,
+        task_planer_service: taskPlanerEnabled,
+      };
+    }
+
+    window.PB_CONFIG = window.PB_CONFIG || {};
+    window.PB_CONFIG.general = window.PB_CONFIG.general || {};
+    window.PB_CONFIG.general.system = window.PB_CONFIG.general.system || {};
+    Object.assign(window.PB_CONFIG.general.system, systemPatch);
+
+    // Falls das Settings-Formular bereits im DOM ist, dessen Werte ebenfalls synchron halten.
+    const form = document.getElementById("formGeneralSettings");
+    if (form) {
+      if ("autostart" in systemPatch) setCheckboxIfPresent("settingAutostartEnabled", systemPatch.autostart);
+      if ("task_planer_service" in systemPatch) setCheckboxIfPresent("settingTaskPlanerServiceEnabled", systemPatch.task_planer_service);
+    }
+
+    if (typeof PB.configFileSet !== "function") {
+      console.warn("[SystemStatusSync] PB.configFileSet missing; updated PB_CONFIG only", systemPatch);
+      return {
+        ok: false,
+        changed: true,
+        saved: false,
+        error: "configFileSet_missing",
+        patch: { system: systemPatch },
+      };
+    }
+
+    try {
+      await new Promise((resolve, reject) => {
+        const req = PB.configFileSet(PB.MAIN_CONFIG_FILE || "config/config.json", {
+          system: systemPatch,
+        });
+
+        if (req && typeof req.done === "function") {
+          req.done((res) => {
+            if (res && res.ok === false) reject(res);
+            else resolve(res);
+          }).fail(reject);
+          return;
+        }
+
+        Promise.resolve(req).then(resolve).catch(reject);
+      });
+
+      $(document).trigger("pb:configLoaded", [window.PB_CONFIG, "general", window.PB_CONFIG.general]);
+
+      if (typeof showMsg === "function") {
+        showMsg(
+          tr(
+            "system.status_sync.saved",
+            "Systemstatus wurde mit der Konfiguration synchronisiert.",
+          ),
+          "success",
+        );
+      }
+
+      return {
+        ok: true,
+        changed: true,
+        saved: true,
+        patch: { system: systemPatch },
+      };
+    } catch (e) {
+      console.warn("[SystemStatusSync] config save failed:", e);
+      if (typeof showMsg === "function") {
+        showMsg(
+          tr(
+            "system.status_sync.save_failed",
+            "Systemstatus konnte nicht in der Konfiguration gespeichert werden.",
+          ),
+          "danger",
+        );
+      }
+      return {
+        ok: false,
+        changed: true,
+        saved: false,
+        error: "config_save_failed",
+        details: e,
+        patch: { system: systemPatch },
+      };
+    }
+  };
 
 
   // Bootstrap nach DOM-ready genau einmal starten

@@ -43,6 +43,8 @@ window.TE = window.TE || {};
     const safe = TE.sanitizeName(name);
     TE.activeProject = safe;
     TE.state.templateName = safe;
+    const input = document.getElementById('teTemplateNameInput');
+    if (input) input.value = safe;
     return safe;
   };
 
@@ -126,7 +128,9 @@ window.TE = window.TE || {};
         return base;
       });
 
-    const activeName = TE.activeProject || TE.state.templateName;
+    const inputEl = document.getElementById('teTemplateNameInput');
+    const inputVal = inputEl ? TE.sanitizeName(inputEl.value) : '';
+    const activeName = inputVal || TE.activeProject || TE.state.templateName;
 
     return {
       templateName: activeName,
@@ -153,7 +157,9 @@ window.TE = window.TE || {};
   };
 
   TE.exportZip = async function () {
-    const name = TE.activeProject || TE.state.templateName;
+    const inputEl = document.getElementById('teTemplateNameInput');
+    const inputVal = inputEl ? TE.sanitizeName(inputEl.value) : '';
+    const name = inputVal || TE.activeProject || TE.state.templateName;
     if (!name) {
       alert(pbT('te.alert.no_active_project', 'Kein aktives Projekt gewählt / Template-Name fehlt.'));
       return;

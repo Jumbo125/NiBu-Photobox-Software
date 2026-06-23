@@ -169,11 +169,15 @@ body.pb-capture-running #btnLiveviewToggle {
     (function () {
       const ids = [
         "Capture_countdown",
+        "Capture_prepare",
+        "Liveview_waiting_stream",
         "Capture_working_trigger",
         "Capture_working_capture",
         "Capture_working_render",
         "Capture_working_abort",
         "Capture_error",
+        "Capture_error_paper",
+        "Capture_error_printer",
         "Capture_finish",
         "Capture_finish_with_img",
         "Capture_preview_between_shots",
@@ -343,15 +347,81 @@ body.pb-capture-running #btnLiveviewToggle {
     };
   }
 
+  function getPrePrintPaperCheckTimeoutMs() {
+    const raw =
+      PB._getDeep?.(
+        window.PB_CONFIG,
+        "general.printer.dnpPaperPrePrintTimeoutMs",
+      ) ??
+      PB._getDeep?.(
+        window.PB_CONFIG,
+        "general.printer.dnp_paper_pre_print_timeout_ms",
+      );
+    const n = Number(raw);
+    if (Number.isFinite(n) && n > 0) {
+      return Math.min(Math.max(Math.round(n), 250), 5000);
+    }
+    return 1200;
+  }
+
+  function withPrePrintPaperTimeout(promise, timeoutMs) {
+    let timer = null;
+    const timeout = new Promise((resolve) => {
+      timer = setTimeout(() => {
+        resolve({
+          ok: false,
+          error: "paper_check_timeout",
+          message: "DNP paper status check timed out.",
+          timedOut: true,
+        });
+      }, timeoutMs);
+    });
+
+    return Promise.race([Promise.resolve(promise), timeout]).finally(() => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    });
+  }
 
   // Zentrale Papierprüfung vor jedem Druck.
   // Bevorzugt den aktuellen API-Wert, fällt bei 429 / timer_too_short aber
   // kontrolliert auf den gecachten Wert zurück.
   async function checkPaperBeforePrint(requiredCountOverride) {
-    const dnpRes =
-      typeof PB._getDnpPaperState === "function"
-        ? await PB._getDnpPaperState()
-        : { ok: false, error: "dnp_state_function_missing" };
+    const dnpPaperStatusEnabled =
+      typeof PB.readBool === "function"
+        ? PB.readBool(
+            PB._getDeep?.(
+              window.PB_CONFIG,
+              "general.printer.dnpPaperStatusQuery",
+            ),
+          )
+        : !!PB._getDeep?.(
+            window.PB_CONFIG,
+            "general.printer.dnpPaperStatusQuery",
+          );
+
+    const cachedShortage = getCachedPaperShortageResult(requiredCountOverride);
+    let dnpRes;
+
+    if (!dnpPaperStatusEnabled) {
+      dnpRes = { ok: true, skipped: true, reason: "dnp_paper_status_disabled" };
+    } else if (typeof PB._getDnpPaperState === "function") {
+      try {
+        dnpRes = await withPrePrintPaperTimeout(
+          PB._getDnpPaperState({ force: true }),
+          getPrePrintPaperCheckTimeoutMs(),
+        );
+      } catch (e) {
+        dnpRes = {
+          ok: false,
+          error: "paper_check_failed",
+          message: e?.message || String(e),
+        };
+      }
+    } else {
+      dnpRes = { ok: false, error: "dnp_state_function_missing" };
+    }
 
     const apiRemainingPrints = parseInt(
       dnpRes?.dnp?.remainingPrints ?? dnpRes?.raw?.["Remaining prints"],
@@ -363,7 +433,10 @@ body.pb-capture-running #btnLiveviewToggle {
     );
 
     const statusCode = Number(
-      dnpRes?.status ?? dnpRes?.http ?? dnpRes?.httpStatus ?? dnpRes?.response?.status,
+      dnpRes?.status ??
+        dnpRes?.http ??
+        dnpRes?.httpStatus ??
+        dnpRes?.response?.status,
     );
     const errorCode = String(dnpRes?.error || "").toLowerCase();
     const isTooManyRequests =
@@ -383,14 +456,20 @@ body.pb-capture-running #btnLiveviewToggle {
         ? override
         : getRequiredPrintCount();
 
-    if (!dnpRes?.ok && !(isTooManyRequests && Number.isFinite(cachedRemainingPrints))) {
+    if (
+      !dnpRes?.ok &&
+      !(isTooManyRequests && Number.isFinite(cachedRemainingPrints))
+    ) {
+      if (!cachedShortage?.ok && isPaperEmptyError(cachedShortage)) {
+        return cachedShortage;
+      }
+
       return {
-        ok: false,
-        error: "paper_status_unavailable",
-        message: pbT(
-          "capture.flow.err.paper_status_unavailable",
-          "Printing is not possible. Paper status could not be determined.",
-        ),
+        ok: true,
+        remainingPrints: null,
+        requiredPrintCount,
+        paperStatusUnavailable: true,
+        paperStatusCheckEnabled: dnpPaperStatusEnabled,
         response: dnpRes,
       };
     }
@@ -435,9 +514,12 @@ body.pb-capture-running #btnLiveviewToggle {
 
     return {
       ok: true,
-      remainingPrints: Number.isFinite(remainingPrints) ? remainingPrints : null,
-      requiredPrintCount:
-        Number.isFinite(requiredPrintCount) ? requiredPrintCount : null,
+      remainingPrints: Number.isFinite(remainingPrints)
+        ? remainingPrints
+        : null,
+      requiredPrintCount: Number.isFinite(requiredPrintCount)
+        ? requiredPrintCount
+        : null,
       usedCachedRemainingPrints:
         !Number.isFinite(apiRemainingPrints) &&
         isTooManyRequests &&
@@ -494,7 +576,10 @@ body.pb-capture-running #btnLiveviewToggle {
       PB._reprintBusy = true;
 
       try {
-        if (!PB.captureApi || typeof PB.captureApi.printDefault !== "function") {
+        if (
+          !PB.captureApi ||
+          typeof PB.captureApi.printDefault !== "function"
+        ) {
           return {
             ok: false,
             error: "print_api_missing",
@@ -506,7 +591,10 @@ body.pb-capture-running #btnLiveviewToggle {
         }
 
         const allowReprint = PB.readBool(
-          PB._getDeep(window.PB_CONFIG, "activeEvent.active_event.allow_reprint"),
+          PB._getDeep(
+            window.PB_CONFIG,
+            "activeEvent.active_event.allow_reprint",
+          ),
         );
 
         if (!allowReprint) {
@@ -658,10 +746,7 @@ body.pb-capture-running #btnLiveviewToggle {
     });
   }
 
-  async function showPreviewBetweenShotsImage({
-    imgUrl,
-    closeAfterSeconds,
-  }) {
+  async function showPreviewBetweenShotsImage({ imgUrl, closeAfterSeconds }) {
     const secRaw = Number(closeAfterSeconds);
     const timeoutMs =
       Number.isFinite(secRaw) && secRaw > 0 ? Math.round(secRaw * 1000) : 0;
@@ -693,7 +778,10 @@ body.pb-capture-running #btnLiveviewToggle {
   }
 
   function getPreviewImgTimeSeconds() {
-    const raw = PB._getDeep?.(window.PB_CONFIG, "general.capture.preview_img_time");
+    const raw = PB._getDeep?.(
+      window.PB_CONFIG,
+      "general.capture.preview_img_time",
+    );
 
     if (raw == null || String(raw).trim() === "") return 1;
 
@@ -705,10 +793,15 @@ body.pb-capture-running #btnLiveviewToggle {
   }
 
   function getFasterCaptureEffectMs() {
-    const raw = PB._getDeep?.(
-      window.PB_CONFIG,
-      "general.capture.setting_faster_capture_effect",
-    );
+    const raw =
+      PB._getDeep?.(
+        window.PB_CONFIG,
+        "general.capture.setting_faster_capture_effect",
+      ) ??
+      PB._getDeep?.(
+        window.PB_CONFIG,
+        "general.capture.setting_fast_capture_effect",
+      );
 
     if (raw == null || String(raw).trim() === "") return 500;
 
@@ -720,11 +813,22 @@ body.pb-capture-running #btnLiveviewToggle {
 
   function captureFileToPreviewUrl(filePath) {
     const p = String(filePath || "").replace(/\\/g, "/");
+
+    // Fall 1: Webroot ist booth → CAPTURE muss in der URL bleiben
+    const markerWithCapture = "/CAPTURE/.ACTIVE_SESSION_TMP/TMP_BILDER/";
+    const idxWithCapture = p.lastIndexOf(markerWithCapture);
+    if (idxWithCapture >= 0) {
+      return p.slice(idxWithCapture) + "?v=" + Date.now();
+    }
+
+    // Fall 2: Webserver hat .ACTIVE_SESSION_TMP direkt als Alias gemappt
     const marker = "/.ACTIVE_SESSION_TMP/TMP_BILDER/";
     const idx = p.lastIndexOf(marker);
-    if (idx < 0) return null;
+    if (idx >= 0) {
+      return p.slice(idx) + "?v=" + Date.now();
+    }
 
-    return p.slice(idx) + "?v=" + Date.now();
+    return null;
   }
 
   async function waitUntilImageLoads(url, timeoutMs) {
@@ -763,6 +867,44 @@ body.pb-capture-running #btnLiveviewToggle {
     );
   }
 
+  function getPrepareOverlayConfig() {
+    const enabledRaw = PB._getDeep?.(
+      window.PB_CONFIG,
+      "general.capture.prepare_overlay_enabled",
+    );
+    const textRaw = PB._getDeep?.(
+      window.PB_CONFIG,
+      "general.capture.prepare_overlay_text",
+    );
+    const subtextRaw = PB._getDeep?.(
+      window.PB_CONFIG,
+      "general.capture.prepare_overlay_subtext",
+    );
+
+    return {
+      enabled: enabledRaw == null ? true : PB.readBool(enabledRaw),
+      text:
+        String(textRaw || "").trim() ||
+        pbT("capture.prepare.text", "Mach dich bereit."),
+      subtext:
+        String(subtextRaw || "").trim() ||
+        pbT(
+          "capture.prepare.subtext",
+          "Der Timer beginnt in wenigen Sekunden.",
+        ),
+    };
+  }
+
+  function showPrepareOverlay() {
+    const cfg = getPrepareOverlayConfig();
+    if (!cfg.enabled) return;
+
+    PB.captureUI.show("Capture_prepare", {
+      text: cfg.text + "\n" + cfg.subtext,
+      onCancel: () => PB.captureFlow.cancel(),
+    });
+  }
+
   function createTrackedPromise(promise) {
     const tracked = {
       status: "pending",
@@ -794,6 +936,10 @@ body.pb-capture-running #btnLiveviewToggle {
   let running = false;
   let cancelled = false;
   let currentRun = null;
+
+  // FPS-Werte für den laufenden Flow (gesetzt beim Start, genutzt in restore)
+  let _flowFpsActive = null;
+  let _flowFpsIdle = null;
 
   function createCancelledError() {
     const e = new Error("__CANCELLED__");
@@ -1085,101 +1231,139 @@ body.pb-capture-running #btnLiveviewToggle {
   // Der erste Start ist absichtlich toleranter, weil Kaltstarts mehr Zeit
   // brauchen als spätere Wiederanläufe innerhalb derselben Sitzung.
   async function preparePreviewForSeries() {
-  const isFirstLiveviewWarmup = PB.captureFlow._liveviewWarm !== true;
+    const isFirstLiveviewWarmup = PB.captureFlow._liveviewWarm !== true;
 
-  // Beim ersten Start deutlich großzügiger sein
-  const frameTimeout = isFirstLiveviewWarmup ? 12000 : 5000;
-  const previewTimeout = isFirstLiveviewWarmup ? 8000 : 4000;
-  const previewSettleMs = isFirstLiveviewWarmup ? 600 : 350;
-  const startPauseMs = isFirstLiveviewWarmup ? 1000 : 350;
-
-  async function bootOnce() {
-    await ensureViewStreamVisible(true).catch(() => {});
-    await ensurePreviewRunning().catch(() => {});
-
-    const startRes = await PB.captureApi.liveviewStart().catch((error) => ({
-      ok: false,
-      error,
-    }));
-
-    if (!startRes || startRes.ok !== true) {
-      throw (
-        startRes?.error ||
-        new Error("LiveView could not be started before capture flow.")
-      );
+    // Beim ersten Start: Bridge-Poll sofort anstoßen damit _bridgeLastHealth
+    // aktuell ist bevor waitForFrames den Cache abfragt.
+    if (isFirstLiveviewWarmup && typeof PB.check_cameraBridge_connection === "function") {
+      try {
+        await new Promise((resolve) => {
+          const req = PB.check_cameraBridge_connection();
+          if (req && typeof req.done === "function") {
+            req.done(() => resolve()).fail(() => resolve());
+          } else {
+            Promise.resolve(req).then(resolve).catch(resolve);
+          }
+        });
+      } catch (_) {}
     }
 
-    // Wichtig: API kann schon ok sein, obwohl im Browser noch keine echten Frames da sind
-    await PB.sleep(startPauseMs);
+    // Wenn LiveView bereits läuft (always_active), sind großzügige Puffer unnötig
+    const liveviewAlreadyRunning =
+      isFirstLiveviewWarmup &&
+      PB.readBool?.(PB._getDeep?.(window.PB_CONFIG, "camera.camera_settings.liveview_always_active")) &&
+      !!PB._bridgeLastHealth?.liveViewRunning;
 
-    const framesRes =
-      typeof PB.captureApi.waitForFrames === "function"
-        ? await PB.captureApi.waitForFrames(frameTimeout).catch((error) => ({
-            ok: false,
-            error,
-          }))
-        : { ok: true, skipped: true };
+    const frameTimeout    = isFirstLiveviewWarmup ? 12000 : 5000;
+    const previewTimeout  = isFirstLiveviewWarmup ? 8000  : 4000;
+    const previewSettleMs = liveviewAlreadyRunning ? 150 : (isFirstLiveviewWarmup ? 600 : 350);
+    const startPauseMs    = liveviewAlreadyRunning ? 150 : (isFirstLiveviewWarmup ? 1000 : 350);
 
-    if (!framesRes || framesRes.ok !== true) {
-      const err =
-        framesRes?.error ||
-        new Error(
-          `Timed out waiting for live-view frames before capture flow. timeout=${frameTimeout}ms`,
+    async function bootOnce() {
+      await ensureViewStreamVisible(true).catch(() => {});
+      await ensurePreviewRunning().catch(() => {});
+
+      // Auf Active-FPS umschalten bevor LiveView (neu) gestartet wird
+      if (_flowFpsActive != null && PB.captureApi?.setLiveviewFps) {
+        await PB.captureApi.setLiveviewFps(_flowFpsActive).catch(() => {});
+      }
+
+      const startRes = await PB.captureApi.liveviewStart().catch((error) => ({
+        ok: false,
+        error,
+      }));
+
+      if (!startRes || startRes.ok !== true) {
+        throw (
+          startRes?.error ||
+          new Error("LiveView could not be started before capture flow.")
         );
-      err.code = err.code || "frames_time_out";
-      throw err;
+      }
+
+      // Wichtig: API kann schon ok sein, obwohl im Browser noch keine echten Frames da sind
+      await PB.sleep(startPauseMs);
+
+      const framesRes =
+        typeof PB.captureApi.waitForFrames === "function"
+          ? await PB.captureApi.waitForFrames(frameTimeout).catch((error) => ({
+              ok: false,
+              error,
+            }))
+          : { ok: true, skipped: true };
+
+      if (!framesRes || framesRes.ok !== true) {
+        const err =
+          framesRes?.error ||
+          new Error(
+            `Timed out waiting for live-view frames before capture flow. timeout=${frameTimeout}ms`,
+          );
+        err.code = err.code || "frames_time_out";
+        throw err;
+      }
+
+      const previewReady = await waitForPreviewReady(
+        previewTimeout,
+        previewSettleMs,
+      ).catch((error) => ({
+        ok: false,
+        error,
+      }));
+
+      if (!previewReady || previewReady.ok !== true) {
+        throw (
+          previewReady?.error ||
+          new Error(
+            `LiveView preview was not ready before capture flow. timeout=${previewTimeout}ms`,
+          )
+        );
+      }
+
+      PB.captureFlow._liveviewWarm = true;
+      return { ok: true };
     }
-
-    const previewReady = await waitForPreviewReady(
-      previewTimeout,
-      previewSettleMs,
-    ).catch((error) => ({
-      ok: false,
-      error,
-    }));
-
-    if (!previewReady || previewReady.ok !== true) {
-      throw (
-        previewReady?.error ||
-        new Error(
-          `LiveView preview was not ready before capture flow. timeout=${previewTimeout}ms`,
-        )
-      );
-    }
-
-    PB.captureFlow._liveviewWarm = true;
-    return { ok: true };
-  }
-
-  try {
-    return await bootOnce();
-  } catch (firstErr) {
-    console.warn(
-      "[captureFlow] preparePreviewForSeries first attempt failed, retrying once...",
-      firstErr,
-    );
-
-    // Einmal sauber resetten und neu probieren
-    await PB.captureApi.liveviewStop?.().catch(() => {});
-    await PB.sleep(700);
 
     try {
       return await bootOnce();
-    } catch (secondErr) {
-      console.error(
-        "[captureFlow] preparePreviewForSeries failed after retry",
-        secondErr,
+    } catch (firstErr) {
+      console.warn(
+        "[captureFlow] preparePreviewForSeries first attempt failed, retrying once...",
+        firstErr,
       );
-      throw secondErr;
+
+      // Einmal sauber resetten und neu probieren
+      await PB.captureApi.liveviewStop?.().catch(() => {});
+      await PB.sleep(700);
+
+      try {
+        return await bootOnce();
+      } catch (secondErr) {
+        console.error(
+          "[captureFlow] preparePreviewForSeries failed after retry",
+          secondErr,
+        );
+        throw secondErr;
+      }
     }
   }
-}
   async function restorePreviewAfterFlow() {
     const wasStream = PB.captureFlow._previewWasStream === true;
+    const alwaysActive = PB.readBool?.(
+      PB._getDeep?.(window.PB_CONFIG, "camera.camera_settings.liveview_always_active")
+    );
+    const showOnStart = PB.readBool?.(
+      PB._getDeep?.(window.PB_CONFIG, "camera.camera_settings.liveview_show_on_startscreen")
+    );
 
-    if (wasStream) {
+    // liveview_always_active hat Vorrang: LiveView läuft weiter, egal was vorher sichtbar war
+    if (alwaysActive || wasStream) {
+      if (_flowFpsIdle != null && PB.captureApi?.setLiveviewFps) {
+        await PB.captureApi.setLiveviewFps(_flowFpsIdle).catch(() => {});
+      }
       await PB.captureApi.liveviewStart().catch(() => {});
-      await ensureViewStreamVisible(true).catch(() => {});
+
+      // Sichtbarkeit gemäß Einstellung wiederherstellen
+      const shouldShow = alwaysActive ? showOnStart : wasStream;
+      await ensureViewStreamVisible(!!shouldShow).catch(() => {});
     } else {
       await PB.captureApi.liveviewStop().catch(() => {});
       await ensureViewStreamVisible(false).catch(() => {});
@@ -1295,6 +1479,55 @@ body.pb-capture-running #btnLiveviewToggle {
     return raw || "Unknown error";
   }
 
+  function getCameraStartBlockReason() {
+    const selectedModel = String(
+      PB._getDeep?.(window.PB_CONFIG, "general.camera.selected_camera.model") ||
+        "",
+    ).trim();
+
+    const selectedDeviceValue = String(
+      document.getElementById("settingDeviceSelected")?.value || "",
+    ).trim();
+
+    const deviceText = String(
+      document.getElementById("pb-connection-device_model")?.innerText || "",
+    )
+      .trim()
+      .toLowerCase();
+
+    const uiSaysNoCamera =
+      deviceText.includes("no camera selected") ||
+      deviceText.includes("kein gerät") ||
+      deviceText.includes("keine kamera") ||
+      deviceText.includes("nicht verbunden");
+
+    if (uiSaysNoCamera || (!selectedModel && !selectedDeviceValue)) {
+      return {
+        ok: false,
+        error: "no_camera_selected",
+        message: pbT(
+          "overlay.connection_info.connected_device_err",
+          "No device connected.",
+        ),
+      };
+    }
+
+    const h = PB._bridgeLastHealth || null;
+
+    if (h && h.webserverReachable === false) {
+      return {
+        ok: false,
+        error: "camera_bridge_offline",
+        message: pbT(
+          "capture.flow.err.camera_bridge_offline",
+          "CameraBridge is not reachable.",
+        ),
+      };
+    }
+
+    return { ok: true };
+  }
+
   // -----------------------------------------------------------------------
   // Main Start
   // ---------------------------------------------------------
@@ -1374,9 +1607,43 @@ body.pb-capture-running #btnLiveviewToggle {
       return null;
     }
 
+    // Kamera-Preflight VOR running = true
+    const cameraCheck =
+      typeof PB.captureApi.cameraPreflight === "function"
+        ? await PB.captureApi.cameraPreflight({ forcePoll: true })
+        : {
+            ok: false,
+            error: "camera_preflight_missing",
+            message: pbT(
+              "capture.flow.err.camera_preflight_missing",
+              "Camera preflight check is missing.",
+            ),
+          };
+
+    if (!cameraCheck.ok) {
+      PB.captureUI.show("Capture_error", {
+        text:
+          cameraCheck.message ||
+          pbT(
+            "overlay.connection_info.connected_device_err",
+            "No device connected.",
+          ),
+        onClose: () => PB.captureUI.hideAll(),
+      });
+
+      return null;
+    }
+
     running = true;
     cancelled = false;
     currentRun = createRunContext();
+
+    // Block-Flag zurücksetzen (wurde beim letzten Abbruch gesetzt)
+    if (PB.captureApi) PB.captureApi._captureBlocked = false;
+
+    // FPS-Werte für diesen Flow merken
+    _flowFpsActive = Number(r.liveview_fps_active) || null;
+    _flowFpsIdle   = Number(r.liveview_fps_idle)   || null;
 
     PB.captureFlow._previewWasStream =
       PB.preview && typeof PB.preview.isStreamVisible === "function"
@@ -1456,9 +1723,13 @@ body.pb-capture-running #btnLiveviewToggle {
       // Preview möglichst vor dem ersten Countdown in einen stabilen
       // Zustand bringen, damit der Benutzer nicht in einen "kalten" Start
       // fotografiert.
+      showPrepareOverlay();
       await preparePreviewForSeries();
 
-      await preCountdownPause();
+      if (!getPrepareOverlayConfig().enabled) {
+        await preCountdownPause();
+      }
+
       const fasterCaptureEffectMs = getFasterCaptureEffectMs();
       const firstCapturePayload = {
         slot: 1,
@@ -1472,16 +1743,25 @@ body.pb-capture-running #btnLiveviewToggle {
         startLiveViewAfterCapture: true,
         cancelSignal: getActiveCancelSignal(),
       };
-      const firstCountdownRes = await flowCountdown(r.counter_first_image, "first", {
-        earlyTriggerMs: fasterCaptureEffectMs,
-        onEarlyTrigger:
-          fasterCaptureEffectMs > 0
-            ? async () => {
-                await runBeforeCaptureHook(1, target, "first", r.counter_pre_capture);
-                return PB.captureApi.captureOnce(firstCapturePayload);
-              }
-            : null,
-      });
+      const firstCountdownRes = await flowCountdown(
+        r.counter_first_image,
+        "first",
+        {
+          earlyTriggerMs: fasterCaptureEffectMs,
+          onEarlyTrigger:
+            fasterCaptureEffectMs > 0
+              ? async () => {
+                  await runBeforeCaptureHook(
+                    1,
+                    target,
+                    "first",
+                    r.counter_pre_capture,
+                  );
+                  return PB.captureApi.captureOnce(firstCapturePayload);
+                }
+              : null,
+        },
+      );
 
       session.status = "CAPTURING";
       await requireSnapshotWrite(session, "snapshot_capture_start_failed");
@@ -1492,7 +1772,8 @@ body.pb-capture-running #btnLiveviewToggle {
       for (let slot = 1; slot <= target; slot++) {
         guardCancelled();
 
-        let earlyCaptureTask = slot === 1 ? firstCountdownRes?.earlyTask || null : null;
+        let earlyCaptureTask =
+          slot === 1 ? firstCountdownRes?.earlyTask || null : null;
 
         const capturePayload = {
           slot,
@@ -1533,8 +1814,8 @@ body.pb-capture-running #btnLiveviewToggle {
         const triggerText =
           PB._getDeep(CFG, "general.capture.text_triggering") ||
           pbT(
-            "capture.working.trigger.text",
-            "The camera is taking the photo… please do not move.",
+            "capture.working.trigger.text_triggering",
+            "The camera is taking the photo…\nplease do not move.",
           );
 
         PB.captureUI.show("Capture_working_trigger", {
@@ -1710,8 +1991,9 @@ body.pb-capture-running #btnLiveviewToggle {
         const eventConfigPath = activeEventConfig || null;
 
         const printerName =
-          String(PB._getDeep(CFG, "general.printer.printerName") || "").trim() ||
-          null;
+          String(
+            PB._getDeep(CFG, "general.printer.printerName") || "",
+          ).trim() || null;
 
         const imagePath =
           renderRes?.output_path || renderRes?.outputPath || null;
@@ -1728,7 +2010,8 @@ body.pb-capture-running #btnLiveviewToggle {
               session.print.copies = requestedCopies;
               session.print.autoPrintSkipped = true;
               session.print.autoPrintSkipReason = paperCheck.error;
-              session.print.remainingPrints = paperCheck.remainingPrints ?? null;
+              session.print.remainingPrints =
+                paperCheck.remainingPrints ?? null;
               session.print.autoPrintResult = paperCheck.response || paperCheck;
               finalStatus = "DONE_WITH_PRINT_WARNING";
               await requireSnapshotWrite(session, "snapshot_print_skip_failed");
@@ -1742,10 +2025,17 @@ body.pb-capture-running #btnLiveviewToggle {
                   );
               }
 
-              console.warn("[captureFlow] autoPrint skipped:", paperCheck.error);
+              console.warn(
+                "[captureFlow] autoPrint skipped:",
+                paperCheck.error,
+                paperCheck,
+              );
             } else {
               session.status = "PRINTING";
-              await requireSnapshotWrite(session, "snapshot_print_start_failed");
+              await requireSnapshotWrite(
+                session,
+                "snapshot_print_start_failed",
+              );
 
               const printPayload = {
                 image_path: imagePath,
@@ -1758,7 +2048,9 @@ body.pb-capture-running #btnLiveviewToggle {
                 printPayload.printerName = printerName;
               }
 
+              console.info("[captureFlow] autoPrint request:", printPayload);
               const printRes = await PB.captureApi.printDefault(printPayload);
+              console.info("[captureFlow] autoPrint response:", printRes);
 
               if (printRes?.error === "flow_cancelled") {
                 throw createCancelledError();
@@ -1787,7 +2079,10 @@ body.pb-capture-running #btnLiveviewToggle {
                 console.warn("[captureFlow] autoPrint failed:", printRes);
               }
 
-              await requireSnapshotWrite(session, "snapshot_print_result_failed");
+              await requireSnapshotWrite(
+                session,
+                "snapshot_print_result_failed",
+              );
             }
           } catch (e) {
             if (e?.__cancelled || e?.message === "__CANCELLED__") {

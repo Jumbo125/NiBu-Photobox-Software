@@ -40,6 +40,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+import ctypes
 from typing import Any, Dict, List, Optional
 from urllib.parse import quote
 
@@ -64,6 +65,8 @@ def run_cmd(args: List[str], timeout: int = 8) -> Dict[str, Any]:
             args,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=timeout,
             shell=False,
         )
@@ -78,6 +81,60 @@ def run_cmd(args: List[str], timeout: int = 8) -> Dict[str, Any]:
         return {"ok": False, "rc": -1, "error": "timeout", "cmd": args}
     except Exception as e:
         return {"ok": False, "rc": -1, "error": str(e), "cmd": args}
+
+
+def _windows_shell_execute(file: str, params: str = "") -> Dict[str, Any]:
+    """Start a Windows GUI action visibly via ShellExecuteW."""
+    try:
+        rc = ctypes.windll.shell32.ShellExecuteW(None, "open", file, params, None, 1)
+        ok = int(rc) > 32
+        return {
+            "ok": ok,
+            "rc": int(rc),
+            "cmd": ["ShellExecuteW", file, params],
+        }
+    except Exception as e:
+        return {
+            "ok": False,
+            "rc": -1,
+            "error": str(e),
+            "cmd": ["ShellExecuteW", file, params],
+        }
+
+
+def _windows_desktop_context() -> Dict[str, Any]:
+    user = os.environ.get("USERNAME") or ""
+    session_name = os.environ.get("SESSIONNAME") or ""
+    is_machine_account = user.endswith("$")
+
+    # SESSIONNAME may be absent when the process is launched via pythonw.exe,
+    # Task Scheduler, or a parent that did not inherit the desktop environment.
+    # Fall back to checking whether the process has a visible window station.
+    has_session = bool(session_name)
+    if not has_session:
+        try:
+            # GetConsoleWindow returns non-NULL for console processes on a desktop
+            has_console = ctypes.windll.kernel32.GetConsoleWindow() != 0
+            # ProcessIdToSessionId tells us the logon session id (0 = services)
+            session_id = ctypes.c_ulong(0)
+            ctypes.windll.kernel32.ProcessIdToSessionId(
+                ctypes.windll.kernel32.GetCurrentProcessId(),
+                ctypes.byref(session_id),
+            )
+            has_session = has_console or (session_id.value != 0)
+        except Exception:
+            # If the Win32 calls fail, assume interactive rather than block the user
+            has_session = True
+
+    is_interactive = has_session and not is_machine_account
+    return {
+        "pid": os.getpid(),
+        "user": user,
+        "userDomain": os.environ.get("USERDOMAIN") or "",
+        "sessionName": session_name,
+        "isInteractive": is_interactive,
+        "isMachineAccount": is_machine_account,
+    }
 
 
 # ----------------------------
@@ -534,17 +591,118 @@ def open_printer_gui(printer: Optional[str], kind: str) -> Dict[str, Any]:
 
     if is_windows():
         try:
+            desktop = _windows_desktop_context()
+
+            if not desktop.get("isInteractive"):
+                return {
+                    "ok": False,
+                    "os": "windows",
+                    "error": "non_interactive_windows_session",
+                    "message": (
+                        "Windows printer dialogs can only be shown from the logged-in "
+                        "interactive user session. The Python server is currently not "
+                        "running in that visible desktop."
+                    ),
+                    "desktop": desktop,
+                }
+
+            def open_windows_printer_overview() -> Dict[str, Any]:
+                attempts: List[Dict[str, Any]] = []
+
+                r = _windows_shell_execute("ms-settings:printers")
+                attempts.append(r)
+                if r.get("ok"):
+                    return {"ok": True, "cmd": r.get("cmd"), "attempts": attempts}
+
+                r = _windows_shell_execute("explorer.exe", "ms-settings:printers")
+                attempts.append(r)
+                if r.get("ok"):
+                    return {"ok": True, "cmd": r.get("cmd"), "attempts": attempts}
+
+                args = ["control.exe", "printers"]
+                subprocess.Popen(args, close_fds=True)
+                attempts.append({"ok": True, "cmd": args})
+                return {"ok": True, "cmd": args, "attempts": attempts}
+
             if kind == "overview" or printer == "":
-                subprocess.Popen(["control.exe", "printers"], close_fds=True)
-                return {"ok": True, "os": "windows", "action": "overview"}
+                overview = open_windows_printer_overview()
+                return {
+                    "ok": True,
+                    "os": "windows",
+                    "action": "overview",
+                    "cmd": overview.get("cmd"),
+                    "attempts": overview.get("attempts"),
+                    "desktop": desktop,
+                }
+
+            resolved = resolve_printer_name(printer)
+            if not resolved.get("ok"):
+                return {
+                    "ok": False,
+                    "os": "windows",
+                    "error": "printer_not_found",
+                    "printer": printer,
+                    "detail": resolved,
+                }
+
+            canonical = str(resolved.get("printer") or printer)
 
             if kind.startswith("pref"):
-                args = ["rundll32", "printui.dll,PrintUIEntry", "/e", "/n", printer]
+                printui_params = f'printui.dll,PrintUIEntry /e /n "{canonical}"'
+                fallback_params = f'printui.dll,PrintUIEntry /p /n "{canonical}"'
             else:
-                args = ["rundll32", "printui.dll,PrintUIEntry", "/p", "/n", printer]
+                printui_params = f'printui.dll,PrintUIEntry /p /n "{canonical}"'
+                fallback_params = ""
 
-            subprocess.Popen(args, close_fds=True)
-            return {"ok": True, "os": "windows", "action": kind, "printer": printer}
+            attempts: List[Dict[str, Any]] = []
+            r = _windows_shell_execute("rundll32.exe", printui_params)
+            attempts.append(r)
+
+            if r.get("ok"):
+                return {
+                    "ok": True,
+                    "os": "windows",
+                    "action": kind,
+                    "printer": canonical,
+                    "requestedPrinter": printer,
+                    "cmd": r.get("cmd"),
+                    "attempts": attempts,
+                    "fallback": False,
+                    "desktop": desktop,
+                }
+
+            if fallback_params:
+                r = _windows_shell_execute("rundll32.exe", fallback_params)
+                attempts.append(r)
+                if r.get("ok"):
+                    return {
+                        "ok": True,
+                        "os": "windows",
+                        "action": "properties",
+                        "requestedAction": kind,
+                        "printer": canonical,
+                        "requestedPrinter": printer,
+                        "cmd": r.get("cmd"),
+                        "attempts": attempts,
+                        "fallback": True,
+                        "desktop": desktop,
+                    }
+
+            overview = open_windows_printer_overview()
+            attempts.extend(overview.get("attempts") or [])
+            return {
+                "ok": True,
+                "os": "windows",
+                "action": "overview",
+                "requestedAction": kind,
+                "printer": canonical,
+                "requestedPrinter": printer,
+                "cmd": overview.get("cmd"),
+                "attempts": attempts,
+                "fallback": True,
+                "desktop": desktop,
+                "message": "Specific printer dialog did not stay open; opened printer overview instead.",
+            }
         except Exception as e:
             return {"ok": False, "os": "windows", "error": str(e)}
 

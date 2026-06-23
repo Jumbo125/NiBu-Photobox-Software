@@ -207,6 +207,15 @@
         const f = $('#fileImportZip')[0].files[0];
         const data = await TE.importZip(f);
         bsModal.hide();
+
+        if (data.templateName) {
+          TE.activeProject = data.templateName;
+          TE.state = TE.state || {};
+          TE.state.templateName = data.templateName;
+          const inp = document.getElementById('teTemplateNameInput');
+          if (inp) inp.value = data.templateName;
+        }
+
         TE.loadFromData(data);
 
         TE.toast(
@@ -477,6 +486,15 @@
           'ActiveTemplate XML could not be loaded.'
         ));
       }
+    });
+
+    // Template-Name Input: Änderungen sofort in TE.activeProject / TE.state.templateName übernehmen
+    $(document).on('change blur', '#teTemplateNameInput', function () {
+      const val = TE.sanitizeName ? TE.sanitizeName($(this).val()) : $(this).val().trim();
+      if (!val) return;
+      $(this).val(val);
+      TE.activeProject = val;
+      if (TE.state) TE.state.templateName = val;
     });
 
     // Language dropdown
