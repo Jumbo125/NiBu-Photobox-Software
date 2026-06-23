@@ -24,7 +24,7 @@
       </div>
 
     <!-- ######### DNP Drucker  ################# -->
-       <div id="printer_paper_remaining">
+      <div id="printer_paper_remaining">
     
 
         <span data-lang-key="overlay.printed.paper.remaining">
@@ -32,6 +32,15 @@
         </span>
 
         <span class="navbar-brand mb-0 h1 paper_remaining_value"></span>
+        <button
+          type="button"
+          id="btnDnpPaperRefresh"
+          class="btn btn-outline-light btn-sm rounded-circle d-inline-flex align-items-center justify-content-center pb-dnp-refresh"
+          title="<?= t('printer.dnp.paper_remaining.refresh', 'Refresh printer info') ?>"
+          aria-label="<?= t('printer.dnp.paper_remaining.refresh', 'Refresh printer info') ?>"
+        >
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
       </div>
 
 <!-- ######### Buttons  ################# -->

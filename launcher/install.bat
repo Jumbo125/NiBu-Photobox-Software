@@ -11,6 +11,32 @@ echo === INSTALL ===
 echo.
 
 rem -------------------------------------------------
+rem VC++ Redistributable x64 pruefen und ggf. installieren
+rem -------------------------------------------------
+set "VC_REDIST=%SCRIPT_DIR%VC_redist.x64.exe"
+call :CheckVCRedistX64
+if errorlevel 1 (
+  echo [INFO] Microsoft Visual C++ Redistributable 2015-2022 x64 ist nicht installiert.
+  echo [HINWEIS] Diese Laufzeit wird fuer PHP unter Windows benoetigt.
+  if exist "%VC_REDIST%" (
+    echo [ACTION] Installiere VC_redist.x64.exe silent, bitte warten...
+    "%VC_REDIST%" /install /quiet /norestart
+    if errorlevel 1 (
+      echo [ERR] VC++ Installation fehlgeschlagen ^(ExitCode=%ERRORLEVEL%^).
+      echo [HINWEIS] Bitte VC_redist.x64.exe manuell installieren und danach neu starten.
+      if not defined FLAG_NOPAUSE pause
+      exit /b 20
+    )
+    echo [OK] VC++ erfolgreich installiert.
+  ) else (
+    echo [ERR] VC_redist.x64.exe wurde nicht neben install.bat gefunden.
+    echo [HINWEIS] Datei hier ablegen: "%VC_REDIST%"
+    if not defined FLAG_NOPAUSE pause
+    exit /b 20
+  )
+)
+
+rem -------------------------------------------------
 rem Vorpruefung: bestimmte Dateien werden vor dem Install
 rem durch Launcher.exe oder manuell erzeugt.
 rem -------------------------------------------------
@@ -252,3 +278,10 @@ if not exist "%SCRIPT_DIR%%~1" (
   set "MISSING_PREP=1"
 )
 exit /b 0
+
+:CheckVCRedistX64
+reg query "HKLM\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64" /v Version >nul 2>&1
+if not errorlevel 1 exit /b 0
+reg query "HKLM\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\14.0\VC\Runtimes\x64" /v Version >nul 2>&1
+if not errorlevel 1 exit /b 0
+exit /b 1

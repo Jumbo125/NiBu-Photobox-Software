@@ -152,19 +152,25 @@
         await PB.preview.ensureRunning();
       }
 
-      // Sichtbar schalten
-      if (typeof PB.preview.isStreamVisible === "function") {
-        const isOn = !!PB.preview.isStreamVisible();
-        if (!isOn && typeof PB.preview.toggleView === "function") {
-          await PB.preview.toggleView();
-        } else if (!isOn && typeof PB.preview.showStream === "function") {
+      // Sichtbar schalten — nur wenn liveview_show_on_startscreen aktiv
+      const showOnStart = !!PB._getDeep?.(
+        window.PB_CONFIG, "camera.camera_settings.liveview_show_on_startscreen"
+      );
+
+      if (showOnStart) {
+        if (typeof PB.preview.isStreamVisible === "function") {
+          const isOn = !!PB.preview.isStreamVisible();
+          if (!isOn && typeof PB.preview.toggleView === "function") {
+            await PB.preview.toggleView();
+          } else if (!isOn && typeof PB.preview.showStream === "function") {
+            PB.preview.showStream();
+          }
+        } else if (typeof PB.preview.showStream === "function") {
           PB.preview.showStream();
         }
-      } else if (typeof PB.preview.showStream === "function") {
-        PB.preview.showStream();
       }
 
-      syncToggleBtn(true);
+      syncToggleBtn(showOnStart);
 
       // Optional: Liveview-Toggle-Button-Sichtbarkeit synchronisieren (falls genutzt)
       PB.syncLiveviewToggleButtonVisibility?.();

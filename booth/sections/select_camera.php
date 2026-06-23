@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Andreas Rottmann
 
@@ -10,7 +10,7 @@
     tabindex="-1"
     aria-labelledby="modalSelectDeviceLabel"
     aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content bg-dark text-light border border-secondary">
             <div class="modal-header border-secondary">
                 <h5

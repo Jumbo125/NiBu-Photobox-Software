@@ -6,7 +6,7 @@
 
 # ============================================================
 # DEBUG SWITCH
-#   $true  = ausfuehrliche Logs
+#   $true  = ausführliche Logs
 #   $false = minimale Logs
 # ============================================================
 $debug_log = $true
@@ -15,6 +15,7 @@ $debug_log = $true
 $BaseDir   = "C:\Users\andre\Desktop\photo-software"
 $CaddyPort = [int]"8050"
 $PhpPort   = [int]"8051"
+$BridgePort = [int]"8052"
 
 $LauncherDir  = Join-Path $BaseDir "launcher"
 $StartFullBat = Join-Path $LauncherDir "start.bat"
@@ -85,6 +86,7 @@ try {
     LogD ("Paths: StopFile={0}" -f $StopFile)
     LogD ("Paths: BootAttemptFile={0}" -f $BootAttemptFile)
     LogD ("Ports: caddy={0} php={1}" -f $CaddyPort, $PhpPort)
+    LogD ("Ports: bridge={0}" -f $BridgePort)
   }
 } catch {}
 
@@ -174,6 +176,7 @@ $script:FullStartAlreadyUsed = $false
 # ===================== HEALTH =====================
 $HealthCaddy = "http://127.0.0.1:$CaddyPort/watchdog/_health.txt"
 $HealthPhp   = "http://127.0.0.1:$CaddyPort/watchdog/_php_ping.php"
+$HealthApi   = "http://127.0.0.1:$BridgePort/api/status"
 
 function HttpOk([string]$url, [string]$expect) {
   try {
@@ -196,8 +199,13 @@ function HealthOk {
   (HttpOk $HealthCaddy "OK") -and (HttpOk $HealthPhp "OK")
 }
 
+function ApiHealthOk {
+  HttpOk $HealthApi $null
+}
+
 # ===================== STATE =====================
 $failCount        = 0
+$apiFailCount     = 0
 $lastRestart      = Get-Date "2000-01-01"
 $startupBlockedTo = Get-Date "2000-01-01"
 $loopCount        = 0
@@ -265,6 +273,23 @@ function Start-Web {
   Log ("WAIT {0} s (startup grace)" -f $StartupWaitSeconds)
 }
 
+function Start-Api {
+  $now = Get-Date
+
+  if (($now - $lastRestart).TotalSeconds -lt $RestartCooldownSeconds) {
+    Log "API RESTART skipped (cooldown)"
+    return
+  }
+
+  Log "API FAIL -> ENSURE BACKEND (start.bat; worker remains API-managed)"
+  Run-Bat $StartFullBat "/nopause" | Out-Null
+
+  $script:lastRestart      = $now
+  $script:startupBlockedTo = $now.AddSeconds($StartupWaitSeconds)
+
+  Log ("WAIT {0} s (startup grace)" -f $StartupWaitSeconds)
+}
+
 Log "WATCHDOG START"
 
 # ===================== MAIN LOOP =====================
@@ -292,6 +317,17 @@ try {
     if ($ok) {
       if ($debug_log) { LogD "HEALTH OK" }
       $failCount = 0
+      if (ApiHealthOk) {
+        if ($debug_log) { LogD "API HEALTH OK" }
+        $apiFailCount = 0
+      } else {
+        $apiFailCount++
+        Log ("API HEALTH FAIL (#{0})" -f $apiFailCount)
+        if ($apiFailCount -ge 2) {
+          Start-Api
+          $apiFailCount = 0
+        }
+      }
       Start-Sleep -Seconds $IntervalSeconds
       continue
     }

@@ -73,6 +73,69 @@ function Get-JsonPortOrDefault {
   return $DefaultValue
 }
 
+function Get-NestedJsonValue {
+  param(
+    [Parameter(Mandatory = $true)]$Object,
+    [Parameter(Mandatory = $true)][string[]]$Paths
+  )
+
+  foreach ($path in $Paths) {
+    $cur = $Object
+    $ok = $true
+
+    foreach ($seg in ($path -split '\.')) {
+      if ($null -eq $cur) {
+        $ok = $false
+        break
+      }
+
+      $prop = $cur.PSObject.Properties | Where-Object { $_.Name -ieq $seg } | Select-Object -First 1
+      if ($null -eq $prop) {
+        $ok = $false
+        break
+      }
+
+      $cur = $prop.Value
+    }
+
+    if ($ok -and $null -ne $cur) {
+      return $cur
+    }
+  }
+
+  return $null
+}
+
+function Get-BridgePortOrDefault {
+  param(
+    [Parameter(Mandatory = $true)][string]$BaseDir,
+    [Parameter(Mandatory = $true)][string]$LauncherDir,
+    [Parameter(Mandatory = $true)][int]$DefaultValue
+  )
+
+  $paths = @(
+    (Join-Path $BaseDir 'booth\tools\camerabridge\APIServer\ApiServer_settings.json'),
+    (Join-Path $LauncherDir 'defaultConfig\ApiServer_settings.json')
+  )
+
+  foreach ($path in $paths) {
+    if (-not (Test-Path -LiteralPath $path)) { continue }
+
+    try {
+      $json = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
+      $value = Get-NestedJsonValue -Object $json -Paths @('Bridge.Port', 'Port', 'port')
+      $parsed = 0
+      if ($null -ne $value -and [int]::TryParse(([string]$value).Trim(), [ref]$parsed) -and $parsed -ge 1 -and $parsed -le 65535) {
+        return $parsed
+      }
+    } catch {
+      throw "API-Port konnte nicht gelesen werden: $path ($($_.Exception.Message))"
+    }
+  }
+
+  return $DefaultValue
+}
+
 try {
   Import-Module ScheduledTasks -ErrorAction Stop
 
@@ -109,7 +172,8 @@ try {
 
   $caddyPort = Get-JsonPortOrDefault -Path $CaddyPhpJsonFile -Names @('CADDY_PORT','caddy_port','caddyPort') -DefaultValue 8050
   $phpPort   = Get-JsonPortOrDefault -Path $CaddyPhpJsonFile -Names @('PHP_PORT','php_port','phpPort') -DefaultValue 8051
-  Add-Step $steps 'readPorts' $true "caddy=$caddyPort php=$phpPort"
+  $bridgePort = Get-BridgePortOrDefault -BaseDir $BaseDir -LauncherDir (Split-Path -Parent $TaskNameFile) -DefaultValue 8052
+  Add-Step $steps 'readPorts' $true "caddy=$caddyPort php=$phpPort bridge=$bridgePort"
 
   if (-not (Test-Path -LiteralPath $WatchdogTemplate)) {
     Write-JsonAndExit @{
@@ -124,6 +188,7 @@ try {
     $tpl = $tpl.Replace('__BASEDIR__', $BaseDir)
     $tpl = $tpl.Replace('__CADDY_PORT__', [string]$caddyPort)
     $tpl = $tpl.Replace('__PHP_PORT__', [string]$phpPort)
+    $tpl = $tpl.Replace('__BRIDGE_PORT__', [string]$bridgePort)
 
     $outDir = Split-Path -Parent $WatchdogOut
     if ($outDir -and -not (Test-Path -LiteralPath $outDir)) {
@@ -146,11 +211,18 @@ try {
   $arg   = "-NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$WatchdogOut`" -IntervalSeconds $IntervalSeconds"
 
   $action    = New-ScheduledTaskAction -Execute $psExe -Argument $arg -WorkingDirectory $wd
-  $tBoot     = New-ScheduledTaskTrigger -AtStartup
-  $tLogon    = New-ScheduledTaskTrigger -AtLogOn
-  $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest
+  $taskUser  = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+  if ([string]::IsNullOrWhiteSpace($taskUser) -or $taskUser -ieq 'NT AUTHORITY\SYSTEM') {
+    throw 'Task darf nicht als SYSTEM installiert werden. Bitte task_install.bat im angemeldeten Admin-/Kiosk-Benutzer ausführen.'
+  }
+  if ($taskUser.Trim().EndsWith('$')) {
+    throw "Task darf nicht als Maschinenkonto installiert werden ($taskUser). Bitte task_install.bat im angemeldeten Admin-/Kiosk-Benutzer ausführen."
+  }
+
+  $tLogon    = New-ScheduledTaskTrigger -AtLogOn -User $taskUser
+  $principal = New-ScheduledTaskPrincipal -UserId $taskUser -LogonType Interactive -RunLevel Highest
   $settings  = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit ([TimeSpan]::Zero)
-  $task      = New-ScheduledTask -Action $action -Trigger @($tBoot, $tLogon) -Principal $principal -Settings $settings
+  $task      = New-ScheduledTask -Action $action -Trigger @($tLogon) -Principal $principal -Settings $settings
 
   try {
     Unregister-ScheduledTask -TaskName $taskNameOnly -TaskPath $taskPath -Confirm:$false -ErrorAction Stop
@@ -197,11 +269,18 @@ try {
     taskName    = $taskNameOnly
     taskPath    = $taskPath
     started     = $started
+    runAs       = $taskUser
+    principal   = @{
+      userId    = $found.Principal.UserId
+      logonType = [string]$found.Principal.LogonType
+      runLevel  = [string]$found.Principal.RunLevel
+    }
     watchdogPs1 = $WatchdogOut
     interval    = $IntervalSeconds
     ports       = @{
       caddy = $caddyPort
       php   = $phpPort
+      bridge = $bridgePort
     }
     steps       = $steps
   } 0

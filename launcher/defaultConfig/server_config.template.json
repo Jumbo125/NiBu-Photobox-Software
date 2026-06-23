@@ -1,12 +1,28 @@
 {
-    "port": __BRIDGE_PORT__,
-    "args": [
-        "--one-instance",
-        "true",
-        "--window_console",
-        "true"
-    ],
-    "Python_ServerPort": __PY_PORT__,
-    "AuthKey": "wvwNoeLREef_wruEyEHFbNnwE0Nj9fnm-sjjsVg_qoY",
-    "caddyWebroot": "__BASE_DIR__\\booth"
+  "port": __BRIDGE_PORT__,
+  "args": [
+    "--one-instance",
+    "true",
+    "--window_console",
+    "true"
+  ],
+  "Python_ServerPort": __PY_PORT__,
+  "AuthKey": "wvwNoeLREef_wruEyEHFbNnwE0Nj9fnm-sjjsVg_qoY",
+  "caddyWebroot": "__BASE_DIR__\\booth",
+  "autostart": {
+    "windows": {
+      "shortcutPs1": "../../../launcher/create_open_app_shortcut.ps1"
+    },
+    "linux": {
+      "startScript": "../../../launcher/kiosk_WaitAndStart.sh"
+    }
+  },
+  "task_planer_service": {
+    "windows": {
+      "launcherDir": "../../../launcher"
+    },
+    "linux": {
+      "startScript": "../../../launcher/kiosk_WaitAndStart.sh"
+    }
+  }
 }

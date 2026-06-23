@@ -32,7 +32,7 @@
  *    Datei der erste Ort für Anpassungen.
  * =========================================================== */
 (function () {
-  'use strict';
+  "use strict";
 
   // Namespace sicherstellen
   window.PB = window.PB || {};
@@ -43,16 +43,18 @@
   // -----------------------------------------------------------
   const tr = (key, fallback) => {
     const fn =
-      (typeof window !== 'undefined' && typeof window.pbT === 'function')
+      typeof window !== "undefined" && typeof window.pbT === "function"
         ? window.pbT
-        : (typeof pbT === 'function' ? pbT : null);
+        : typeof pbT === "function"
+          ? pbT
+          : null;
 
     return fn ? fn(key, fallback) : fallback;
   };
 
   const trf = (key, fallback, vars) => {
     let s = tr(key, fallback);
-    if (vars && typeof s === 'string') {
+    if (vars && typeof s === "string") {
       for (const k in vars) {
         s = s.split(`{${k}}`).join(String(vars[k]));
       }
@@ -67,31 +69,31 @@
   // CameraBridge HTTP Base (normalerweise ApiServer.exe)
   PB.BRIDGE_BASE =
     PB.BRIDGE_BASE ||
-    (PB.bridgeBaseUrl ? PB.bridgeBaseUrl() : 'http://127.0.0.1:8052');
+    (PB.bridgeBaseUrl ? PB.bridgeBaseUrl() : "http://127.0.0.1:8052");
 
   // Python Tool Server Base
   PB.PYTHON_BASE =
     PB.PYTHON_BASE ||
     (PB.pythonSvc && PB.pythonSvc.baseUrl
       ? PB.pythonSvc.baseUrl()
-      : 'http://127.0.0.1:8053');
+      : "http://127.0.0.1:8053");
 
   // Python API-Key aus Config lesen (falls vorhanden)
   try {
     const root =
-      typeof PB._cfgRoot === 'function'
+      typeof PB._cfgRoot === "function"
         ? PB._cfgRoot()
-        : (window.PB_CONFIG || {});
+        : window.PB_CONFIG || {};
 
     PB.PYTHON_API_KEY =
       PB.PYTHON_API_KEY ||
-      String(PB._getDeep?.(root, 'pythonServer.AuthKey') || '').trim();
+      String(PB._getDeep?.(root, "pythonServer.AuthKey") || "").trim();
   } catch (_) {
-    PB.PYTHON_API_KEY = PB.PYTHON_API_KEY || '';
+    PB.PYTHON_API_KEY = PB.PYTHON_API_KEY || "";
   }
 
   // Capture-Dateinamen-Präfix (z. B. Photo_1.jpg)
-  PB.CAPTURE_TMP_Prefix = PB.CAPTURE_TMP_Prefix || 'Photo_';
+  PB.CAPTURE_TMP_Prefix = PB.CAPTURE_TMP_Prefix || "Photo_";
 
   // Default Capture Root (kommt vom Worker)
   PB.ensureCaptureTmpDir =
@@ -100,37 +102,39 @@
       if (PB.CAPTURE_TMP_DIR) return PB.CAPTURE_TMP_DIR;
 
       const captureRoot =
-        PB._getDeep(window.PB_CONFIG, 'cameraBridgeWorker.defaultCaptureFolder') ??
-        '';
+        PB._getDeep(
+          window.PB_CONFIG,
+          "cameraBridgeWorker.defaultCaptureFolder",
+        ) ?? "";
 
       if (!captureRoot) {
         console.warn(
-          '[capture]',
+          "[capture]",
           tr(
-            'capture.ensure_tmp_dir.warn.capture_root_missing',
-            'captureRoot missing in configuration'
-          )
+            "capture.ensure_tmp_dir.warn.capture_root_missing",
+            "captureRoot missing in configuration",
+          ),
         );
-        return '';
+        return "";
       }
 
       if (!PB.joinAndNormalizePath || PB.CAPTURE_TMP_DIR_Prefix == null) {
         console.warn(
-          '[capture]',
+          "[capture]",
           tr(
-            'capture.ensure_tmp_dir.warn.join_and_normalize_missing',
-            'joinAndNormalizePath missing — cannot build temp capture dir'
-          )
+            "capture.ensure_tmp_dir.warn.join_and_normalize_missing",
+            "joinAndNormalizePath missing — cannot build temp capture dir",
+          ),
         );
-        return '';
+        return "";
       }
 
       PB.CAPTURE_TMP_DIR = PB.joinAndNormalizePath(
         captureRoot,
-        PB.CAPTURE_TMP_DIR_Prefix
+        PB.CAPTURE_TMP_DIR_Prefix,
       );
 
-      console.log('[capture] CAPTURE_TMP_DIR =', PB.CAPTURE_TMP_DIR);
+      console.log("[capture] CAPTURE_TMP_DIR =", PB.CAPTURE_TMP_DIR);
       return PB.CAPTURE_TMP_DIR;
     };
 
@@ -147,9 +151,9 @@
 
     for (const path of list) {
       const raw = PB._getDeep?.(window.PB_CONFIG, path);
-      if (raw == null || String(raw).trim() === '') continue;
+      if (raw == null || String(raw).trim() === "") continue;
 
-      const n = Number(String(raw).trim().replace(',', '.'));
+      const n = Number(String(raw).trim().replace(",", "."));
       if (Number.isFinite(n) && n >= 0) return Math.round(n);
     }
 
@@ -157,8 +161,8 @@
   }
 
   function buildOpError(code, message, detail) {
-    const err = new Error(message || code || 'Operation failed.');
-    err.code = code || 'operation_failed';
+    const err = new Error(message || code || "Operation failed.");
+    err.code = code || "operation_failed";
     if (detail != null) err.detail = detail;
     return err;
   }
@@ -191,34 +195,39 @@
   // AbortController. So kann capture_flow.js einen laufenden Request
   // abbrechen, ohne die Fetch-Logik selbst kennen zu müssen.
   function bindCancelSignal(controller, cancelSignal) {
-    if (!controller || !cancelSignal || typeof cancelSignal.onCancel !== 'function') {
+    if (
+      !controller ||
+      !cancelSignal ||
+      typeof cancelSignal.onCancel !== "function"
+    ) {
       return () => {};
     }
 
     if (cancelSignal.cancelled) {
       try {
-        controller.abort(cancelSignal.reason || 'flow_cancelled');
+        controller.abort(cancelSignal.reason || "flow_cancelled");
       } catch (_) {}
       return () => {};
     }
 
     return cancelSignal.onCancel((reason) => {
       try {
-        controller.abort(reason || 'flow_cancelled');
+        controller.abort(reason || "flow_cancelled");
       } catch (_) {}
     });
   }
 
   function createCancelPromise(cancelSignal) {
-    if (!cancelSignal || typeof cancelSignal.onCancel !== 'function') return null;
+    if (!cancelSignal || typeof cancelSignal.onCancel !== "function")
+      return null;
 
     if (cancelSignal.cancelled) {
       return Promise.reject(
         cancelSignal.reason ||
           buildOpError(
-            'flow_cancelled',
-            tr('capture.flow.err.cancelled', 'Capture flow cancelled.')
-          )
+            "flow_cancelled",
+            tr("capture.flow.err.cancelled", "Capture flow cancelled."),
+          ),
       );
     }
 
@@ -232,9 +241,9 @@
           reason instanceof Error
             ? reason
             : buildOpError(
-                'flow_cancelled',
-                tr('capture.flow.err.cancelled', 'Capture flow cancelled.')
-              )
+                "flow_cancelled",
+                tr("capture.flow.err.cancelled", "Capture flow cancelled."),
+              ),
         );
       });
     });
@@ -253,13 +262,14 @@
           setTimeout(() => {
             reject(
               buildOpError(
-                opts?.timeoutCode || 'timeout',
-                opts?.timeoutMessage || tr('capture.err.timeout', 'Operation timed out.'),
-                { timeoutMs }
-              )
+                opts?.timeoutCode || "timeout",
+                opts?.timeoutMessage ||
+                  tr("capture.err.timeout", "Operation timed out."),
+                { timeoutMs },
+              ),
             );
           }, timeoutMs);
-        })
+        }),
       );
     }
 
@@ -273,9 +283,12 @@
     return normalizeTimeoutMs(
       overrideMs,
       readNumberConfig(
-        ['general.capture.capture_timeout_ms', 'general.capture.capture_timeout'],
-        25000
-      )
+        [
+          "general.capture.capture_timeout_ms",
+          "general.capture.capture_timeout",
+        ],
+        25000,
+      ),
     );
   }
 
@@ -283,9 +296,9 @@
     return normalizeTimeoutMs(
       overrideMs,
       readNumberConfig(
-        ['general.capture.render_timeout_ms', 'general.capture.render_timeout'],
-        120000
-      )
+        ["general.capture.render_timeout_ms", "general.capture.render_timeout"],
+        120000,
+      ),
     );
   }
 
@@ -293,9 +306,9 @@
     return normalizeTimeoutMs(
       overrideMs,
       readNumberConfig(
-        ['general.print.print_timeout_ms', 'general.print.print_timeout'],
-        45000
-      )
+        ["general.print.print_timeout_ms", "general.print.print_timeout"],
+        45000,
+      ),
     );
   }
 
@@ -306,8 +319,8 @@
     if (!res) {
       return {
         ok: false,
-        error: 'no_response',
-        message: tr('capture.err.no_response', 'No response from service.')
+        error: "no_response",
+        message: tr("capture.err.no_response", "No response from service."),
       };
     }
     if (res.ok === true) return res;
@@ -327,13 +340,21 @@
   // Bricht alle aktuell registrierten Render-/Print-Requests ab.
   // Das ist kein globaler Kamera-Stopp, sondern eine gezielte Hilfe für
   // laufende Netzwerkoperationen innerhalb des Flows.
+  PB.captureApi._captureBlocked = false;
+
   PB.captureApi.abortActiveOperations = function (reason) {
+    // Neue Capture-Requests blockieren — verhindert dass earlyTask-Captures
+    // nach dem Abbruch noch an den Worker geschickt werden und die Kamera
+    // mehrfach auslöst.
+    PB.captureApi._captureBlocked = true;
+
     const ctrls = Array.from(PB.captureApi._activeAbortControllers || []);
     ctrls.forEach((controller) => {
       try {
-        controller.abort(reason || 'flow_cancelled');
+        controller.abort(reason || "flow_cancelled");
       } catch (_) {}
     });
+
     return { ok: true, aborted: ctrls.length };
   };
 
@@ -358,10 +379,10 @@
     if (!PB.bridge?.liveviewStart) {
       throw new Error(
         trf(
-          'capture.bridge.err.method_not_available',
-          'CameraBridge method not available: {method}.',
-          { method: 'liveviewStart' }
-        )
+          "capture.bridge.err.method_not_available",
+          "CameraBridge method not available: {method}.",
+          { method: "liveviewStart" },
+        ),
       );
     }
 
@@ -375,10 +396,10 @@
     if (!PB.bridge?.liveviewStop) {
       throw new Error(
         trf(
-          'capture.bridge.err.method_not_available',
-          'CameraBridge method not available: {method}.',
-          { method: 'liveviewStop' }
-        )
+          "capture.bridge.err.method_not_available",
+          "CameraBridge method not available: {method}.",
+          { method: "liveviewStop" },
+        ),
       );
     }
 
@@ -392,10 +413,10 @@
     if (!PB.bridge?.liveviewSetFps) {
       throw new Error(
         trf(
-          'capture.bridge.err.method_not_available',
-          'CameraBridge method not available: {method}.',
-          { method: 'liveviewSetFps' }
-        )
+          "capture.bridge.err.method_not_available",
+          "CameraBridge method not available: {method}.",
+          { method: "liveviewSetFps" },
+        ),
       );
     }
 
@@ -409,10 +430,10 @@
     if (!PB.bridge?.getSettings) {
       throw new Error(
         trf(
-          'capture.bridge.err.method_not_available',
-          'CameraBridge method not available: {method}.',
-          { method: 'getSettings' }
-        )
+          "capture.bridge.err.method_not_available",
+          "CameraBridge method not available: {method}.",
+          { method: "getSettings" },
+        ),
       );
     }
 
@@ -426,15 +447,155 @@
     if (!PB.bridge?.setSettings) {
       throw new Error(
         trf(
-          'capture.bridge.err.method_not_available',
-          'CameraBridge method not available: {method}.',
-          { method: 'setSettings' }
-        )
+          "capture.bridge.err.method_not_available",
+          "CameraBridge method not available: {method}.",
+          { method: "setSettings" },
+        ),
       );
     }
 
     return normalizeOk(await PB.bridge.setSettings(settings || {}));
   };
+
+  /* -----------------------------------------------------------
+ * CAMERA PREFLIGHT
+ * ----------------------------------------------------------- */
+PB.captureApi.cameraPreflight = async function (opts) {
+  opts = opts || {};
+  const forcePoll = opts.forcePoll !== false;
+
+  const t = (key, fallback) =>
+    typeof PB.t === "function" ? PB.t(key, fallback) : fallback;
+
+  const selectedModel = String(
+    PB._getDeep?.(window.PB_CONFIG, "general.camera.selected_camera.model") || ""
+  ).trim();
+
+  const selectedFromDom = String(
+    document.getElementById("settingDeviceSelected")?.value || ""
+  ).trim();
+
+  const deviceText = String(
+    document.getElementById("pb-connection-device_model")?.innerText || ""
+  )
+    .trim()
+    .toLowerCase();
+
+  const uiSaysNoCamera =
+    deviceText.includes("no camera selected") ||
+    deviceText.includes("kein gerät") ||
+    deviceText.includes("keine kamera") ||
+    deviceText.includes("nicht verbunden");
+
+  // Wenn die sichtbare UI sagt: keine Kamera, dann hart blockieren.
+  if (uiSaysNoCamera) {
+    return {
+      ok: false,
+      error: "no_camera_selected",
+      message: t(
+        "overlay.connection_info.connected_device_err",
+        "No device connected."
+      ),
+      selectedModel,
+      selectedFromDom,
+      deviceText,
+    };
+  }
+
+  // Wenn weder Config noch Dropdown eine Kamera kennen: blockieren.
+  if (!selectedModel && !selectedFromDom) {
+    return {
+      ok: false,
+      error: "no_camera_selected",
+      message: t(
+        "overlay.connection_info.connected_device_err",
+        "No device connected."
+      ),
+      selectedModel,
+      selectedFromDom,
+      deviceText,
+    };
+  }
+
+  // Aktuellen Bridge-Status holen.
+  // Retry-Schleife: Falls der erste Poll ergibt dass die Bridge offline ist,
+  // kann das ein veralteter Cache-Wert sein (Bridge war gerade am Starten).
+  // Wir versuchen es bis zu 3x mit 600ms Pause dazwischen (~2s gesamt).
+  const pollOnce = () =>
+    new Promise((resolve) => {
+      if (typeof PB.check_cameraBridge_connection !== "function") {
+        resolve();
+        return;
+      }
+      try {
+        const req = PB.check_cameraBridge_connection();
+        if (req && typeof req.done === "function") {
+          req.done(() => resolve()).fail(() => resolve());
+        } else {
+          Promise.resolve(req).then(resolve).catch(resolve);
+        }
+      } catch (_) {
+        resolve();
+      }
+    });
+
+  if (forcePoll) {
+    await pollOnce();
+
+    // Wenn Bridge nach erstem Poll noch offline: 2 Retries mit 600ms Pause
+    for (let retry = 0; retry < 2; retry++) {
+      const hCheck = PB._bridgeLastHealth || null;
+      if (hCheck && hCheck.webserverReachable === true) break;
+      await new Promise((r) => setTimeout(r, 600));
+      await pollOnce();
+    }
+  }
+
+  const h = PB._bridgeLastHealth || null;
+
+  if (!h || h.webserverReachable !== true) {
+    return {
+      ok: false,
+      error: "camera_bridge_offline",
+      message: t(
+        "capture.flow.err.camera_bridge_offline",
+        "CameraBridge is not reachable."
+      ),
+      selectedModel,
+      selectedFromDom,
+      deviceText,
+      health: h,
+    };
+  }
+
+  const bridgeSelected = String(h.selected || "").trim();
+
+  // Wichtig:
+  // Config/Dropdown allein reicht NICHT.
+  // Die Bridge muss aktuell ein aktives/selektiertes Gerät melden.
+  if (!bridgeSelected) {
+    return {
+      ok: false,
+      error: "no_camera_active",
+      message: t(
+        "capture.flow.err.no_camera_active",
+        "No active camera device was reported by CameraBridge."
+      ),
+      selectedModel,
+      selectedFromDom,
+      deviceText,
+      health: h,
+    };
+  }
+
+  return {
+    ok: true,
+    selectedModel,
+    selectedFromDom,
+    bridgeSelected,
+    health: h,
+  };
+};
 
   /* ===========================================================
    * CAPTURE (hier wird das Foto ausgelöst)
@@ -450,13 +611,19 @@
    *    vom Worker abgewickelt.
    */
   PB.captureApi.captureOnce = async function (opts) {
+    if (PB.captureApi._captureBlocked) {
+      const err = new Error(tr("capture.err.blocked_after_abort", "Capture blocked after flow abort."));
+      err.code = "capture_blocked";
+      throw err;
+    }
+
     if (!PB.bridge?.capture) {
       throw new Error(
         trf(
-          'capture.bridge.err.method_not_available',
-          'CameraBridge method not available: {method}.',
-          { method: 'capture' }
-        )
+          "capture.bridge.err.method_not_available",
+          "CameraBridge method not available: {method}.",
+          { method: "capture" },
+        ),
       );
     }
 
@@ -466,45 +633,42 @@
     const slot = Number(o.slot || 0);
     if (!Number.isFinite(slot) || slot <= 0) {
       throw new Error(
-        tr(
-          'capture.capture_once.err.invalid_slot',
-          'Invalid capture slot.'
-        )
+        tr("capture.capture_once.err.invalid_slot", "Invalid capture slot."),
       );
     }
 
     // Dateiname bestimmen
-    const prefix = String(PB.CAPTURE_TMP_Prefix || 'Photo_');
+    const prefix = String(PB.CAPTURE_TMP_Prefix || "Photo_");
 
     // Zielordner bestimmen
     const dir =
-      o.path && String(o.path).trim() !== ''
+      o.path && String(o.path).trim() !== ""
         ? String(o.path).trim()
-        : String(PB.CAPTURE_TMP_DIR || '').trim();
+        : String(PB.CAPTURE_TMP_DIR || "").trim();
 
     if (!dir) {
       throw new Error(
         tr(
-          'capture.capture_once.err.missing_target_directory',
-          'Missing target directory for capture.'
-        )
+          "capture.capture_once.err.missing_target_directory",
+          "Missing target directory for capture.",
+        ),
       );
     }
 
-    const ext = (o.ext || 'jpg').replace(/^\./, '');
+    const ext = (o.ext || "jpg").replace(/^\./, "");
     const fileName = `${prefix}${slot}.${ext}`;
 
     // vollständigen Dateipfad bauen
     const fullPath = PB.joinAndNormalizePath
       ? PB.joinAndNormalizePath(dir, fileName)
-      : dir.replace(/[\/\\]+$/, '') + '\\' + fileName;
+      : dir.replace(/[\/\\]+$/, "") + "\\" + fileName;
 
     // Das Bridge-Backend speichert direkt in eine Datei. Deshalb wird
     // hier schon der vollständige Zielpfad gebaut und nicht nur ein Slot.
     const payload = {
-      mode: 'file',
+      mode: "file",
       overwrite: true,
-      path: fullPath
+      path: fullPath,
     };
 
     if (o.startLiveViewAfterCapture != null) {
@@ -514,52 +678,77 @@
     // Optionale Shot-spezifische Settings.
     // Diese Logik bleibt in der API-Datei, damit capture_flow.js nur noch
     // fachlich entscheidet, OB Settings verwendet werden sollen.
-if (o.applySettings === true) {
-  payload.applySettings = true;
-  payload.resetAfterShoot =
-    o.resetAfterShoot != null ? !!o.resetAfterShoot : true;
+    if (o.applySettings === true) {
+      payload.applySettings = true;
+      payload.resetAfterShoot =
+        o.resetAfterShoot != null ? !!o.resetAfterShoot : true;
 
-  const iso = (o.iso != null)
-    ? String(o.iso).trim()
-    : (PB._readStringFromConfig?.(['camera.camera_settings.iso'], '') || '').trim();
+      const iso =
+        o.iso != null
+          ? String(o.iso).trim()
+          : (
+              PB._readStringFromConfig?.(["camera.camera_settings.iso"], "") ||
+              ""
+            ).trim();
 
-  const shutter = (o.shutter != null)
-    ? String(o.shutter).trim()
-    : (PB._readStringFromConfig?.(['camera.camera_settings.shutter'], '') || '').trim();
+      const shutter =
+        o.shutter != null
+          ? String(o.shutter).trim()
+          : (
+              PB._readStringFromConfig?.(
+                ["camera.camera_settings.shutter"],
+                "",
+              ) || ""
+            ).trim();
 
-  const wb = (o.wb != null)
-    ? String(o.wb).trim()
-    : (PB._readStringFromConfig?.(['camera.camera_settings.wb'], '') || '').trim();
+      const wb =
+        o.wb != null
+          ? String(o.wb).trim()
+          : (
+              PB._readStringFromConfig?.(["camera.camera_settings.wb"], "") ||
+              ""
+            ).trim();
 
-  // Aperture (f-stop)
-  const aperture = (o.aperture != null)
-    ? String(o.aperture).trim()
-    : (PB._readStringFromConfig?.(['camera.camera_settings.aperture'], '') || '').trim();
+      // Aperture (f-stop)
+      const aperture =
+        o.aperture != null
+          ? String(o.aperture).trim()
+          : (
+              PB._readStringFromConfig?.(
+                ["camera.camera_settings.aperture"],
+                "",
+              ) || ""
+            ).trim();
 
-  //  Exposure compensation (float; 0 ist gültig!)
-  // akzeptiere o.exposure ODER o.exposureCompensation
-  const exposureRaw = (o.exposure != null)
-    ? o.exposure
-    : (o.exposureCompensation != null ? o.exposureCompensation
-      : (PB._readStringFromConfig?.(['camera.camera_settings.exposure'], '') || '').trim());
+      //  Exposure compensation (float; 0 ist gültig!)
+      // akzeptiere o.exposure ODER o.exposureCompensation
+      const exposureRaw =
+        o.exposure != null
+          ? o.exposure
+          : o.exposureCompensation != null
+            ? o.exposureCompensation
+            : (
+                PB._readStringFromConfig?.(
+                  ["camera.camera_settings.exposure"],
+                  "",
+                ) || ""
+              ).trim();
 
-  // exposureRaw kann number oder string sein
-  let exposure;
-  if (exposureRaw != null && String(exposureRaw).trim() !== '') {
-    const n = Number(String(exposureRaw).trim().replace(',', '.'));
-    if (!Number.isNaN(n)) exposure = n;
-  }
+      // exposureRaw kann number oder string sein
+      let exposure;
+      if (exposureRaw != null && String(exposureRaw).trim() !== "") {
+        const n = Number(String(exposureRaw).trim().replace(",", "."));
+        if (!Number.isNaN(n)) exposure = n;
+      }
 
-  if (iso) payload.iso = iso;
-  if (shutter) payload.shutter = shutter;
-  if (wb) payload.whiteBalance = wb;      // API-Feldname
-  if (aperture) payload.aperture = aperture;
+      if (iso) payload.iso = iso;
+      if (shutter) payload.shutter = shutter;
+      if (wb) payload.whiteBalance = wb; // API-Feldname
+      if (aperture) payload.aperture = aperture;
 
-  // nur mitsenden wenn parsebar (inkl. 0)
-  if (typeof exposure === 'number') payload.exposure = exposure;
-}
-
-
+      // nur mitsenden wenn parsebar (inkl. 0)
+      if (typeof exposure === "number") payload.exposure = exposure;
+    }
 
     // Der eigentliche Capture-Aufruf wird zusätzlich gegen Timeout und
     // Flow-Cancel abgesichert, damit der JS-Flow nicht endlos hängen bleibt.
@@ -572,12 +761,12 @@ if (o.applySettings === true) {
 
     return raceWithGuards(capturePromise, {
       timeoutMs: getCaptureTimeoutMs(o.timeoutMs),
-      timeoutCode: 'capture_timeout',
+      timeoutCode: "capture_timeout",
       timeoutMessage: tr(
-        'capture.capture_once.err.timeout',
-        'Capture timed out.'
+        "capture.capture_once.err.timeout",
+        "Capture timed out.",
       ),
-      cancelSignal: o.cancelSignal
+      cancelSignal: o.cancelSignal,
     });
   };
 
@@ -592,7 +781,14 @@ if (o.applySettings === true) {
 
       // Cold-Start-Bypass
       if (!h) {
-        return { ok: true, coldStart: true };
+        return {
+          ok: false,
+          error: "bridge_health_unknown",
+          message: tr(
+            "capture.wait_for_frames.err.health_unknown",
+            "CameraBridge status is not available yet.",
+          ),
+        };
       }
 
       const ok =
@@ -609,11 +805,11 @@ if (o.applySettings === true) {
 
     return {
       ok: false,
-      error: 'frames_timeout',
+      error: "frames_timeout",
       message: tr(
-        'capture.wait_for_frames.err.timeout',
-        'Timed out waiting for live-view frames.'
-      )
+        "capture.wait_for_frames.err.timeout",
+        "Timed out waiting for live-view frames.",
+      ),
     };
   };
 
@@ -636,35 +832,37 @@ if (o.applySettings === true) {
   // Rückgabeformat und Fehlerbehandlung werden hier vereinheitlicht,
   // damit der Flow nur noch auf ok/error prüfen muss.
   PB.captureApi.runPython = async function (payload) {
-    const sessionFolder =
-      String(payload?.captureFolderHint || PB.CAPTURE_TMP_DIR || '').trim();
+    const sessionFolder = String(
+      payload?.captureFolderHint || PB.CAPTURE_TMP_DIR || "",
+    ).trim();
 
     if (!sessionFolder) {
       return {
         ok: false,
-        error: 'missing_captureFolderHint',
+        error: "missing_captureFolderHint",
         message: tr(
-          'python.render.err.missing_capture_folder_hint',
-          'Missing session folder (captureFolderHint).'
-        )
+          "python.render.err.missing_capture_folder_hint",
+          "Missing session folder (captureFolderHint).",
+        ),
       };
     }
 
-    const py_config = PB._getDeep?.(window.PB_CONFIG, 'pythonServer') || {};
+    const py_config = PB._getDeep?.(window.PB_CONFIG, "pythonServer") || {};
     const PYTHON_API_KEY = py_config.AuthKey;
 
-    const base = String(PB.PYTHON_BASE || '').replace(/\/+$/g, '');
-    const url = base + '/render_from_session';
+    const base = String(PB.PYTHON_BASE || "").replace(/\/+$/g, "");
+    const url = base + "/render_from_session";
     const timeoutMs = getRenderTimeoutMs(payload?.timeoutMs);
 
     const headers = {
-      'Content-Type': 'application/json',
-      'X-Api-Key': PYTHON_API_KEY
+      "Content-Type": "application/json",
+      "X-Api-Key": PYTHON_API_KEY,
     };
 
     // Render-Request wird registriert, damit ein Flow-Abbruch aktiv auf
     // den laufenden Fetch durchschlägt.
-    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const controller =
+      typeof AbortController !== "undefined" ? new AbortController() : null;
     const unregisterController = registerAbortController(controller);
     const unbindCancel = bindCancelSignal(controller, payload?.cancelSignal);
 
@@ -672,57 +870,56 @@ if (o.applySettings === true) {
     try {
       response = await raceWithGuards(
         fetch(url, {
-          method: 'POST',
+          method: "POST",
           headers,
           body: JSON.stringify({ session_folder: sessionFolder }),
-          signal: controller ? controller.signal : undefined
+          signal: controller ? controller.signal : undefined,
         }),
         {
           timeoutMs,
-          timeoutCode: 'render_timeout',
-          timeoutMessage: tr(
-            'python.render.err.timeout',
-            'Render timed out.'
-          ),
-          cancelSignal: payload?.cancelSignal
-        }
+          timeoutCode: "render_timeout",
+          timeoutMessage: tr("python.render.err.timeout", "Render timed out."),
+          cancelSignal: payload?.cancelSignal,
+        },
       );
     } catch (e) {
       unregisterController();
       unbindCancel();
 
-      if (e?.name === 'AbortError') {
+      if (e?.name === "AbortError") {
         return {
           ok: false,
-          error: payload?.cancelSignal?.cancelled ? 'flow_cancelled' : 'render_aborted',
+          error: payload?.cancelSignal?.cancelled
+            ? "flow_cancelled"
+            : "render_aborted",
           message: payload?.cancelSignal?.cancelled
-            ? tr('capture.flow.err.cancelled', 'Capture flow cancelled.')
-            : tr('python.render.err.aborted', 'Render was aborted.')
+            ? tr("capture.flow.err.cancelled", "Capture flow cancelled.")
+            : tr("python.render.err.aborted", "Render was aborted."),
         };
       }
 
-      if (e?.code === 'render_timeout') {
+      if (e?.code === "render_timeout") {
         return {
           ok: false,
-          error: 'render_timeout',
-          message: tr('python.render.err.timeout', 'Render timed out.'),
-          detail: e?.detail || { timeoutMs }
+          error: "render_timeout",
+          message: tr("python.render.err.timeout", "Render timed out."),
+          detail: e?.detail || { timeoutMs },
         };
       }
 
-      if (e?.code === 'flow_cancelled') {
+      if (e?.code === "flow_cancelled") {
         return {
           ok: false,
-          error: 'flow_cancelled',
-          message: tr('capture.flow.err.cancelled', 'Capture flow cancelled.')
+          error: "flow_cancelled",
+          message: tr("capture.flow.err.cancelled", "Capture flow cancelled."),
         };
       }
 
       return {
         ok: false,
-        error: 'python_unreachable',
-        message: tr('python.err.unreachable', 'Python server is unreachable.'),
-        detail: String(e)
+        error: "python_unreachable",
+        message: tr("python.err.unreachable", "Python server is unreachable."),
+        detail: String(e),
       };
     } finally {
       unregisterController();
@@ -739,23 +936,23 @@ if (o.applySettings === true) {
         {
           ok: false,
           http: response.status,
-          error: 'render_request_failed',
+          error: "render_request_failed",
           message: tr(
-            'python.render.err.request_failed',
-            'Render request failed.'
-          )
+            "python.render.err.request_failed",
+            "Render request failed.",
+          ),
         },
-        json
+        json,
       );
     }
 
     const previewUrl =
       base +
-      '/preview/session?api_key=' +
+      "/preview/session?api_key=" +
       encodeURIComponent(PYTHON_API_KEY) +
-      '&session_folder=' +
+      "&session_folder=" +
       encodeURIComponent(sessionFolder) +
-      '&v=' +
+      "&v=" +
       Date.now();
 
     json.preview_url = previewUrl;
@@ -789,11 +986,11 @@ if (o.applySettings === true) {
     }
 
     console.warn(
-      '[PB.captureFlow]',
+      "[PB.captureFlow]",
       tr(
-        'capture.flow.warn.liveview_recovery_timeout',
-        'LiveView recovery timeout.'
-      )
+        "capture.flow.warn.liveview_recovery_timeout",
+        "LiveView recovery timeout.",
+      ),
     );
     return false;
   };
@@ -817,11 +1014,11 @@ if (o.applySettings === true) {
     if (r?.ok === true) return true;
 
     console.warn(
-      '[PB.ensurePreviewReady]',
+      "[PB.ensurePreviewReady]",
       tr(
-        'capture.preview.warn.non_blocking_continue',
-        'Preview not ready yet — continuing without blocking.'
-      )
+        "capture.preview.warn.non_blocking_continue",
+        "Preview not ready yet — continuing without blocking.",
+      ),
     );
     return true;
   };
@@ -829,19 +1026,19 @@ if (o.applySettings === true) {
   /* ===========================================================
    * SHUTTER-ANIMATION (UI ONLY)
    * =========================================================== */
-PB.shutter = PB.shutter || {};
+  PB.shutter = PB.shutter || {};
 
-PB.shutter.playIn = function (root = document, selector = null) {
-  if (!selector) return false;
+  PB.shutter.playIn = function (root = document, selector = null) {
+    if (!selector) return false;
 
-  const el = root.querySelector(selector);
-  if (!el) return false;
+    const el = root.querySelector(selector);
+    if (!el) return false;
 
-  el.classList.remove("is-playing");
-  void el.offsetWidth;
-  el.classList.add("is-playing");
-  return true;
-};
+    el.classList.remove("is-playing");
+    void el.offsetWidth;
+    el.classList.add("is-playing");
+    return true;
+  };
   /* ===========================================================
    * PYTHON PRINT (default)
    * ===========================================================
@@ -866,29 +1063,30 @@ PB.shutter.playIn = function (root = document, selector = null) {
   // Der Capture-Flow übergibt hier nur noch fertige Daten wie Bildpfad,
   // Event-Datei und gewünschte Kopienzahl.
   PB.captureApi.printDefault = async function (payload) {
-    const imagePath = String(payload?.image_path || '').trim();
-    const eventFile = String(payload?.event_file || '').trim();
+    const imagePath = String(payload?.image_path || "").trim();
+    const eventFile = String(payload?.event_file || "").trim();
     const printerName =
-      String(payload?.printerName || payload?.printer_name || '').trim() || null;
+      String(payload?.printerName || payload?.printer_name || "").trim() ||
+      null;
 
     if (!imagePath) {
       return {
         ok: false,
-        error: 'missing_image_path',
+        error: "missing_image_path",
         message: tr(
-          'python.print.err.missing_image_path',
-          'Missing image path.'
-        )
+          "python.print.err.missing_image_path",
+          "Missing image path.",
+        ),
       };
     }
     if (!eventFile) {
       return {
         ok: false,
-        error: 'missing_event_file',
+        error: "missing_event_file",
         message: tr(
-          'python.print.err.missing_event_file',
-          'Missing event file.'
-        )
+          "python.print.err.missing_event_file",
+          "Missing event file.",
+        ),
       };
     }
 
@@ -896,16 +1094,16 @@ PB.shutter.playIn = function (root = document, selector = null) {
     if (!Number.isFinite(copies) || copies < 1) copies = 1;
     if (copies > 20) copies = 20;
 
-    const py_config = PB._getDeep?.(window.PB_CONFIG, 'pythonServer') || {};
+    const py_config = PB._getDeep?.(window.PB_CONFIG, "pythonServer") || {};
     const PYTHON_API_KEY = py_config.AuthKey;
 
-    const base = String(PB.PYTHON_BASE || '').replace(/\/+$/g, '');
-    const url = base + '/print/default';
+    const base = String(PB.PYTHON_BASE || "").replace(/\/+$/g, "");
+    const url = base + "/print/default";
     const timeoutMs = getPrintTimeoutMs(payload?.timeoutMs);
 
     const headers = {
-      'Content-Type': 'application/json',
-      'X-Api-Key': PYTHON_API_KEY
+      "Content-Type": "application/json",
+      "X-Api-Key": PYTHON_API_KEY,
     };
 
     // Request-Body bewusst schlank halten: Der Python-Service soll genau
@@ -913,11 +1111,12 @@ PB.shutter.playIn = function (root = document, selector = null) {
     const body = {
       image_path: imagePath,
       event_file: eventFile,
-      copies: copies
+      copies: copies,
     };
     if (printerName) body.printerName = printerName;
 
-    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const controller =
+      typeof AbortController !== "undefined" ? new AbortController() : null;
     const unregisterController = registerAbortController(controller);
     const unbindCancel = bindCancelSignal(controller, payload?.cancelSignal);
 
@@ -925,57 +1124,56 @@ PB.shutter.playIn = function (root = document, selector = null) {
     try {
       response = await raceWithGuards(
         fetch(url, {
-          method: 'POST',
+          method: "POST",
           headers,
           body: JSON.stringify(body),
-          signal: controller ? controller.signal : undefined
+          signal: controller ? controller.signal : undefined,
         }),
         {
           timeoutMs,
-          timeoutCode: 'print_timeout',
-          timeoutMessage: tr(
-            'python.print.err.timeout',
-            'Print timed out.'
-          ),
-          cancelSignal: payload?.cancelSignal
-        }
+          timeoutCode: "print_timeout",
+          timeoutMessage: tr("python.print.err.timeout", "Print timed out."),
+          cancelSignal: payload?.cancelSignal,
+        },
       );
     } catch (e) {
       unregisterController();
       unbindCancel();
 
-      if (e?.name === 'AbortError') {
+      if (e?.name === "AbortError") {
         return {
           ok: false,
-          error: payload?.cancelSignal?.cancelled ? 'flow_cancelled' : 'print_aborted',
+          error: payload?.cancelSignal?.cancelled
+            ? "flow_cancelled"
+            : "print_aborted",
           message: payload?.cancelSignal?.cancelled
-            ? tr('capture.flow.err.cancelled', 'Capture flow cancelled.')
-            : tr('python.print.err.aborted', 'Print was aborted.')
+            ? tr("capture.flow.err.cancelled", "Capture flow cancelled.")
+            : tr("python.print.err.aborted", "Print was aborted."),
         };
       }
 
-      if (e?.code === 'print_timeout') {
+      if (e?.code === "print_timeout") {
         return {
           ok: false,
-          error: 'print_timeout',
-          message: tr('python.print.err.timeout', 'Print timed out.'),
-          detail: e?.detail || { timeoutMs }
+          error: "print_timeout",
+          message: tr("python.print.err.timeout", "Print timed out."),
+          detail: e?.detail || { timeoutMs },
         };
       }
 
-      if (e?.code === 'flow_cancelled') {
+      if (e?.code === "flow_cancelled") {
         return {
           ok: false,
-          error: 'flow_cancelled',
-          message: tr('capture.flow.err.cancelled', 'Capture flow cancelled.')
+          error: "flow_cancelled",
+          message: tr("capture.flow.err.cancelled", "Capture flow cancelled."),
         };
       }
 
       return {
         ok: false,
-        error: 'python_unreachable',
-        message: tr('python.err.unreachable', 'Python server is unreachable.'),
-        detail: String(e)
+        error: "python_unreachable",
+        message: tr("python.err.unreachable", "Python server is unreachable."),
+        detail: String(e),
       };
     } finally {
       unregisterController();
@@ -992,13 +1190,13 @@ PB.shutter.playIn = function (root = document, selector = null) {
         {
           ok: false,
           http: response.status,
-          error: 'print_request_failed',
+          error: "print_request_failed",
           message: tr(
-            'python.print.err.request_failed',
-            'Print request failed.'
-          )
+            "python.print.err.request_failed",
+            "Print request failed.",
+          ),
         },
-        json
+        json,
       );
     }
 
@@ -1014,26 +1212,26 @@ PB.shutter.playIn = function (root = document, selector = null) {
         const before = window.PB_CONFIG.activeEvent.active_event.print_counter;
         window.PB_CONFIG.activeEvent.active_event.print_counter = counterAfter;
 
-        console.log('[printDefault] print_counter updated', {
+        console.log("[printDefault] print_counter updated", {
           before,
-          after: counterAfter
+          after: counterAfter,
         });
 
-        $(document).trigger('pb:activeEventChanged', [
+        $(document).trigger("pb:activeEventChanged", [
           {
-            path: 'activeEvent.active_event.print_counter',
+            path: "activeEvent.active_event.print_counter",
             before,
             after: counterAfter,
-            source: 'printDefault'
-          }
+            source: "printDefault",
+          },
         ]);
 
-        if (typeof PB.updateActiveEventUI === 'function') {
+        if (typeof PB.updateActiveEventUI === "function") {
           PB.updateActiveEventUI();
         }
       }
     } catch (e) {
-      console.warn('[printDefault] updating UI/counter failed:', e);
+      console.warn("[printDefault] updating UI/counter failed:", e);
     }
 
     return json;

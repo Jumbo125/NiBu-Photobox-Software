@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Andreas Rottmann
 
@@ -11,7 +11,7 @@
     tabindex="-1"
     aria-labelledby="modalCameraSettingsLabel"
     aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content bg-dark text-light border border-secondary">
             <div class="modal-header border-secondary">
                 <h5
@@ -245,6 +245,32 @@
                                 </span>
                             </div>
 
+                            <!-- LiveView auf Startbildschirm anzeigen -->
+                            <div class="form-check form-switch mt-3">
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    role="switch"
+                                    id="cameraLiveviewShowOnStartscreen"
+                                    data-json-group="camera_settings"
+                                    data-json-parm="liveview_show_on_startscreen"
+                                    data-default-value="true">
+                                <label
+                                    class="form-check-label"
+                                    for="cameraLiveviewShowOnStartscreen"
+                                    data-lang-key="overlay.camera_settings.liveview_show_on_startscreen.label">
+                                    <?= t('overlay.camera_settings.liveview_show_on_startscreen.label', 'Show LiveView on startscreen') ?>
+                                </label>
+                            </div>
+                            <div
+                                class="small text-secondary"
+                                data-lang-key="overlay.camera_settings.liveview_show_on_startscreen.hint">
+                                <?= t(
+                                    'overlay.camera_settings.liveview_show_on_startscreen.hint',
+                                    'Only relevant when "Keep LiveView running" is active. If disabled, the static background is shown instead — LiveView still runs in the background.'
+                                ) ?>
+                            </div>
+
                             <hr class="my-3">
 
                             <!-- Mirror preview only -->
@@ -295,6 +321,45 @@
                             </div>
 
                             <!-- FPS settings -->
+                            <!-- LiveView Auto-Pause -->
+                            <div class="row g-2 mt-3">
+                                <div class="col-12">
+                                    <label
+                                        for="cameraLiveviewAutoPauseMin"
+                                        class="form-label mb-1"
+                                        data-lang-key="overlay.camera_settings.liveview_auto_pause.label">
+                                        <?= t('overlay.camera_settings.liveview_auto_pause.label', 'Auto-Pause LiveView after inactivity (minutes)') ?>
+                                    </label>
+
+                                    <div class="input-group input-group-sm" style="max-width:200px">
+                                        <input
+                                            type="number"
+                                            class="form-control"
+                                            id="cameraLiveviewAutoPauseMin"
+                                            min="0"
+                                            max="120"
+                                            step="1"
+                                            placeholder="<?= t('overlay.camera_settings.liveview_auto_pause.placeholder', '0 = off') ?>"
+                                            data-json-group="camera_settings"
+                                            data-json-parm="liveview_auto_pause_minutes"
+                                            data-json-type="int"
+                                            data-default-value="0">
+                                        <span class="input-group-text" data-lang-key="overlay.camera_settings.liveview_auto_pause.unit">
+                                            <?= t('overlay.camera_settings.liveview_auto_pause.unit', 'min') ?>
+                                        </span>
+                                    </div>
+
+                                    <div
+                                        class="small text-secondary mt-1"
+                                        data-lang-key="overlay.camera_settings.liveview_auto_pause.hint">
+                                        <?= t(
+                                            'overlay.camera_settings.liveview_auto_pause.hint',
+                                            '0 = disabled. If set, LiveView stops automatically after X minutes without a capture. It restarts on the next capture. Protects the camera during long events.'
+                                        ) ?>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="row g-2 mt-3">
                                 <div class="col-12 col-md-6">
                                     <label

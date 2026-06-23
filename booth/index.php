@@ -24,7 +24,7 @@ require __DIR__ . '/api/main_functions.php';
     <link rel="stylesheet" href="src/css/bootstrap-icons.css">
 
     <!-- Eigene Styles -->
-    <link rel="stylesheet" href="src/css/main.css">
+    <link rel="stylesheet" href="src/css/main.css?v=<?php echo time(); ?>">
  
     
 </head>
@@ -53,7 +53,6 @@ include __DIR__ . '/sections/camera_settings.php';
 include __DIR__ . '/sections/select_camera.php';
 include __DIR__ . '/sections/unlock_screen.php';
 include __DIR__ . '/sections/connection_info.php';
-include __DIR__ . '/sections/capture_sections.php';
 
 
 
@@ -78,6 +77,7 @@ include __DIR__ . '/sections/capture_sections.php';
 <script src="src/js/functions/config_io.js?v=<?php echo time(); ?>"></script>
 <script src="src/js/app/app_bootstrap.js?v=<?php echo time(); ?>"></script>
 <script src="src/js/app/camera_restore.js?v=<?php echo time(); ?>"></script>
+<script src="src/js/app/liveview_autopause.js?v=<?php echo time(); ?>"></script>
 <script src="src/js/app/main.js?v=<?php echo time(); ?>"></script>
 <script src="src/js/functions/edit_config.js?v=<?php echo time(); ?>"></script>
 <script src="src/js/functions/i18n.js?v=<?php echo time(); ?>"></script>
@@ -109,6 +109,7 @@ include __DIR__ . '/sections/capture_sections.php';
 <script src="src/js/app/windows_picker_bindings.js?v=<?php echo time(); ?>"></script>
 <script src="src/js/app/printer_settings.js?v=<?php echo time(); ?>"></script>
 <script src="src/js/app/active_event.js?v=<?php echo time(); ?>"></script>
+<script src="src/js/app/photo_explorer.js?v=<?php echo time(); ?>"></script>
 <!--<script src="src/js/app/app.js?v=<?php //echo time(); ?>"></script>-->
 <script src="src/js/app/camerabridge_API_server_status.js?v=<?php echo time(); ?>"></script>
 <script src="src/js/app/camerabridge_API_server_start_restart.js?v=<?php echo time(); ?>"></script>
@@ -118,6 +119,7 @@ include __DIR__ . '/sections/capture_sections.php';
 
 <!-- capture js -->
 <script src="src/js/app/capture/capture_api.js?v=<?php echo time(); ?>"></script>
+
 <script src="src/js/app/capture/capture_bindings.js?v=<?php echo time(); ?>"></script>
 <script src="src/js/app/capture/capture_flow.js?v=<?php echo time(); ?>"></script>
 <script src="src/js/functions/capture_test_photo.js?v=<?php echo time(); ?>"></script>

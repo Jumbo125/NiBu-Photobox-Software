@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Andreas Rottmann
 //
@@ -11,7 +11,7 @@
     aria-labelledby="modalActiveEventLabel"
     aria-hidden="true"
 >
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content bg-dark text-light border border-secondary">
             <div class="modal-header border-secondary">
                 <h5
@@ -33,7 +33,22 @@
                 ></i>
 
                 &nbsp;
-                <!-- Open event folder -->
+                <!-- New event wizard -->
+                <button
+                    type="button"
+                    class="btn btn-outline-success btn-sm"
+                    id="btnNewEvent"
+                    title="<?= t('overlay.active_event.new_event.title', 'Create new event') ?>"
+                >
+                    <i class="bi bi-plus-circle me-1"></i>
+                    <span data-lang-key="overlay.active_event.new_event.button">
+                        <?= t('overlay.active_event.new_event.button', 'New Event') ?>
+                    </span>
+                </button>
+
+                &nbsp;
+                <!-- Open event folder (Windows Explorer) — im Kiosk-Modus nicht verfügbar, daher auskommentiert -->
+                <!--
                 <button
                     type="button"
                     class="btn btn-outline-warning btn-sm pb-open-folder"
@@ -45,6 +60,20 @@
                     <i class="bi bi-folder2-open me-1"></i>
                     <span data-lang-key="overlay.active_event.open_folder.button">
                         <?= t('overlay.active_event.open_folder.button', 'Folder') ?>
+                    </span>
+                </button>
+                -->
+
+                <!-- Eigener Foto-Explorer (Kiosk-kompatibel) -->
+                <button
+                    type="button"
+                    class="btn btn-outline-warning btn-sm"
+                    id="btnOpenPhotoExplorer"
+                    title="<?= t('overlay.active_event.photo_explorer.title', 'Fotos anzeigen') ?>"
+                >
+                    <i class="bi bi-images me-1"></i>
+                    <span data-lang-key="overlay.active_event.photo_explorer.button">
+                        <?= t('overlay.active_event.photo_explorer.button', 'Fotos') ?>
                     </span>
                 </button>
 
@@ -95,43 +124,48 @@
                         </div>
                     </div>
 
-                    <!-- Photo storage folder -->
+<?php
+// Absoluter Pfad zu booth/EVENTS — Server legt Events direkt darunter an
+$boothPhotosBase = rtrim(realpath(__DIR__ . '/..'), "\\/") . DIRECTORY_SEPARATOR . 'EVENTS';
+$boothPhotosBaseOut = (DIRECTORY_SEPARATOR === '\\')
+    ? str_replace('/', '\\', $boothPhotosBase)
+    : $boothPhotosBase;
+?>
+                    <!-- Photo storage folder — automatisch aus booth/photos + Eventname -->
                     <div class="mb-3">
-                        <label
-                            for="eventStoragePath"
-                            class="form-label"
-                            data-lang-key="overlay.active_event.storage.label"
-                        >
+                        <label class="form-label" data-lang-key="overlay.active_event.storage.label">
                             <?= t('overlay.active_event.storage.label', 'Photo storage folder') ?>
                         </label>
 
+                        <!-- Verstecktes Feld — wird per JS automatisch befüllt, in JSON gespeichert -->
+                        <input
+                            type="hidden"
+                            id="eventStoragePath"
+                            data-json-group="active_event"
+                            data-json-parm="photo_storage_path"
+                            data-default-value="<?= htmlspecialchars($boothPhotosBaseOut, ENT_QUOTES) ?>"
+                            data-photos-base="<?= htmlspecialchars($boothPhotosBaseOut, ENT_QUOTES) ?>"
+                        >
+
+                        <!-- Schreibgeschützte Pfad-Anzeige -->
                         <div class="input-group input-group-sm">
+                            <span class="input-group-text text-secondary">
+                                <i class="bi bi-folder2"></i>
+                            </span>
                             <input
                                 type="text"
-                                class="form-control"
-                                id="eventStoragePath"
-                                placeholder="<?= t('overlay.active_event.storage.placeholder', 'C:\Photobooth\photos\event') ?>"
-                                data-json-group="active_event"
-                                data-json-parm="photo_storage_path"
-                                data-default-value=""
+                                class="form-control text-secondary"
+                                id="eventStoragePathDisplay"
+                                readonly
+                                placeholder="<?= htmlspecialchars($boothPhotosBaseOut . DIRECTORY_SEPARATOR . 'EVENTS' . DIRECTORY_SEPARATOR . '…', ENT_QUOTES) ?>"
+                                tabindex="-1"
                             >
-
-                            <button
-                                type="button"
-                                class="btn btn-outline-secondary pb-pick-folder"
-                                data-target="#eventStoragePath"
-                                data-title="<?= t('overlay.active_event.storage.pickfolder_title', 'Select photo storage folder') ?>"
-                            >
-                                <span data-lang-key="form.pick_folder">
-                                    <?= t('form.pick_folder', 'Pick folder') ?>
-                                </span>
-                            </button>
                         </div>
 
-                        <div class="form-text small" data-lang-key="overlay.active_event.storage.help">
+                        <div class="form-text small" data-lang-key="overlay.active_event.storage.help_auto">
                             <?= t(
-                                'overlay.active_event.storage.help',
-                                'Choose a folder for this event. The path will be stored in the event settings.'
+                                'overlay.active_event.storage.help_auto',
+                                'The storage path is automatically set to photos/EVENTS/<event-name> within the booth folder.'
                             ) ?>
                         </div>
                     </div>

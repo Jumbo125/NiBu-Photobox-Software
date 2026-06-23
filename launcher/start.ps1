@@ -5,7 +5,8 @@ param(
     [switch]$Clean,
     [switch]$Web,
     [switch]$NoPause,
-    [switch]$Kiosk
+    [switch]$Kiosk,
+    [switch]$DebugConsole
 )
 
 # ============================================================
@@ -15,6 +16,14 @@ $ErrorActionPreference = 'Stop'
 
 $BaseDir = ([System.IO.Path]::GetFullPath($BaseDir) -replace '[\\/ ]+$', '')
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$RunIdentity = [Security.Principal.WindowsIdentity]::GetCurrent().Name
+$RunSessionName = $env:SESSIONNAME
+Write-Host "RunAs : $RunIdentity"
+Write-Host "Session: $RunSessionName"
+
+if ([string]::IsNullOrWhiteSpace($RunIdentity) -or $RunIdentity -ieq 'NT AUTHORITY\SYSTEM' -or $RunIdentity.Trim().EndsWith('$')) {
+    Write-Warning "start.ps1 laeuft nicht im sichtbaren Benutzerkontext. GUI-Aktionen wie Druckerdialoge koennen so nicht angezeigt werden."
+}
 
 function Test-IsAdmin {
     try {
@@ -316,17 +325,21 @@ function Start-Once {
 
     Write-Host "[START] $Exe"
 
+    $windowStyle = if ($DebugConsole) { 'Normal' } else { 'Hidden' }
+
     if ($Args -and $Args.Count -gt 0) {
         Write-Host "        Args: $($Args -join ' ')"
         Start-Process `
             -FilePath $Exe `
             -ArgumentList $Args `
-            -WorkingDirectory $WorkDir
+            -WorkingDirectory $WorkDir `
+            -WindowStyle $windowStyle
     }
     else {
         Start-Process `
             -FilePath $Exe `
-            -WorkingDirectory $WorkDir
+            -WorkingDirectory $WorkDir `
+            -WindowStyle $windowStyle
     }
 }
 
@@ -360,7 +373,7 @@ function Start-OnceWithEnvironment {
     $psi.FileName = $Exe
     $psi.WorkingDirectory = $WorkDir
     $psi.UseShellExecute = $false
-    $psi.CreateNoWindow = $true
+    $psi.CreateNoWindow = -not $DebugConsole
 
     if ($Args -and $Args.Count -gt 0) {
         $psi.Arguments = (($Args | ForEach-Object { Quote-Arg $_ }) -join ' ')

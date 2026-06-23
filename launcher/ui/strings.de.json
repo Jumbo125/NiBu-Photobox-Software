@@ -88,7 +88,19 @@
   "adv.btn.btnWindowstweaksUninstall": "WindowsTweaks Deinstallieren",
 
   "confirm.winTweaks.title": "Hinweis",
-  "confirm.winTweaks.msg": "Hinweis: Diese Aktion ändert Windows-Einstellungen (Registry/Policies). Administratorrechte sind erforderlich. Manche Änderungen werden erst nach Ab-/Anmelden oder Neustart wirksam.\n\nEs werden folgende Einstellungen gesetzt:\n\nSperrbildschirm deaktivieren (Policy: NoLockScreen=1)\n\nMicrosoft Consumer Features deaktivieren (Policy: DisableWindowsConsumerFeatures=1)\n\nToast-Benachrichtigungen für aktuellen Benutzer deaktivieren (ToastEnabled=0 unter HKCU)\n\nToast-Benachrichtigungen per Policy sperren (systemweit) (NoToastApplicationNotification=1)\n\nNur ausführen, wenn du diese Anpassungen möchtest."
+  "confirm.winTweaks.msg": "Hinweis: Diese Aktion ändert Windows-Einstellungen (Registry/Policies). Administratorrechte sind erforderlich. Manche Änderungen werden erst nach Ab-/Anmelden oder Neustart wirksam.\n\nEs werden folgende Einstellungen gesetzt:\n\nSperrbildschirm deaktivieren (Policy: NoLockScreen=1)\n\nMicrosoft Consumer Features deaktivieren (Policy: DisableWindowsConsumerFeatures=1)\n\nToast-Benachrichtigungen für aktuellen Benutzer deaktivieren (ToastEnabled=0 unter HKCU)\n\nToast-Benachrichtigungen per Policy sperren (systemweit) (NoToastApplicationNotification=1)\n\nNur ausführen, wenn du diese Anpassungen möchtest.",
+  
+    "adv.chk.kioskAutostart": "Kiosk-Modus Programmstart im Autostart",
+  "msg.autostartShortcutMissing.title": "Autostart nicht möglich",
+  "msg.autostartShortcutMissing.body": "Die Verknüpfung 'NibuBox_Autostart.lnk' wurde nicht gefunden.\n\nBitte zuerst 'Desktop-Verknüpfung erstellen' ausführen.",
+  "msg.autostartFailed.title": "Autostart konnte nicht geändert werden",
+    "adv.lbl.kioskAutostartHint": "Für Autostart bitte die Verknüpfung 'NibuBox_Autostart.lnk' manuell in den Windows-Autostart-Ordner kopieren.",
+  "adv.link.openStartupFolder": "Autostart-Ordner öffnen",
+  "msg.startupFolderInfo.title": "Autostart manuell einrichten",
+  "msg.startupFolderInfo.body": "Bitte kopieren Sie die Verknüpfung 'NibuBox_Autostart.lnk' manuell in den geöffneten Windows-Autostart-Ordner.\n\nFalls die Verknüpfung noch nicht existiert, führen Sie zuerst 'Desktop-Verknüpfung erstellen' aus.",
+  "msg.startupFolderOpenFailed.title": "Autostart-Ordner konnte nicht geöffnet werden",
+
+  "chk.debugMode": "Debug-Modus (Konsolenfenster sichtbar)"
 }
 
 

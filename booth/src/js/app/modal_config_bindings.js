@@ -394,6 +394,23 @@ SPDX-License-Identifier: Apache-2.0
         // Preview-Source ggf. neu setzen (z. B. wenn Mirror-Werte geändert wurden)
         PB.preview?.ensureRunning?.();
 
+        // Auto-Pause Timer neu starten (Config könnte sich geändert haben)
+        PB.liveviewAutopause?.reset?.();
+
+        // Kamera-Config gespeichert: LiveView gemäß liveview_always_active starten/stoppen
+        if (key === "camera") {
+          const alwaysOn = PB.readBool?.(
+            PB._getDeep?.(window.PB_CONFIG, "camera.camera_settings.liveview_always_active")
+          );
+          if (alwaysOn) {
+            PB.autoStartLiveviewAfterSelectFromConfig?.().catch(() => {});
+            PB.preview?.showStream?.();
+          } else {
+            PB.captureApi?.liveviewStop?.().catch(() => {});
+            PB.preview?.showOverlay?.();
+          }
+        }
+
         // Modal nur im Single-Mode schließen.
         // Multi-Mode (btnEl=null) schließt am Ende der Click-Handler.
         if (btnEl) {

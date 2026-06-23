@@ -166,14 +166,17 @@ window.TE = window.TE || {};
     const gwAttr = String(root.getAttribute('greenwall') || '');
     const greenwall = (gwAttr === '1' || gwAttr.toLowerCase() === 'true');
 
-    const name = options.templateName || TE.activeProject || 'projekt';
+    const xmlName = root.getAttribute('name') || root.getAttribute('templateName') || '';
+    // xmlName wird nur für das Anzeige-Input-Feld verwendet; für Pfade zählt options.templateName
+    const name = options.templateName || TE.activeProject || xmlName || 'projekt';
+    const displayName = options.displayName || xmlName || name;
 
     if (!TE.state || !TE.state.canvas) {
       TE.initEditor({
         templateName: name,
         width: w,
         height: h,
-        displayName: options.displayName || name,
+        displayName: displayName,
         baseUrl: options.baseUrl || (name === 'activeTemplate' ? '/activeTemplate/' : `/templates/${name}/`)
       });
       TE.state.greenwall = !!greenwall;
@@ -188,7 +191,7 @@ window.TE = window.TE || {};
       TE.state.greenwall = !!greenwall;
 
       if (typeof TE.updateTemplateInfo === 'function') {
-        TE.updateTemplateInfo(options.displayName || name, w, h);
+        TE.updateTemplateInfo(displayName, w, h);
       }
 
       TE.cacheGreenwallUi && TE.cacheGreenwallUi();

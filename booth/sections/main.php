@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /* SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2026 Andreas Rottmann */
 ?>
@@ -61,6 +61,7 @@
   ></span></i>
   </button>
 
+  <?php include __DIR__ . '/capture_sections.php'; ?>
 </main>
 
 <button
@@ -80,7 +81,7 @@
   data-bs-backdrop="static"
   data-bs-keyboard="false"
 >
-  <div class="modal-dialog modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content text-center">
       <div class="modal-body py-4">
         <div class="spinner-border mb-3" role="status"></div>

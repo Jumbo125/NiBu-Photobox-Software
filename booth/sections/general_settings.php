@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Andreas Rottmann
 
@@ -11,7 +11,7 @@
   aria-labelledby="modalSettingsLabel"
   aria-hidden="true">
 
-  <div class="modal-dialog modal-lg modal-dialog-centered">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content bg-dark text-light border border-secondary">
 
       <div class="modal-header border-secondary">
@@ -241,6 +241,26 @@
                 <div class="accordion-body pt-2 bg-dark text-light">
 
                   <div class="row">
+                    <div class="col-md-12 mb-3">
+                      <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox"
+                          id="settingPrepareOverlayEnabled"
+                          checked
+                          data-json-group="capture"
+                          data-json-parm="prepare_overlay_enabled"
+                          data-default-value="true">
+                        <label class="form-check-label"
+                          for="settingPrepareOverlayEnabled"
+                          data-lang-key="overlay.settings.capture.prepare_overlay_enabled">
+                          <?= t('overlay.settings.capture.prepare_overlay_enabled', 'Show prepare screen before countdown') ?>
+                        </label>
+                      </div>
+                      <div class="form-text text-secondary"
+                        data-lang-key="overlay.settings.capture.prepare_overlay_enabled_help">
+                        <?= t('overlay.settings.capture.prepare_overlay_enabled_help', 'Shows a friendly prepare screen while the camera preview becomes ready. The countdown still starts as soon as the preview image is available.') ?>
+                      </div>
+                    </div>
+
                     <div class="col-md-4 mb-3">
                       <label for="settingCounterFirst" class="form-label" data-lang-key="overlay.settings.capture.counter_first">
                         <?= t('overlay.settings.capture.counter_first', 'Countdown before first photo (s)') ?>
@@ -406,14 +426,14 @@
     <?= t('overlay.settings.capture.text_triggering', 'Trigger text (while camera is taking the photo)') ?>
   </label>
 
-  <input type="text"
+  <textarea
     id="settingTxtCaptureTriggering"
     class="form-control form-control-sm"
-    value="<?= t('capture.defaults.text_triggering', 'The camera is taking the photo… \n please do not move.') ?>"
+    rows="2"
     data-json-group="capture"
     data-json-parm="text_triggering"
     data-json-type="string"
-    data-default-value="<?= t('capture.defaults.text_triggering', 'The camera is taking the photo… \n please do not move.') ?>">
+    data-default-value="<?= t('capture.defaults.text_triggering', "The camera is taking the photo…\nplease do not move.") ?>"><?= t('capture.defaults.text_triggering', "The camera is taking the photo…\nplease do not move.") ?></textarea>
 
   <div class="form-text text-secondary"
     data-lang-key="overlay.settings.capture.text_triggering_help">
@@ -603,81 +623,122 @@
                 </button>
               </h2>
 
-              <div id="accSystemBody"
-                class="accordion-collapse collapse"
-                aria-labelledby="accSystemHead"
-                data-bs-parent="#accordionGeneralSettingsForm1">
-                <div class="accordion-body pt-2 bg-dark text-light">
+<div id="accSystemBody"
+  class="accordion-collapse collapse"
+  aria-labelledby="accSystemHead"
+  data-bs-parent="#accordionGeneralSettingsForm1">
+  <div class="accordion-body pt-2 bg-dark text-light">
 
-                  <div class="form-check form-switch mb-2">
-                    <input class="form-check-input" type="checkbox"
-                      id="settingFullscreen" checked
-                      data-json-group="system"
-                      data-json-parm="fullscreen"
-                      data-default-value="true">
-                    <label class="form-check-label" for="settingFullscreen" data-lang-key="overlay.settings.system.fullscreen">
-                      <?= t('overlay.settings.system.fullscreen', 'Start in fullscreen / kiosk mode') ?>
-                    </label>
-                  </div>
+    <div class="form-check form-switch mb-2">
+      <input class="form-check-input" type="checkbox"
+        id="settingFullscreen" checked
+        data-json-group="system"
+        data-json-parm="fullscreen"
+        data-default-value="true">
+      <label class="form-check-label" for="settingFullscreen" data-lang-key="overlay.settings.system.fullscreen">
+        <?= t('overlay.settings.system.fullscreen', 'Start in fullscreen / kiosk mode') ?>
+      </label>
+    </div>
 
-                  <div class="mb-2">
-                    <label for="settingUiBrowserWatchdogInterval"
-                      class="form-label"
-                      data-lang-key="overlay.settings.system.ui_browser_watchdog_interval">
-                      <?= t('overlay.settings.system.ui_browser_watchdog_interval', 'UI browser watchdog check interval (minutes)') ?>
-                    </label>
+    <div class="mb-2">
+      <label for="settingUiBrowserWatchdogInterval"
+        class="form-label"
+        data-lang-key="overlay.settings.system.ui_browser_watchdog_interval">
+        <?= t('overlay.settings.system.ui_browser_watchdog_interval', 'UI browser watchdog check interval (minutes)') ?>
+      </label>
 
-                    <input type="number"
-                      min="1"
-                      max="60"
-                      step="1"
-                      id="settingUiBrowserWatchdogInterval"
-                      class="form-control form-control-sm"
-                      value="5"
-                      data-json-group="system"
-                      data-json-parm="ui_watchdog_minutes"
-                      data-json-type="int"
-                      data-default-value="5">
-                  </div>
+      <input type="number"
+        min="1"
+        max="60"
+        step="1"
+        id="settingUiBrowserWatchdogInterval"
+        class="form-control form-control-sm"
+        value="5"
+        data-json-group="system"
+        data-json-parm="ui_watchdog_minutes"
+        data-json-type="int"
+        data-default-value="5">
+    </div>
+<br/>
+    <!-- Autostart enable/disable -->
+    <div class="form-check form-switch mb-2">
+      <input class="form-check-input" type="checkbox"
+        id="settingAutostartEnabled"
+        data-python-toggle="autostart"
+        data-enable-endpoint="/autostart/enable"
+        data-disable-endpoint="/autostart/disable"
+        data-json-group="system" 
+        data-json-parm="autostart"
+        >
+      <label class="form-check-label" for="settingAutostartEnabled"
+        data-lang-key="overlay.settings.system.autostart">
+        <?= t('overlay.settings.system.autostart', 'Autostart aktivieren/deaktivieren') ?>
+      </label>
+    </div>
 
-                  <div class="form-text" data-lang-key="overlay.settings.system.debug_help">
-                    <?= t('overlay.settings.system.debug_help', 'Enable or disable Debug-Console at the bottom') ?>
-                  </div>
+    <div class="form-text mb-3"
+      data-lang-key="overlay.settings.system.autostart_help">
+      <?= t('overlay.settings.system.autostart_help', 'Startet die Anwendung automatisch nach dem Windows-Start.') ?>
+    </div>
 
-                  <div class="form-check form-switch mb-2">
-                    <input class="form-check-input" type="checkbox"
-                      id="debugMode" checked
-                      data-json-group="system"
-                      data-json-parm="debugMode"
-                      data-default-value="true">
-                    <label class="form-check-label" for="debugMode" data-lang-key="overlay.settings.system.debug">
-                      <?= t('overlay.settings.system.debug', 'Enable/Disable Debug-Mode') ?>
-                    </label>
-                  </div>
+    <!-- Task Planer / systemd watchdog enable/disable -->
+    <div class="form-check form-switch mb-2">
+      <input class="form-check-input" type="checkbox"
+        id="settingTaskPlanerServiceEnabled"
+        data-python-toggle="task_planer_service"
+        data-enable-endpoint="/task_planer_service/enable"
+        data-disable-endpoint="/task_planer_service/disable"
+        data-json-group="system" 
+        data-json-parm="task_planer_service">
+      <label class="form-check-label" for="settingTaskPlanerServiceEnabled"
+        data-lang-key="overlay.settings.system.task_planer_service">
+        <?= t('overlay.settings.system.task_planer_service', 'Task-Planer Win / systemd Linux aktivieren/deaktivieren') ?>
+      </label>
+    </div>
 
-                  <!-- Admin Password -->
-                  <div class="mb-2">
-                    <label class="form-label" for="settingPassword" data-lang-key="overlay.settings.system.password">
-                      <?= t('overlay.settings.system.password', 'Admin password') ?>
-                    </label>
+    <div class="form-text mb-3"
+      data-lang-key="overlay.settings.system.task_planer_service_help">
+      <?= t('overlay.settings.system.task_planer_service_help', 'Aktiviert die Überwachung des gesamten Programms. Dadurch können alle benötigten Programme kontrolliert und bei Bedarf automatisch neu gestartet werden.') ?>
+    </div>
 
-                    <div class="input-group">
-                      <input class="form-control" type="password"
-                        id="settingPassword"
-                        placeholder="••••••••"
-                        autocomplete="new-password"
-                        data-json-group="system"
-                        data-json-parm="password"
-                        data-default-value="">
-                      <button class="btn btn-outline-secondary"
-                        type="button"
-                        id="btnTogglePassword"
-                        aria-label="<?= t('overlay.settings.system.password.toggle_aria', 'Show/Hide password') ?>">👁️</button>
-                    </div>
-                  </div>
+    <div class="form-text" data-lang-key="overlay.settings.system.debug_help">
+      <?= t('overlay.settings.system.debug_help', 'Enable or disable Debug-Console at the bottom') ?>
+    </div>
 
-                </div>
-              </div>
+    <div class="form-check form-switch mb-2">
+      <input class="form-check-input" type="checkbox"
+        id="debugMode" checked
+        data-json-group="system"
+        data-json-parm="debugMode"
+        data-default-value="true">
+      <label class="form-check-label" for="debugMode" data-lang-key="overlay.settings.system.debug">
+        <?= t('overlay.settings.system.debug', 'Enable/Disable Debug-Mode') ?>
+      </label>
+    </div>
+
+    <!-- Admin Password -->
+    <div class="mb-2">
+      <label class="form-label" for="settingPassword" data-lang-key="overlay.settings.system.password">
+        <?= t('overlay.settings.system.password', 'Admin password') ?>
+      </label>
+
+      <div class="input-group">
+        <input class="form-control" type="password"
+          id="settingPassword"
+          placeholder="••••••••"
+          autocomplete="new-password"
+          data-json-group="system"
+          data-json-parm="password"
+          data-default-value="">
+        <button class="btn btn-outline-secondary"
+          type="button"
+          id="btnTogglePassword"
+          aria-label="<?= t('overlay.settings.system.password.toggle_aria', 'Show/Hide password') ?>">👁️</button>
+      </div>
+    </div>
+
+  </div>
+</div>
             </div>
 
           </div><!-- /accordion -->

@@ -210,6 +210,29 @@ body.pb-fullscreen {
   overflow: hidden;
 }
 
+body.pb-fullscreen.pb-cursor-idle,
+body.pb-fullscreen.pb-cursor-idle * {
+  cursor: none !important;
+}
+
+body.pb-fullscreen button,
+body.pb-fullscreen button * {
+  cursor: pointer;
+}
+
+body.pb-fullscreen.pb-cursor-idle button,
+body.pb-fullscreen.pb-cursor-idle button * {
+  cursor: none !important;
+}
+
+body.pb-fullscreen section {
+  cursor: none;
+}
+
+body.pb-fullscreen:not(.pb-cursor-idle) section {
+  cursor: auto;
+}
+
 /* Header raus sliden */
 body.pb-fullscreen #appHeader {
   transform: translate3d(0, -15vh, 0);
@@ -235,7 +258,7 @@ body.pb-fullscreen #appMain {
   position: fixed;
   top: 12px;
   right: 12px;
-  z-index: 9999;
+  z-index: 50040;
 
   width: 46px;
   height: 46px;
@@ -345,11 +368,18 @@ body.pb-fullscreen .pb-exit-fullscreen {
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: none;
+}
+
+.pb-preview-overlay .start-area {
+  pointer-events: auto;
 }
 
 /* toogle liveview */
 #previewMediaWrap {
   position: relative;
+   z-index: 20;
+  pointer-events: none;
   height: 90vh;
   width: 100%;
   overflow: hidden;
@@ -371,7 +401,12 @@ body.pb-fullscreen #previewMediaWrap {
   position: absolute;
   top: 10px;
   right: 10px;
-  z-index: 10;
+   z-index: 30;
+  pointer-events: auto;
+}
+
+#btnTogglePreview {
+  z-index: 31;
 }
 
 #liveVideo,
@@ -468,7 +503,7 @@ body.pb-fullscreen #previewMediaWrap {
   font: 12px/1.3 monospace;
 
   padding: 8px;
-  z-index: 5;
+  z-index: 50010;
   white-space: pre-wrap;
 }
 
@@ -482,7 +517,11 @@ body.pb-fullscreen .pb-connection-panel {
   position: fixed;
   bottom: 0.75rem;
   right: 0.75rem;
-  z-index: 6;
+  z-index: 1040;
+}
+
+body.modal-open .pb-connection-panel {
+  pointer-events: none;
 }
 .pb-connection-row {
   display: flex;
@@ -498,6 +537,27 @@ body.pb-fullscreen .pb-connection-panel {
   opacity: 0.9;
 }
 
+.pb-toast-z,
+body > .toast-container {
+  z-index: 50030;
+}
+
+body.pb-fullscreen .toast-container,
+body.pb-fullscreen #pbToastContainer,
+body.pb-fullscreen #pbPythonEndpointToastContainer,
+body.pb-fullscreen .position-fixed.alert,
+body.pb-fullscreen .alert.position-fixed {
+  z-index: 50030 !important;
+}
+
+.modal-backdrop {
+  z-index: 50050 !important;
+}
+
+.modal {
+  z-index: 50060 !important;
+}
+
 #debugCurrentFps{
   width: auto;
     position: absolute;
@@ -508,17 +568,13 @@ body.debug #debugCurrentFps{
     display:block;
 }
 
-body.pb-fullscreen{
-  display:none;
-}
-
 /* ============================================================
    Capture Windows
    ============================================================ */
 .pb-capture-layer {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 50020;
   display:flex;
   width: 50vw;
   height: 80vh;
@@ -535,10 +591,66 @@ body.pb-fullscreen{
   color: white;
   text-align: center;
 }
+
+.pb-capture-layer:not(.d-none) {
+  display: flex !important;
+}
+
+body.pb-fullscreen .pb-capture-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 50020;
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  border-radius: 0;
+}
+
+body.pb-fullscreen .pb-capture-layer:not(.d-none) {
+  display: flex !important;
+}
+
+body.pb-fullscreen .pb-capture-layer .pb-capture-box {
+  max-width: min(900px, 92vw);
+}
+
 #Capture_working_capture.bg-white{
     width: 100vw;
     height: 100vh;
     border-radius: 0px;
+}
+
+/* Fullscreen Capture Layer stabiler zentrieren */
+body.pb-fullscreen .pb-capture-layer {
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: clamp(12px, 2vh, 28px);
+}
+
+/* Box darf nicht höher als Viewport werden */
+body.pb-fullscreen .pb-capture-layer .pb-capture-box {
+  width: min(900px, 92vw);
+  max-width: 92vw;
+  max-height: 92vh;
+  overflow: auto;
+  padding: clamp(20px, 4vh, 56px);
+}
+
+/* Trigger-Bilder im Fullscreen begrenzen */
+body.pb-fullscreen #Capture_working_trigger_loader_image img {
+  max-height: 34vh;
+  width: auto;
+}
+
+body.pb-fullscreen .Capture_working_trigger_loader_image_svg img {
+  max-height: 18vh;
+  width: auto;
 }
 
 #captureShutter {
@@ -592,14 +704,56 @@ width: 10vw;
   opacity: 0.95;
 }
 
+.pb-capture-prepare-box {
+  min-height: 38vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.pb-capture-prepare-mark {
+  width: 96px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 0 34px rgba(255, 255, 255, 0.16);
+  font-size: 44px;
+  animation: pbPreparePulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pbPreparePulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.78;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+}
+
 /* Finish with image layout */
 #Capture_finish_with_img{
+    position: fixed;
+    inset: 0;
+    z-index: 50020;
+    display: flex;
     width: 100vw;
     height: 100vh;
     background-color: black;
     border-radius: 0;
     box-shadow: none;
     border: none;
+}
+
+#Capture_finish_with_img:not(.d-none) {
+    display: flex !important;
 }
 
 #Capture_finish_with_img img{
@@ -683,9 +837,17 @@ body.pb-capture-running #btnLiveviewToggle {
 
 /* Zwischenvorschau nach jedem Capture */
 #Capture_preview_between_shots {
+  position: fixed;
+  inset: 0;
+  z-index: 50020;
+  display: flex;
   background: #000;
   height: 100vh;
   width: 100vw;
+}
+
+#Capture_preview_between_shots:not(.d-none) {
+  display: flex !important;
 }
 
 #Capture_preview_between_shots .pb-shot-preview-box {
@@ -747,10 +909,30 @@ height: auto;
     text-align: center;
     margin-right: 1vw;
     display: none;
+    white-space: nowrap;
 }
 
 .dnp #printer_paper_remaining{
-display:block;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.pb-dnp-refresh {
+    width: 1.8rem;
+    height: 1.8rem;
+    padding: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+}
+
+#printer_paper_remaining:hover .pb-dnp-refresh,
+#printer_paper_remaining:focus-within .pb-dnp-refresh,
+.pb-dnp-refresh.is-refreshing,
+.pb-dnp-refresh.is-cooling {
+    opacity: 1;
+    pointer-events: auto;
 }
 
   @keyframes shutterClose {

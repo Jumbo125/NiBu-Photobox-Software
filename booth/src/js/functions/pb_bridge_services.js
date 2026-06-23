@@ -101,86 +101,200 @@
   // -------------------------------------------------------------
   // High-level orchestrations
   // -------------------------------------------------------------
-  S.ensureBridgeRunning = async function (opts = {}) {
-    const maxWaitMs = Number(opts.maxWaitMs || 15000);
-    const maxWaitSec = Math.max(1, Math.round(maxWaitMs / 1000));
+S.ensureBridgeRunning = async function (opts = {}) {
+  const maxWaitMs = Number(opts.maxWaitMs || 15000);
+  const maxWaitSec = Math.max(1, Math.round(maxWaitMs / 1000));
 
-    // 1) Bridge erreichbar?
-    if (await PB.bridge.ping()) {
-      maybeShowMsg(t("bridge.services.msg.bridge_already_running", "CameraBridge is already running ✅"));
+  async function readBridgeStatus() {
+    // Bevorzugt eigene Status-Funktion, falls vorhanden
+    if (PB.bridge && typeof PB.bridge.status === "function") {
+      try {
+        return await PB.bridge.status();
+      } catch (_) {
+        return null;
+      }
+    }
+
+    // Fallback: direkte Status-URL
+    try {
+      const baseUrl =
+        PB.bridge?.baseUrl ||
+        PB.bridge?.url ||
+        window.PB_CONFIG?.cameraBridgeServer?.Url ||
+        window.PB_CONFIG?.cameraBridgeServer?.url ||
+        "http://127.0.0.1:8052";
+
+      const res = await fetch(String(baseUrl).replace(/\/+$/, "") + "/api/status", {
+        method: "GET",
+        cache: "no-store"
+      });
+
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // 1) Exakten Status prüfen: API erreichbar ist nicht dasselbe wie Worker erreichbar
+  const bridgeStatus = await readBridgeStatus();
+
+  if (bridgeStatus && bridgeStatus.httpRunning === true) {
+    if (bridgeStatus.workerReachable === false) {
+      maybeShowMsg(
+        t(
+          "bridge.services.msg.bridge_worker_unreachable",
+          "CameraBridge API is running, but the worker is not responding: {error}",
+          {
+            error: bridgeStatus.workerLastError || "unknown error"
+          }
+        ),
+        "warning"
+      );
+
+      // Wichtig:
+      // Die API läuft bereits. Daher NICHT die EXE neu starten.
       return true;
     }
 
     maybeShowMsg(
       t(
-        "bridge.services.msg.bridge_unreachable_starting",
-        "CameraBridge not reachable – starting via Python tool server…"
+        "bridge.services.msg.bridge_already_running",
+        "CameraBridge is already running ✅"
       )
     );
 
-    const pyKey = S.getPythonServiceApiKey();
-    if (!pyKey) {
-      maybeShowMsg(
-        t(
-          "bridge.services.msg.abort_missing_api_key",
-          "Aborted: Python api_key missing (pythonServer.AuthKey)."
-        ),
-        "warning"
-      );
-      return false;
-    }
+    return true;
+  }
 
-    const pyOk = await S.ensurePythonReady({ maxWaitMs });
-    if (!pyOk) {
-      maybeShowMsg(
-        t(
-          "bridge.services.msg.abort_python_not_started",
-          "Aborted: CameraBridge is down and Python server could not be started."
-        ),
-        "warning"
-      );
-      return false;
-    }
+  // 2) Fallback für alte PB.bridge.ping()-Logik
+  // Nur verwenden, wenn /api/status nicht erreichbar/lesbar war.
+  if (!bridgeStatus && await PB.bridge.ping()) {
+    maybeShowMsg(
+      t(
+        "bridge.services.msg.bridge_already_running",
+        "CameraBridge is already running ✅"
+      )
+    );
 
-    const exePath = S.getBridgeExePath();
-    if (!exePath) {
-      maybeShowMsg(
-        t(
-          "bridge.services.msg.abort_missing_exe_path",
-          "Aborted: EXE path missing (cameraBridgeServer.Server.ExePath)."
-        ),
-        "warning"
-      );
-      return false;
-    }
+    return true;
+  }
 
-    maybeShowMsg(t("bridge.services.msg.bridge_starting", "Starting CameraBridge API server…"));
+  // 3) Erst jetzt wirklich starten, weil die API nicht erreichbar ist
+  maybeShowMsg(
+    t(
+      "bridge.services.msg.bridge_unreachable_starting",
+      "CameraBridge API not reachable – starting via Python tool server…"
+    )
+  );
 
-    const res = await PB.pythonSvc.callWithRestart(async () => {
-      return await PB.pythonSvc.fetch("/service/start", {
-        method: "POST",
-        timeoutMs: 15000,
-        headers: { "Content-Type": "application/json", "X-Api-Key": pyKey },
-        body: JSON.stringify({ exe: exePath, api_key: pyKey })
-      });
+  const pyKey = S.getPythonServiceApiKey();
+  if (!pyKey) {
+    maybeShowMsg(
+      t(
+        "bridge.services.msg.abort_missing_api_key",
+        "Aborted: Python api_key missing (pythonServer.AuthKey)."
+      ),
+      "warning"
+    );
+    return false;
+  }
+
+  const pyOk = await S.ensurePythonReady({ maxWaitMs });
+  if (!pyOk) {
+    maybeShowMsg(
+      t(
+        "bridge.services.msg.abort_python_not_started",
+        "Aborted: CameraBridge is down and Python server could not be started."
+      ),
+      "warning"
+    );
+    return false;
+  }
+
+  const exePath = S.getBridgeExePath();
+  if (!exePath) {
+    maybeShowMsg(
+      t(
+        "bridge.services.msg.abort_missing_exe_path",
+        "Aborted: EXE path missing (cameraBridgeServer.Server.ExePath)."
+      ),
+      "warning"
+    );
+    return false;
+  }
+
+  maybeShowMsg(
+    t(
+      "bridge.services.msg.bridge_starting",
+      "Starting CameraBridge API server…"
+    )
+  );
+
+  const res = await PB.pythonSvc.callWithRestart(async () => {
+    return await PB.pythonSvc.fetch("/service/start", {
+      method: "POST",
+      timeoutMs: 15000,
+      headers: {
+        "Content-Type": "application/json",
+        "X-Api-Key": pyKey
+      },
+      body: JSON.stringify({
+        exe: exePath,
+        api_key: pyKey
+      })
     });
+  });
 
-    const up = await PB.bridge.waitOnline({ timeoutMs: maxWaitMs });
-    if (!up) {
-      maybeShowMsg(
-        t(
-          "bridge.services.msg.abort_bridge_timeout",
-          "Aborted: CameraBridge could not be started (no ping within {sec}s).",
-          { sec: maxWaitSec }
-        ),
-        "warning"
-      );
-      return false;
-    }
+  // 4) Nach Start wieder Status prüfen, nicht nur ping()
+  const up = await PB.bridge.waitOnline({ timeoutMs: maxWaitMs });
+  if (!up) {
+    maybeShowMsg(
+      t(
+        "bridge.services.msg.abort_bridge_timeout",
+        "Aborted: CameraBridge API could not be started (no status response within {sec}s).",
+        { sec: maxWaitSec }
+      ),
+      "warning"
+    );
+    return false;
+  }
 
-    maybeShowMsg(t("bridge.services.msg.bridge_running", "CameraBridge is running ✅"));
-    return { ok: true, serviceResponse: res };
+  const finalStatus = await readBridgeStatus();
+
+  if (finalStatus && finalStatus.httpRunning === true && finalStatus.workerReachable === false) {
+    maybeShowMsg(
+      t(
+        "bridge.services.msg.bridge_worker_unreachable_after_start",
+        "CameraBridge API is running, but the worker is still not responding: {error}",
+        {
+          error: finalStatus.workerLastError || "unknown error"
+        }
+      ),
+      "warning"
+    );
+
+    return {
+      ok: true,
+      serviceResponse: res,
+      bridgeStatus: finalStatus,
+      workerReachable: false
+    };
+  }
+
+  maybeShowMsg(
+    t(
+      "bridge.services.msg.bridge_running",
+      "CameraBridge is running ✅"
+    )
+  );
+
+  return {
+    ok: true,
+    serviceResponse: res,
+    bridgeStatus: finalStatus || null
   };
+};
 
   S.restartBridge = async function (opts = {}) {
     const maxWaitMs = Number(opts.maxWaitMs || 15000);

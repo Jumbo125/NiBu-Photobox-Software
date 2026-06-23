@@ -64,6 +64,8 @@ Absicherung:
 
 import io
 import json
+import logging
+from logging.handlers import RotatingFileHandler
 import mimetypes
 import os
 import platform
@@ -75,6 +77,7 @@ import subprocess
 import sys
 import threading
 import time
+import traceback
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -90,6 +93,117 @@ PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8053
 HERE = os.path.dirname(os.path.abspath(__file__))
 CORE = os.path.join(HERE, "filepicker_core.py")
 SERVER_CFG_PATH = os.path.join(HERE, "server_config.json")
+
+# -----------------------------
+# Zentrales Logging
+# -----------------------------
+LOG_DIR = os.path.join(HERE, "logs")
+LOG_PATH = os.path.join(LOG_DIR, "python_server.log")
+LOG_MAX_BYTES = 2 * 1024 * 1024
+LOG_BACKUP_COUNT = 5
+
+_SECRET_LOG_KEYS = {
+    "api_key", "apikey", "authkey", "auth_key", "x-api-key",
+    "authorization", "password", "passwd", "secret", "token",
+}
+
+
+def _setup_logger() -> logging.Logger:
+    logger = logging.getLogger("python_server")
+    logger.setLevel(logging.INFO)
+    logger.propagate = False
+
+    if logger.handlers:
+        return logger
+
+    try:
+        os.makedirs(LOG_DIR, exist_ok=True)
+        handler = RotatingFileHandler(
+            LOG_PATH,
+            maxBytes=LOG_MAX_BYTES,
+            backupCount=LOG_BACKUP_COUNT,
+            encoding="utf-8",
+        )
+        handler.setLevel(logging.INFO)
+        handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+        logger.addHandler(handler)
+    except Exception:
+        logger.addHandler(logging.NullHandler())
+
+    return logger
+
+
+LOGGER = _setup_logger()
+
+
+def _log_sanitize(value: Any, depth: int = 0) -> Any:
+    """Macht Logdaten JSON-sicher und maskiert Secrets/API-Keys."""
+    if depth > 5:
+        return "..."
+
+    if isinstance(value, dict):
+        out = {}
+        for k, v in value.items():
+            key = str(k)
+            if key.lower() in _SECRET_LOG_KEYS:
+                out[key] = "***"
+            else:
+                out[key] = _log_sanitize(v, depth + 1)
+        return out
+
+    if isinstance(value, (list, tuple, set)):
+        return [_log_sanitize(v, depth + 1) for v in list(value)[:50]]
+
+    if isinstance(value, Path):
+        return str(value)
+
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")[:2000]
+
+    if isinstance(value, str):
+        value = re.sub(r"(?i)(api_key=)[^&\s]+", r"\1***", value)
+        value = re.sub(r"(?i)(x-api-key[:=]\s*)[^&\s]+", r"\1***", value)
+        return value[:4000]
+
+    try:
+        json.dumps(value)
+        return value
+    except Exception:
+        return str(value)[:2000]
+
+
+def log_event(level: int, event: str, message: str = "", **data: Any) -> None:
+    """Schreibt eine strukturierte Logzeile. Wirft nie Exceptions."""
+    try:
+        payload = {
+            "event": event,
+            "message": message,
+            **data,
+        }
+        LOGGER.log(level, json.dumps(_log_sanitize(payload), ensure_ascii=False, sort_keys=True))
+    except Exception:
+        pass
+
+
+def log_warning(event: str, message: str = "", **data: Any) -> None:
+    log_event(logging.WARNING, event, message, **data)
+
+
+def log_error(event: str, message: str = "", **data: Any) -> None:
+    log_event(logging.ERROR, event, message, **data)
+
+
+def _handler_log_context(handler: Optional[BaseHTTPRequestHandler] = None) -> Dict[str, Any]:
+    if handler is None:
+        return {}
+    try:
+        return {
+            "method": getattr(handler, "command", ""),
+            "path": getattr(handler, "path", ""),
+            "client": "%s:%s" % (handler.client_address[0], handler.client_address[1]) if getattr(handler, "client_address", None) else "",
+        }
+    except Exception:
+        return {}
 
 # -----------------------------
 # Debug-Schalter (gezielt Aktionen überspringen)
@@ -129,6 +243,41 @@ except Exception as e:
     _close_browser_from_request = None
 else:
     _CLOSEBROWSER_IMPORT_ERROR = ""
+
+# -----------------------------
+# Autostart / Task-Planer ausgelagert
+# -----------------------------
+try:
+    import autostart_win as _autostart_win
+except Exception as e:
+    _AUTOSTART_WIN_IMPORT_ERROR = str(e)
+    _autostart_win = None
+else:
+    _AUTOSTART_WIN_IMPORT_ERROR = ""
+
+try:
+    import autostart_linux as _autostart_linux
+except Exception as e:
+    _AUTOSTART_LINUX_IMPORT_ERROR = str(e)
+    _autostart_linux = None
+else:
+    _AUTOSTART_LINUX_IMPORT_ERROR = ""
+
+try:
+    import task_planer_service_win as _task_planer_service_win
+except Exception as e:
+    _TASK_PLANER_SERVICE_WIN_IMPORT_ERROR = str(e)
+    _task_planer_service_win = None
+else:
+    _TASK_PLANER_SERVICE_WIN_IMPORT_ERROR = ""
+
+try:
+    import systemmd_linux as _systemmd_linux
+except Exception as e:
+    _SYSTEMMD_LINUX_IMPORT_ERROR = str(e)
+    _systemmd_linux = None
+else:
+    _SYSTEMMD_LINUX_IMPORT_ERROR = ""
 
 # -----------------------------
 # Service core
@@ -237,6 +386,22 @@ _DNP_LAST_INFO_TS = 0.0
 _DNP_DEFAULT_MIN_INTERVAL_SEC = 60.0
 _STARTUP_JSON_CHECKS = {"ok": False, "checks": {}}
 
+for _name, _err in (
+    ("open_folder", _OPENFOLDER_IMPORT_ERROR),
+    ("close_browser", _CLOSEBROWSER_IMPORT_ERROR),
+    ("autostart_win", _AUTOSTART_WIN_IMPORT_ERROR),
+    ("autostart_linux", _AUTOSTART_LINUX_IMPORT_ERROR),
+    ("task_planer_service_win", _TASK_PLANER_SERVICE_WIN_IMPORT_ERROR),
+    ("systemmd_linux", _SYSTEMMD_LINUX_IMPORT_ERROR),
+    ("service_core", _SERVICE_IMPORT_ERROR),
+    ("printer_core", _PRINTER_IMPORT_ERROR),
+    ("render_core", _RENDER_IMPORT_ERROR),
+    ("greenwall_profile", _GREENWALL_PROFILE_IMPORT_ERROR),
+    ("dnp", _DNP_IMPORT_ERROR),
+):
+    if _err:
+        log_warning("module_import_problem", "Optional/required module import problem", module=_name, error=_err)
+
 # -----------------------------
 # Webroot / uploads helpers
 # -----------------------------
@@ -259,7 +424,8 @@ def _pb_load_json(path):
         with open(path, "r", encoding="utf-8-sig") as f:
             data = json.load(f)
         return data if isinstance(data, dict) else {}
-    except Exception:
+    except Exception as e:
+        log_warning("json_load_failed", "Could not load JSON file", path=path, error=str(e))
         return {}
 
 
@@ -352,6 +518,7 @@ def is_port_in_use(host: str, port: int, timeout: float = 0.25) -> bool:
 
 # Wenn Port belegt: sofort exit (one-instance-safe)
 if is_port_in_use(HOST, PORT):
+    log_warning("one_instance_port_in_use", "Server already running on configured port", host=HOST, port=PORT)
     print(f"[one-instance] Server already running on http://{HOST}:{PORT} -> exit")
     sys.exit(0)
 
@@ -375,17 +542,24 @@ def run_cmd(args, timeout: int = 8) -> Dict[str, Any]:
         out = (p.stdout or b"").decode("utf-8", errors="replace").strip()
         err = (p.stderr or b"").decode("utf-8", errors="replace").strip()
 
-        return {
+        result = {
             "ok": (p.returncode == 0),
             "rc": p.returncode,
             "out": out,
             "err": err,
             "cmd": args,
         }
+        if not result.get("ok"):
+            log_warning("run_cmd_failed", "Subprocess returned non-zero exit code", result=result)
+        return result
     except subprocess.TimeoutExpired:
-        return {"ok": False, "rc": -1, "error": "timeout", "cmd": args}
+        result = {"ok": False, "rc": -1, "error": "timeout", "timeout_sec": timeout, "cmd": args}
+        log_warning("run_cmd_timeout", "Subprocess timed out", result=result)
+        return result
     except Exception as e:
-        return {"ok": False, "rc": -1, "error": str(e), "cmd": args}
+        result = {"ok": False, "rc": -1, "error": str(e), "cmd": args}
+        log_error("run_cmd_exception", "Subprocess failed with exception", result=result, traceback=traceback.format_exc())
+        return result
 
 
 def parse_body(handler: BaseHTTPRequestHandler) -> Dict[str, Any]:
@@ -397,7 +571,8 @@ def parse_body(handler: BaseHTTPRequestHandler) -> Dict[str, Any]:
     if "application/json" in ctype and raw:
         try:
             return json.loads(raw.decode("utf-8", errors="replace"))
-        except Exception:
+        except Exception as e:
+            log_warning("request_json_parse_failed", "Invalid JSON request body", error=str(e), **_handler_log_context(handler))
             return {}
 
     try:
@@ -594,6 +769,68 @@ def _resolve_under_booth_root(p: str) -> str:
         return s
 
 
+# -----------------------------
+# Photo-Explorer Helpers
+# -----------------------------
+_PHOTO_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"}
+
+
+def _resolve_photos_base(base_path_raw: str) -> Tuple[Optional[Path], Optional[Dict[str, Any]]]:
+    """
+    Löst den Basis-Pfad für den Photo-Explorer auf.
+
+    Priorität:
+      1. base_path Query-Parameter (absoluter Pfad vom JS übergeben, z.B. Event-Ordner)
+      2. Fallback: booth/photos/
+
+    Gibt (Path, None) bei Erfolg zurück, oder (None, Fehler-Dict) bei Fehler.
+    """
+    if base_path_raw:
+        p = Path(base_path_raw).expanduser()
+        if not p.is_absolute():
+            return None, {"ok": False, "error": "base_path_not_absolute", "base_path": base_path_raw}
+        resolved = p.resolve()
+        return resolved, None
+
+    # Fallback: booth/photos/
+    root = _pb_get_booth_root_safe()
+    if root is None:
+        return None, {"ok": False, "error": "booth_root_unavailable"}
+    return root / "photos", None
+
+
+def _list_photos_in_dir(photos_root: Path) -> list:
+    """
+    Liefert alle Bilddateien unterhalb von photos_root rekursiv.
+    Gibt eine sortierte Liste von Dicts zurück:
+      { "name": str, "rel": str, "folder": str, "url": str, "size": int, "modified": str }
+    """
+    result = []
+    try:
+        for p in sorted(photos_root.rglob("*")):
+            if not p.is_file():
+                continue
+            if p.suffix.lower() not in _PHOTO_EXTENSIONS:
+                continue
+            try:
+                rel = p.relative_to(photos_root).as_posix()
+                folder = rel.rsplit("/", 1)[0] if "/" in rel else ""
+                stat = p.stat()
+                result.append({
+                    "name": p.name,
+                    "rel": rel,
+                    "folder": folder,
+                    "url": "/photos/file?rel=" + rel,
+                    "size": stat.st_size,
+                    "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(timespec="seconds"),
+                })
+            except Exception:
+                continue
+    except Exception as e:
+        log_warning("list_photos_error", "Error while listing photos", error=str(e))
+    return result
+
+
 def _debug_skip_result(action: str, **extra: Any) -> Dict[str, Any]:
     result: Dict[str, Any] = {
         "ok": True,
@@ -604,6 +841,70 @@ def _debug_skip_result(action: str, **extra: Any) -> Dict[str, Any]:
     }
     result.update(extra)
     return result
+
+
+def _normalize_endpoint_action(path: str) -> str:
+    """Extrahiert enable/disable/status aus Endpunkten wie /autostart/enable."""
+    try:
+        return str(path).strip("/").split("/")[-1].strip().lower()
+    except Exception:
+        return ""
+
+
+def _autostart_dispatch(action: str) -> Dict[str, Any]:
+    """Delegiert reine Autostart-Aktionen abhängig vom Betriebssystem."""
+    action = (action or "").strip().lower()
+    if action not in ("enable", "disable", "status"):
+        return {
+            "ok": False,
+            "error": "invalid_action",
+            "allowed": ["enable", "disable", "status"],
+            "action": action,
+        }
+
+    base_dir = Path(HERE).resolve()
+    config = _SERVER_CFG if isinstance(_SERVER_CFG, dict) else {}
+    os_name = platform.system().lower()
+
+    if os_name == "windows":
+        if _autostart_win is None:
+            return {"ok": False, "error": "autostart_windows_import_failed", "detail": _AUTOSTART_WIN_IMPORT_ERROR}
+        return _autostart_win.handle_action(action, base_dir=base_dir, config=config)
+
+    if os_name == "linux":
+        if _autostart_linux is None:
+            return {"ok": False, "error": "autostart_linux_import_failed", "detail": _AUTOSTART_LINUX_IMPORT_ERROR}
+        return _autostart_linux.handle_action(action, base_dir=base_dir, config=config)
+
+    return {"ok": False, "error": "unsupported_os", "os": os_name, "allowed_os": ["windows", "linux"]}
+
+
+def _task_planer_service_dispatch(action: str) -> Dict[str, Any]:
+    """Delegiert Task-Planer/systemd-Aktionen abhängig vom Betriebssystem."""
+    action = (action or "").strip().lower()
+    if action not in ("enable", "disable", "status"):
+        return {
+            "ok": False,
+            "error": "invalid_action",
+            "allowed": ["enable", "disable", "status"],
+            "action": action,
+        }
+
+    base_dir = Path(HERE).resolve()
+    config = _SERVER_CFG if isinstance(_SERVER_CFG, dict) else {}
+    os_name = platform.system().lower()
+
+    if os_name == "windows":
+        if _task_planer_service_win is None:
+            return {"ok": False, "error": "task_planer_service_windows_import_failed", "detail": _TASK_PLANER_SERVICE_WIN_IMPORT_ERROR}
+        return _task_planer_service_win.handle_action(action, base_dir=base_dir, config=config)
+
+    if os_name == "linux":
+        if _systemmd_linux is None:
+            return {"ok": False, "error": "systemmd_linux_import_failed", "detail": _SYSTEMMD_LINUX_IMPORT_ERROR}
+        return _systemmd_linux.handle_action(action, base_dir=base_dir, config=config)
+
+    return {"ok": False, "error": "unsupported_os", "os": os_name, "allowed_os": ["windows", "linux"]}
 
 
 def _dnp_build_options(command: str, printer: Optional[str] = None, model: Optional[str] = None, device: Optional[str] = None):
@@ -645,7 +946,7 @@ def _dnp_resolve_detected_model(detection: Any) -> Optional[str]:
     )
 
 
-def _dnp_detect_and_info(printer: Optional[str] = None, model: Optional[str] = None) -> Tuple[int, Dict[str, Any]]:
+def _dnp_detect_and_info(printer: Optional[str] = None, model: Optional[str] = None, force: bool = False) -> Tuple[int, Dict[str, Any]]:
     global _DNP_LAST_INFO_TS
 
     if detect_printer is None or create_transport is None or DnpProtocolClient is None or format_status is None:
@@ -664,8 +965,9 @@ def _dnp_detect_and_info(printer: Optional[str] = None, model: Optional[str] = N
         now = time.time()
         elapsed = now - float(_DNP_LAST_INFO_TS or 0.0)
 
-        if _DNP_LAST_INFO_TS and elapsed < min_interval_sec:
+        if (not force) and _DNP_LAST_INFO_TS and elapsed < min_interval_sec:
             retry_after = max(0.0, min_interval_sec - elapsed)
+            log_warning("dnp_info_rate_limited", "DNP status request blocked by min interval", min_interval_sec=min_interval_sec, elapsed_sec=elapsed, retry_after_sec=retry_after)
             return 429, {
                 "ok": False,
                 "error": "timer_too_short",
@@ -679,6 +981,7 @@ def _dnp_detect_and_info(printer: Optional[str] = None, model: Optional[str] = N
         detection = detect_printer(detect_options)
 
         if not getattr(detection, "success", False) or not getattr(detection, "query_value", None) or not str(detection.query_value).strip():
+            log_warning("dnp_printer_not_found", "DNP detection did not find a printer", printer=printer, model=model, detection={"success": getattr(detection, "success", None), "query_value": getattr(detection, "query_value", None)})
             return 200, {
                 "ok": True,
                 "found": False,
@@ -762,6 +1065,25 @@ def _dnp_detect_and_info(printer: Optional[str] = None, model: Optional[str] = N
 # HTTP Handler
 # -----------------------------
 class Handler(BaseHTTPRequestHandler):
+    def handle_one_request(self):
+        try:
+            return super().handle_one_request()
+        except (BrokenPipeError, ConnectionAbortedError, ConnectionResetError, OSError):
+            log_warning("client_connection_aborted", "Client connection was closed while handling request", **_handler_log_context(self))
+            return
+        except Exception as e:
+            log_error(
+                "unhandled_request_exception",
+                "Unhandled exception while handling HTTP request",
+                error=str(e),
+                traceback=traceback.format_exc(),
+                **_handler_log_context(self),
+            )
+            try:
+                return self._send_json(500, {"ok": False, "error": "unhandled_request_exception", "message": str(e)})
+            except Exception:
+                return
+
     def _cors(self):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
@@ -770,6 +1092,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def _send_text(self, code: int, text: str):
         try:
+            if code >= 400:
+                log_warning("http_text_response_error", "HTTP text response has error status", code=code, text=text, **_handler_log_context(self))
             body = (text or "").encode("utf-8")
             self.send_response(code)
             self._cors()
@@ -782,6 +1106,17 @@ class Handler(BaseHTTPRequestHandler):
 
     def _send_json(self, code: int, obj: Dict[str, Any]):
         try:
+            should_log = code >= 400 or (isinstance(obj, dict) and obj.get("ok") is False)
+            if should_log:
+                level = logging.ERROR if code >= 500 else logging.WARNING
+                log_event(
+                    level,
+                    "http_json_problem_response",
+                    "HTTP JSON response indicates a warning/error",
+                    code=code,
+                    response=obj,
+                    **_handler_log_context(self),
+                )
             body = json_bytes(obj)
             self.send_response(code)
             self._cors()
@@ -814,8 +1149,10 @@ class Handler(BaseHTTPRequestHandler):
             with p.open("rb") as f:
                 shutil.copyfileobj(f, self.wfile, length=64 * 1024)
         except (BrokenPipeError, ConnectionAbortedError, ConnectionResetError, OSError):
+            log_warning("send_file_client_aborted", "Client aborted while sending file", file_path=file_path, **_handler_log_context(self))
             return
         except Exception as e:
+            log_error("send_file_failed", "Could not send file", file_path=file_path, error=str(e), traceback=traceback.format_exc(), **_handler_log_context(self))
             return self._send_json(500, {"ok": False, "error": "send_file_failed", "message": str(e)})
 
     def do_OPTIONS(self):
@@ -835,6 +1172,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._send_json(200, {"ok": True})
 
         if path == "/runtime":
+            user = os.environ.get("USERNAME") or ""
+            session_name = os.environ.get("SESSIONNAME") or ""
             return self._send_json(200, {
                 "ok": True,
                 "pid": os.getpid(),
@@ -844,13 +1183,25 @@ class Handler(BaseHTTPRequestHandler):
                 "cwd": os.getcwd(),
                 "here": HERE,
                 "platform": platform.platform(),
+                "desktop": {
+                    "user": user,
+                    "userDomain": os.environ.get("USERDOMAIN") or "",
+                    "sessionName": session_name,
+                    "isInteractive": bool(session_name) and not user.endswith("$"),
+                    "isMachineAccount": user.endswith("$"),
+                },
                 "openfolder_import_error": _OPENFOLDER_IMPORT_ERROR,
                 "closebrowser_import_error": _CLOSEBROWSER_IMPORT_ERROR,
+                "autostart_win_import_error": _AUTOSTART_WIN_IMPORT_ERROR,
+                "autostart_linux_import_error": _AUTOSTART_LINUX_IMPORT_ERROR,
+                "task_planer_service_win_import_error": _TASK_PLANER_SERVICE_WIN_IMPORT_ERROR,
+                "systemmd_linux_import_error": _SYSTEMMD_LINUX_IMPORT_ERROR,
                 "printer_import_error": _PRINTER_IMPORT_ERROR,
                 "render_import_error": _RENDER_IMPORT_ERROR,
                 "greenwall_profile_import_error": _GREENWALL_PROFILE_IMPORT_ERROR,
                 "service_import_error": _SERVICE_IMPORT_ERROR,
                 "dnp_import_error": _DNP_IMPORT_ERROR,
+                "log_path": LOG_PATH,
                 "debug_flags": {
                     "skip_render": DEBUG_SKIP_RENDER,
                     "skip_print": DEBUG_SKIP_PRINT,
@@ -954,6 +1305,57 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send_json(500, result)
             return self._send_json(400, result)
 
+        # ------------------------------------------------------------------
+        # GET /photos/list?base_path=...  — Alle Bilder im Event-Ordner als JSON
+        #   base_path: absoluter Pfad zum Event-Ordner (z.B. C:\Fotos\EVENTS\Kerstin28)
+        #              fehlt er, wird booth/photos/ als Fallback verwendet
+        # ------------------------------------------------------------------
+        if path == "/photos/list":
+            base_path_raw = (qs.get("base_path", [""])[0] or "").strip()
+            photos_root, err = _resolve_photos_base(base_path_raw)
+            if err:
+                return self._send_json(500, err)
+            if not photos_root.exists():
+                return self._send_json(200, {
+                    "ok": True, "photos": [], "count": 0,
+                    "photos_dir": str(photos_root),
+                })
+
+            items = _list_photos_in_dir(photos_root)
+            return self._send_json(200, {
+                "ok": True,
+                "photos": items,
+                "count": len(items),
+                "photos_dir": str(photos_root),
+            })
+
+        # ------------------------------------------------------------------
+        # GET /photos/file?rel=...&base_path=...  — Einzelnes Bild binär
+        #   base_path muss mit dem bei /photos/list verwendeten übereinstimmen
+        # ------------------------------------------------------------------
+        if path == "/photos/file":
+            rel = (qs.get("rel", [""])[0] or "").strip().lstrip("/")
+            if not rel:
+                return self._send_json(400, {"ok": False, "error": "missing_rel"})
+
+            base_path_raw = (qs.get("base_path", [""])[0] or "").strip()
+            photos_root, err = _resolve_photos_base(base_path_raw)
+            if err:
+                return self._send_json(500, err)
+
+            target = (photos_root / rel).resolve()
+            # Path-Traversal-Schutz
+            try:
+                target.relative_to(photos_root.resolve())
+            except ValueError:
+                return self._send_json(403, {"ok": False, "error": "path_traversal"})
+
+            if target.suffix.lower() not in _PHOTO_EXTENSIONS:
+                return self._send_json(415, {"ok": False, "error": "unsupported_extension", "ext": target.suffix})
+
+            mime = mimetypes.guess_type(str(target))[0] or "image/jpeg"
+            return self._send_file(200, str(target), mime)
+
         if path == "/service/status":
             body = {}
             auth = _auth_or_403(self, qs, body)
@@ -972,10 +1374,19 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/dnp/info":
             printer = (qs.get("printer", [""])[0] or "").strip() or None
             model = (qs.get("model", [""])[0] or "").strip() or None
+            force = str(qs.get("force", [""])[0] or "").strip().lower() in ("1", "true", "yes", "y", "on")
             if DEBUG_SKIP_DNP_INFO:
-                return self._send_json(200, _debug_skip_result("dnp_info", printer=printer, model=model))
-            code, result = _dnp_detect_and_info(printer=printer, model=model)
+                return self._send_json(200, _debug_skip_result("dnp_info", printer=printer, model=model, force=force))
+            code, result = _dnp_detect_and_info(printer=printer, model=model, force=force)
             return self._send_json(code, result)
+
+        if path == "/autostart/status":
+            result = _autostart_dispatch("status")
+            return self._send_json(200 if result.get("ok") else 500, result)
+
+        if path == "/task_planer_service/status":
+            result = _task_planer_service_dispatch("status")
+            return self._send_json(200 if result.get("ok") else 500, result)
 
         if path == "/printers":
             if list_printers is None:
@@ -1318,8 +1729,27 @@ class Handler(BaseHTTPRequestHandler):
             image_path_res = _resolve_under_booth_root(image_path)
             event_file_res = _resolve_under_booth_root(event_file)
 
+            log_event(
+                logging.INFO,
+                "print_default_requested",
+                "Print request received",
+                image_path=image_path_res,
+                event_file=event_file_res,
+                copies=copies,
+                printer=printer_name,
+            )
+
             with _PRINT_LOCK:
                 if DEBUG_SKIP_PRINT:
+                    log_event(
+                        logging.WARNING,
+                        "print_default_skipped_debug",
+                        "Print skipped by debug flag",
+                        image_path=image_path_res,
+                        event_file=event_file_res,
+                        copies=copies,
+                        printer=printer_name,
+                    )
                     return self._send_json(200, {
                         **_debug_skip_result("print_default", image_path=image_path_res, event_file=event_file_res, copies=copies, printer=printer_name),
                         "printed": False,
@@ -1328,7 +1758,27 @@ class Handler(BaseHTTPRequestHandler):
 
                 pr = print_image(image_path_res, copies=copies, printer_name=printer_name)
                 if not pr.get("ok"):
+                    log_event(
+                        logging.ERROR,
+                        "print_default_failed",
+                        "Print failed",
+                        image_path=image_path_res,
+                        event_file=event_file_res,
+                        copies=copies,
+                        printer=printer_name,
+                        result=pr,
+                    )
                     return self._send_json(400, {"ok": False, "printed": False, **pr})
+                log_event(
+                    logging.INFO,
+                    "print_default_printed",
+                    "Print command completed",
+                    image_path=image_path_res,
+                    event_file=event_file_res,
+                    copies=copies,
+                    printer=printer_name,
+                    result=pr,
+                )
 
                 if DEBUG_SKIP_PRINT_COUNTER:
                     return self._send_json(200, {
@@ -1346,6 +1796,17 @@ class Handler(BaseHTTPRequestHandler):
 
                 cr = bump_print_counter(event_file_res, inc=copies)
                 if not cr.get("ok"):
+                    log_event(
+                        logging.ERROR,
+                        "print_default_counter_failed",
+                        "Print counter update failed after print",
+                        image_path=image_path_res,
+                        event_file=event_file_res,
+                        copies=copies,
+                        printer=printer_name,
+                        print=pr,
+                        counter=cr,
+                    )
                     return self._send_json(500, {
                         "ok": False,
                         "printed": True,
@@ -1356,6 +1817,17 @@ class Handler(BaseHTTPRequestHandler):
                         "print": pr,
                         "counter": cr,
                     })
+                log_event(
+                    logging.INFO,
+                    "print_default_completed",
+                    "Print request completed",
+                    image_path=image_path_res,
+                    event_file=event_file_res,
+                    copies=copies,
+                    printer=printer_name,
+                    print=pr,
+                    counter=cr,
+                )
 
                 return self._send_json(200, {
                     "ok": True,
@@ -1374,9 +1846,24 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/dnp/info":
             printer = str(data.get("printer") or "").strip() or None
             model = str(data.get("model") or "").strip() or None
+            force = bool(data.get("force"))
             if DEBUG_SKIP_DNP_INFO:
-                return self._send_json(200, _debug_skip_result("dnp_info", printer=printer, model=model))
-            code, result = _dnp_detect_and_info(printer=printer, model=model)
+                return self._send_json(200, _debug_skip_result("dnp_info", printer=printer, model=model, force=force))
+            code, result = _dnp_detect_and_info(printer=printer, model=model, force=force)
+            return self._send_json(code, result)
+
+        if path in ("/autostart/enable", "/autostart/disable", "/autostart/status"):
+            action = _normalize_endpoint_action(path)
+            log_event(logging.INFO, "autostart_action_requested", "Autostart action requested", action=action, os=platform.system(), **_handler_log_context(self))
+            result = _autostart_dispatch(action)
+            code = 200 if result.get("ok") else (400 if result.get("error") in ("invalid_action", "unsupported_os") else 500)
+            return self._send_json(code, result)
+
+        if path in ("/task_planer_service/enable", "/task_planer_service/disable", "/task_planer_service/status"):
+            action = _normalize_endpoint_action(path)
+            log_event(logging.INFO, "task_planer_service_action_requested", "Task planer/systemd action requested", action=action, os=platform.system(), **_handler_log_context(self))
+            result = _task_planer_service_dispatch(action)
+            code = 200 if result.get("ok") else (400 if result.get("error") in ("invalid_action", "unsupported_os") else 500)
             return self._send_json(code, result)
 
         if path in ("/service/start", "/service/stop", "/service/restart"):
@@ -1384,30 +1871,51 @@ class Handler(BaseHTTPRequestHandler):
             if not auth.get("ok"):
                 return self._send_json(403, {"ok": False, **auth})
 
+            exe = str(data.get("exe") or "").strip()
+
             if DEBUG_SKIP_SERVICE_ACTIONS:
-                exe = str(data.get("exe") or "").strip()
-                return self._send_json(200, _debug_skip_result("service_action", endpoint=path, exe=exe))
+                result = _debug_skip_result("service_action", endpoint=path, exe=exe)
+                log_warning("service_action_skipped", "Service action skipped by debug flag", endpoint=path, exe=exe, result=result, **_handler_log_context(self))
+                return self._send_json(200, result)
 
             if _SERVER_CFG is None:
                 return self._send_json(500, {"ok": False, "error": "server_config_missing", "detail": _SERVER_CFG_ERR})
 
-            exe = str(data.get("exe") or "").strip()
             if not exe:
                 return self._send_json(400, {"ok": False, "error": "missing_exe"})
 
-            if path == "/service/start":
-                if start_service is None:
-                    return self._send_json(500, {"ok": False, "error": "service_core_import_failed", "detail": _SERVICE_IMPORT_ERROR})
-                return self._send_json(200, start_service(exe, _SERVER_CFG))
+            log_event(logging.INFO, "service_action_requested", "Service action requested", endpoint=path, exe=exe, **_handler_log_context(self))
 
-            if path == "/service/stop":
-                if stop_service is None:
-                    return self._send_json(500, {"ok": False, "error": "service_core_import_failed", "detail": _SERVICE_IMPORT_ERROR})
-                return self._send_json(200, stop_service(exe))
+            try:
+                if path == "/service/start":
+                    if start_service is None:
+                        return self._send_json(500, {"ok": False, "error": "service_core_import_failed", "detail": _SERVICE_IMPORT_ERROR})
+                    result = start_service(exe, _SERVER_CFG)
 
-            if restart_service is None:
-                return self._send_json(500, {"ok": False, "error": "service_core_import_failed", "detail": _SERVICE_IMPORT_ERROR})
-            return self._send_json(200, restart_service(exe, _SERVER_CFG))
+                elif path == "/service/stop":
+                    if stop_service is None:
+                        return self._send_json(500, {"ok": False, "error": "service_core_import_failed", "detail": _SERVICE_IMPORT_ERROR})
+                    result = stop_service(exe)
+
+                else:
+                    if restart_service is None:
+                        return self._send_json(500, {"ok": False, "error": "service_core_import_failed", "detail": _SERVICE_IMPORT_ERROR})
+                    result = restart_service(exe, _SERVER_CFG)
+
+                if isinstance(result, dict) and result.get("ok") is False:
+                    log_warning("service_action_failed", "Service action returned ok=false", endpoint=path, exe=exe, result=result, **_handler_log_context(self))
+                else:
+                    log_event(logging.INFO, "service_action_result", "Service action completed", endpoint=path, exe=exe, result=result, **_handler_log_context(self))
+                return self._send_json(200, result)
+
+            except Exception as e:
+                result = {
+                    "ok": False,
+                    "error": "service_action_exception",
+                    "message": str(e),
+                }
+                log_error("service_action_exception", "Service action raised an exception", endpoint=path, exe=exe, error=str(e), traceback=traceback.format_exc(), **_handler_log_context(self))
+                return self._send_json(500, result)
 
         if path == "/printers/default":
             if set_default_printer is None:
@@ -1433,6 +1941,7 @@ class Handler(BaseHTTPRequestHandler):
         return self._send_json(404, {"ok": False, "error": "not_found", "path": path})
 
     def log_message(self, format, *args):
+        # Normale Access-Logs bleiben aus. Warnings/Errors werden zentral über _send_json/Exceptions geloggt.
         return
 
 
@@ -1440,6 +1949,7 @@ class Handler(BaseHTTPRequestHandler):
 # Server Start
 # -----------------------------
 def main():
+    log_event(logging.INFO, "python_server_starting", "Python tool server starting", host=HOST, port=PORT, here=HERE, python=sys.executable, log_path=LOG_PATH)
     print(
         f"Tool server: http://{HOST}:{PORT}\n"
         f"  GET  /ping\n"
@@ -1461,6 +1971,8 @@ def main():
         f"  POST /render/collage       {{...}}\n"
         f"  POST /render_from_session  {{\"session_folder\":\"...\"}}\n"
         f"  GET  /preview/session?api_key=...&session_folder=...\n"
+        f"  GET  /photos/list          (kein Auth) listet alle Bilder in booth/photos/\n"
+        f"  GET  /photos/file?rel=...  (kein Auth) liefert einzelnes Bild binär\n"
         f"  POST /shutdown             {{\"api_key\":\"...\"}}\n"
         f"Debug flags:\n"
         f"  render={DEBUG_SKIP_RENDER} print={DEBUG_SKIP_PRINT} print_counter={DEBUG_SKIP_PRINT_COUNTER}\n"
@@ -1475,6 +1987,10 @@ def main():
         f"  render_core.py     = {os.path.join(HERE, 'render_core.py')}\n"
         f"  open_folder.py     = {os.path.join(HERE, 'open_folder.py')}\n"
         f"  close_browser.py   = {os.path.join(HERE, 'close_browser.py')}\n"
+        f"  autostart_win.py   = {os.path.join(HERE, 'autostart_win.py')}\n"
+        f"  autostart_linux.py = {os.path.join(HERE, 'autostart_linux.py')}\n"
+        f"  task_planer_service_win.py = {os.path.join(HERE, 'task_planer_service_win.py')}\n"
+        f"  systemmd_linux.py  = {os.path.join(HERE, 'systemmd_linux.py')}\n"
         f"  main_dnp.py        = {os.path.join(HERE, 'main_dnp.py')}\n"
         f"  common_dnp.py      = {os.path.join(HERE, 'common_dnp.py')}\n"
     )
@@ -1489,19 +2005,25 @@ def main():
             print(f"  {name}: {status} -> {info.get('path', '')}")
             if info.get("error") and status != "OK":
                 print(f"    detail: {info.get('error')}")
+                log_warning("startup_json_check_problem", "Startup JSON check problem", name=name, status=status, info=info)
     except Exception as e:
         print(f"  startup json check failed: {e}")
+        log_error("startup_json_check_exception", "Startup JSON check raised exception", error=str(e), traceback=traceback.format_exc())
 
     try:
         httpd = ThreadingHTTPServer((HOST, PORT), Handler)
+        log_event(logging.INFO, "python_server_listening", "Python tool server is listening", host=HOST, port=PORT)
         httpd.serve_forever()
     except OSError as e:
         msg = str(e).lower()
         if "address already in use" in msg or "10048" in msg or "eaddrinuse" in msg:
+            log_warning("one_instance_port_in_use_on_bind", "Configured port is already in use while binding", host=HOST, port=PORT, error=str(e))
             print(f"[one-instance] Port {HOST}:{PORT} is already in use -> assume server is running -> exit")
             sys.exit(0)
+        log_error("python_server_bind_failed", "Could not bind HTTP server", host=HOST, port=PORT, error=str(e), traceback=traceback.format_exc())
         raise
     except KeyboardInterrupt:
+        log_event(logging.INFO, "python_server_shutdown_keyboard", "Python tool server stopped by KeyboardInterrupt", host=HOST, port=PORT)
         print("\nShutting down...")
         sys.exit(0)
 

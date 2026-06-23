@@ -11,6 +11,14 @@ $ErrorActionPreference = 'Stop'
 
 $BaseDir   = ([System.IO.Path]::GetFullPath($BaseDir) -replace '[\\/ ]+$', '')
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$RunIdentity = [Security.Principal.WindowsIdentity]::GetCurrent().Name
+$RunSessionName = $env:SESSIONNAME
+Write-Host "RunAs : $RunIdentity"
+Write-Host "Session: $RunSessionName"
+
+if ([string]::IsNullOrWhiteSpace($RunIdentity) -or $RunIdentity -ieq 'NT AUTHORITY\SYSTEM' -or $RunIdentity.Trim().EndsWith('$')) {
+    Write-Warning "start_only_web.ps1 laeuft nicht im sichtbaren Benutzerkontext. GUI-Aktionen wie Druckerdialoge koennen so nicht angezeigt werden."
+}
 
 function Write-PortWarning {
     param([string]$Message)

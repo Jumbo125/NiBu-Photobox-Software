@@ -13,9 +13,7 @@ for %%A in (%*) do (
 )
 
 "%WINDIR%\System32\WindowsPowerShell\v1.0\powershell.exe" ^
-  -NoProfile ^
-  -NonInteractive ^
-  -ExecutionPolicy Bypass ^
+  -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden ^
   -File "%SCRIPT_DIR%stop.ps1" ^
   -BaseDir "%BASEDIR%" %PS_FLAGS%
 

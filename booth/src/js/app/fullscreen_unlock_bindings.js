@@ -7,31 +7,29 @@
   window.PB = window.PB || {};
   const PB = window.PB;
 
+  // Außerhalb der Funktion — überlebt mehrfache Aufrufe von initUiFullscreenBindings
+  let _fsInitDone = false;
+
   PB.initUiFullscreenBindings =
     PB.initUiFullscreenBindings ||
     function () {
       const dbg = PB._dbg || console.log;
 
-      // Debug-Ausgaben (nicht UI-relevant)
-      dbg(
-        '[UI-FS] funcs:',
-        'apply=',
-        typeof PB.applyFullscreenFromConfig,
-        'set=',
-        typeof PB.setFullscreenUI,
-        'toggle=',
-        typeof PB.toggleFullscreen
-      );
       dbg('[UI-FS] init bindings');
 
-      // Beim Start anwenden (falls config schon da ist)
-      PB.applyFullscreenFromConfig?.(window.PB_CONFIG);
+      // Beim allerersten Aufruf: Fullscreen aus Config anwenden
+      if (!_fsInitDone) {
+        PB.applyFullscreenFromConfig?.(window.PB_CONFIG);
+      }
 
-      // Falls config später geladen wird: Event abfangen
+      // Listener nur einmal binden (off+on ist idempotent)
       $(document)
         .off('pb:configLoaded.uiFs')
-        .on('pb:configLoaded.uiFs', function (e, cfg) {
-          dbg('[UI-FS] configLoaded event');
+        .on('pb:configLoaded.uiFs', function (e, cfg, key) {
+          // Nur beim ersten Load oder wenn general-Config explizit gespeichert wurde
+          if (_fsInitDone && key !== 'general') return;
+          _fsInitDone = true;
+          dbg('[UI-FS] configLoaded event, key=', key);
           PB.applyFullscreenFromConfig?.(cfg);
         });
 
@@ -62,7 +60,6 @@
         $('#exitFullscreenPassword').removeClass('is-invalid');
 
         exitFsModal.show();
-        setTimeout(() => $('#exitFullscreenPassword').trigger('focus'), 150);
       }
 
       function confirmExitFullscreen() {
@@ -112,6 +109,15 @@
           if (e.key === 'Enter') {
             e.preventDefault();
             confirmExitFullscreen();
+          }
+        });
+
+      $(document)
+        .off('keydown.uiFsEscOpen')
+        .on('keydown.uiFsEscOpen', function (e) {
+          if (e.key === 'Escape' && PB.isFullscreen?.()) {
+            e.preventDefault();
+            openExitFullscreenModal();
           }
         });
 

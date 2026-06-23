@@ -45,6 +45,74 @@ function Normalize-DirPath {
   return ($full -replace '[\\/ ]+$', '')
 }
 
+function Read-TextSmart {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Path
+  )
+
+  $bytes = [System.IO.File]::ReadAllBytes($Path)
+
+  if ($bytes.Length -eq 0) {
+    return ''
+  }
+
+  # UTF-8 BOM: EF BB BF
+  if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
+    return [System.Text.Encoding]::UTF8.GetString($bytes, 3, $bytes.Length - 3)
+  }
+
+  # UTF-16 LE BOM: FF FE
+  if ($bytes.Length -ge 2 -and $bytes[0] -eq 0xFF -and $bytes[1] -eq 0xFE) {
+    return [System.Text.Encoding]::Unicode.GetString($bytes, 2, $bytes.Length - 2)
+  }
+
+  # UTF-16 BE BOM: FE FF
+  if ($bytes.Length -ge 2 -and $bytes[0] -eq 0xFE -and $bytes[1] -eq 0xFF) {
+    return [System.Text.Encoding]::BigEndianUnicode.GetString($bytes, 2, $bytes.Length - 2)
+  }
+
+  # Zuerst striktes UTF-8 probieren.
+  # Wichtig: throwOnInvalidBytes = true, damit ANSI/Windows-1252 nicht still kaputt gelesen wird.
+  try {
+    $utf8Strict = New-Object System.Text.UTF8Encoding($false, $true)
+    return $utf8Strict.GetString($bytes)
+  } catch {
+    # Fallback für alte Windows/ANSI-Dateien mit Umlauten.
+    # Windows-1252 zuerst versuchen, danach Encoding.Default als letzter Fallback.
+    try {
+      return [System.Text.Encoding]::GetEncoding(1252).GetString($bytes)
+    } catch {
+      try {
+        return [System.Text.Encoding]::Default.GetString($bytes)
+      } catch {
+        throw "Datei konnte weder als UTF-8 noch als ANSI/Windows-1252 gelesen werden: $Path"
+      }
+    }
+  }
+}
+
+function Write-TextUtf8NoBom {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Path,
+
+    [Parameter(Mandatory = $true)]
+    [string]$Text
+  )
+
+  # Echtes BOM entfernen, falls es als Unicode-Zeichen im String gelandet ist.
+  $Text = $Text.TrimStart([char]0xFEFF)
+
+  # Kaputtes/sichtbares BOM entfernen: ï»¿
+  $Text = $Text -replace '^\u00EF\u00BB\u00BF', ''
+
+  # UTF-8 OHNE BOM schreiben. Nicht Set-Content -Encoding UTF8 verwenden,
+  # weil Windows PowerShell 5.1 damit UTF-8 MIT BOM schreibt.
+  $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+  [System.IO.File]::WriteAllText($Path, $Text, $utf8NoBom)
+}
+
 if ([string]::IsNullOrWhiteSpace($LauncherDir)) {
   if ($PSScriptRoot) {
     $LauncherDir = $PSScriptRoot
@@ -82,7 +150,8 @@ Write-Host "LauncherDir: $LauncherDir"
 Write-Host ''
 
 try {
-  $manifest = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json
+  $manifestText = Read-TextSmart -Path $manifestPath
+  $manifest = $manifestText | ConvertFrom-Json
 } catch {
   Write-Host "[ERR] ops_manifest.json ist ungueltig: $($_.Exception.Message)"
   exit 2
@@ -117,6 +186,7 @@ foreach ($c in $manifest.configs) {
     New-Item -ItemType Directory -Path $dstDir -Force | Out-Null
   }
 
+  # Bytegenaue Kopie. Das Encoding wird hier nicht verändert.
   Copy-Item -LiteralPath $src -Destination $dst -Force
   $copiedTargets.Add($dst) | Out-Null
   Write-Host "[COPY] $srcRel -> $dstRel"
@@ -131,9 +201,10 @@ foreach ($dst in $copiedTargets) {
   if (-not (Test-Path -LiteralPath $dst)) { continue }
 
   try {
-    $txt = Get-Content -Raw -LiteralPath $dst
+    $txt = Read-TextSmart -Path $dst
   } catch {
     Write-Host "[WARN] Datei konnte nicht gelesen werden: $dst"
+    Write-Host "       $($_.Exception.Message)"
     continue
   }
 
@@ -144,7 +215,11 @@ foreach ($dst in $copiedTargets) {
     }
 
     $txt = $txt.Replace($baseToken, $replacementValue)
-    Set-Content -LiteralPath $dst -Value $txt -Encoding UTF8
+
+    # Gepatchte Dateien immer UTF-8 ohne BOM schreiben.
+    # Dadurch bleiben Umlaute korrekt und DataContractJsonSerializer stolpert nicht über BOM.
+    Write-TextUtf8NoBom -Path $dst -Text $txt
+
     $rel = $dst.Substring($BaseDir.Length).TrimStart('\')
     Write-Host "[PATCH] BASEDIR ersetzt in: $rel"
   }
@@ -157,9 +232,10 @@ foreach ($dst in $copiedTargets) {
   if (-not (Test-Path -LiteralPath $dst)) { continue }
 
   try {
-    $txt = Get-Content -Raw -LiteralPath $dst
+    $txt = Read-TextSmart -Path $dst
   } catch {
     Write-Host "[WARN] Datei konnte nicht gelesen werden bei Port-Pruefung: $dst"
+    Write-Host "       $($_.Exception.Message)"
     continue
   }
 

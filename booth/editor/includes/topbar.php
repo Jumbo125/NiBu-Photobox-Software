@@ -3,7 +3,19 @@
   <div class="container-fluid p-0 d-flex align-items-center gap-2">
     <div class="d-flex flex-column">
       <span class="navbar-brand mb-0 fw-bold" data-i18n="brand.title">Template Editor</span>
-      <small class="text-secondary" id="teTemplateInfo">—</small>
+      <div class="d-flex align-items-center gap-2">
+        <input
+          type="text"
+          id="teTemplateNameInput"
+          class="form-control form-control-sm bg-dark text-light border-secondary"
+          style="min-width:160px; max-width:260px; font-size:0.8rem;"
+          placeholder="Template-Name"
+          data-i18n-placeholder="te.template.name_placeholder"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <small class="text-secondary text-nowrap" id="teTemplateInfo"></small>
+      </div>
     </div>
     <div class="vr text-secondary"></div>
 

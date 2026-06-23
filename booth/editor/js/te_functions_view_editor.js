@@ -30,18 +30,19 @@ window.TE = window.TE || {};
   };
 
   TE.updateTemplateInfo = function (displayName, width, height) {
-    const info = document.getElementById('teTemplateInfo');
-    if (!info) return;
+    const name = (displayName != null && displayName !== '')
+      ? displayName
+      : (TE.state && TE.state.templateName) || '';
 
-    info.textContent = fmt(
-      'te.template.info',
-      '{name} — {w}x{h}px',
-      {
-        name: (displayName != null && displayName !== '') ? displayName : (TE.state && TE.state.templateName) || '',
-        w: Number(width) || 0,
-        h: Number(height) || 0
-      }
-    );
+    const input = document.getElementById('teTemplateNameInput');
+    if (input) input.value = name;
+
+    const info = document.getElementById('teTemplateInfo');
+    if (info) {
+      const w = Number(width) || 0;
+      const h = Number(height) || 0;
+      info.textContent = (w && h) ? `${w}×${h}px` : '';
+    }
   };
 
   // ---------------------------
