@@ -20,7 +20,7 @@ Browser-basierte Steuerung für eine Fotobox im Kioskbetrieb: **Startscreen**, *
 
 **Linux-Status:** Die Linux-Unterstützung ist bereits **größtenteils vorbereitet**, es müssen aber je nach Deployment noch einzelne Punkte angepasst werden (z. B. Pfade, Service-Start, Drucker-Listing/Integrationen).
 
-**Geplant:** Eine zusätzliche Schnittstelle/Integration für **DNP Drucker** ist vorgesehen.
+**DNP Drucker:** Die Schnittstelle/Integration für **DNP Drucker** ist bereits integriert.
 
 ### Architektur (Überblick)
 ![Architektur-Skizze](config-skizze/photobox_architektur.png)
@@ -110,15 +110,26 @@ Tools/Services:
 - **CameraBridge API-Server** (Standard-Port `8052`)
 - **Python Tool-Server** (Standard-Port `8053`, Auth per `X-Api-Key`)
 
-### Quickstart
+### Quickstart (PC-Installation)
+
+1. Neuestes Release `win64` herunterladen und entpacken.
+2. **Windows 11:** Programm freigeben und SmartScreen deaktivieren – `Install_NiBu_CodeSigning_Cert.bat` als Administrator ausführen.
+3. **NibLauncher** mit Adminrechten starten.
+4. Auf **„Erweitert”** klicken.
+5. **„Vollinstallation”** auswählen (optional: Ports vorher anpassen).  
+   → Die Installation legt automatisch eine Desktop-Verknüpfung an.
+6. Software über die Desktop-Verknüpfung starten.
+7. *(Optional)* **Windows Autologin** einrichten, damit Windows nach einem Neustart automatisch einloggt → im Launcher unter „Windows Tweaks” verfügbar.
+
+### Quickstart (Software-Betrieb)
 
 1. Webserver starten (z. B. Caddy / IIS / Apache / eingebetteter Server) und UI öffnen.
 2. Unten rechts prüfen, ob **CameraBridge** erreichbar ist.
-   - Falls „offline/unknown“: **Start CameraBridge** klicken.
+   - Falls „offline/unknown”: **Start CameraBridge** klicken.
 3. **Active Event** setzen (Eventname & Speicherordner, optional Template ZIP).
 4. **Select Device**: Devices laden → Kamera auswählen → Speichern.
 5. Optional: **Druckereinstellungen** (Drucker + Kopien) und **Auto-Print** prüfen.
-6. Zurück zum Startscreen → **„Tap to start“**.
+6. Zurück zum Startscreen → **„Tap to start”**.
 
 ### Konfiguration
 
@@ -198,7 +209,7 @@ Browser-based controller for a kiosk-style photo booth: **start screen**, **capt
 
 **Linux status:** Linux support is **mostly prepared**, but depending on your deployment you still need to adjust a few things (e.g., paths, service startup, printer listing/integrations).
 
-**Planned:** An additional interface/integration for **DNP printers** is planned.
+**DNP printers:** The interface/integration for **DNP printers** is already integrated.
 
 ### Architecture (overview)
 
@@ -289,7 +300,18 @@ Tools/Services:
 - **CameraBridge API server** (default port `8052`)
 - **Python tool server** (default port `8053`, auth via `X-Api-Key`)
 
-### Quickstart
+### Quickstart (PC Installation)
+
+1. Download the latest `win64` release and extract it.
+2. **Windows 11:** Unblock the program and disable SmartScreen – run `Install_NiBu_CodeSigning_Cert.bat` as Administrator.
+3. Launch **NibLauncher** with Administrator rights.
+4. Click **”Advanced”**.
+5. Select **”Full Installation”** (optionally adjust ports first).  
+   → The installer automatically creates a Desktop shortcut.
+6. Start the software via the Desktop shortcut.
+7. *(Optional)* Set up **Windows Autologin** so Windows logs in automatically after a reboot → available in the Launcher under “Windows Tweaks”.
+
+### Quickstart (Running the Software)
 
 1. Start your web server and open the UI.
 2. Make sure **CameraBridge** is reachable (bottom right).
@@ -297,7 +319,7 @@ Tools/Services:
 3. Set **Active Event** (event name & storage folder, optional template ZIP).
 4. **Select Device**: load devices → pick camera → save.
 5. Optional: configure **Printer settings** (printer + copies) and verify **Auto-Print**.
-6. Back to the start screen → **“Tap to start”**.
+6. Back to the start screen → **”Tap to start”**.
 
 ### Configuration
 
