@@ -1,7 +1,7 @@
 <!-- Language switch -->
 [Deutsch](#de) | [English](#en)
 
-![Logo](Logo/logo.png)
+![Logo](Logo/Logo.png)
 
 # Photobooth Control (Kiosk UI) · CameraBridge · Python Renderer
 
@@ -180,7 +180,7 @@ Best Practices:
 - `config/` (JSON-Konfigs)
 - `tools/` (CameraBridge, Python portable, Hilfstools)
 - `templates/` (Template-Projekte, `template.xml` + Assets)
-- `Logo/logo.png` (Repository Logo)
+- `Logo/Logo.png` (Repository Logo)
 
 ### Lizenz
 
