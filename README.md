@@ -110,6 +110,15 @@ Tools/Services:
 - **CameraBridge API-Server** (Standard-Port `8052`)
 - **Python Tool-Server** (Standard-Port `8053`, Auth per `X-Api-Key`)
 
+### Screenshots
+
+| | | |
+|:---:|:---:|:---:|
+| ![Startbild](manual/Handbuch_v1/images/startbild.jpg) | ![Editor](manual/Handbuch_v1/images/original_editor.jpg) | ![Wizard](manual/Handbuch_v1/images/original_wizard.jpg) |
+| Startscreen | Template-Editor | Template-Wizard |
+| ![Einstellungen](manual/Handbuch_v1/images/allgemeine_einstellungen.jpg) | ![Drucker](manual/Handbuch_v1/images/druckereinstellungen.jpg) | ![Render](manual/Handbuch_v1/images/render_einstellungen_1.jpg) |
+| Allgemeine Einstellungen | Druckereinstellungen | Render-Einstellungen |
+
 ### Quickstart (PC-Installation)
 
 1. Neuestes Release `win64` herunterladen und entpacken.
@@ -299,6 +308,15 @@ Tools/Services:
 
 - **CameraBridge API server** (default port `8052`)
 - **Python tool server** (default port `8053`, auth via `X-Api-Key`)
+
+### Screenshots
+
+| | | |
+|:---:|:---:|:---:|
+| ![Start screen](manual/Handbuch_v1/images/startbild.jpg) | ![Editor](manual/Handbuch_v1/images/original_editor.jpg) | ![Wizard](manual/Handbuch_v1/images/original_wizard.jpg) |
+| Start screen | Template editor | Template wizard |
+| ![Settings](manual/Handbuch_v1/images/allgemeine_einstellungen.jpg) | ![Printer](manual/Handbuch_v1/images/druckereinstellungen.jpg) | ![Render](manual/Handbuch_v1/images/render_einstellungen_1.jpg) |
+| General settings | Printer settings | Render settings |
 
 ### Quickstart (PC Installation)
 
