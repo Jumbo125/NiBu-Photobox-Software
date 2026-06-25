@@ -16,6 +16,15 @@
 <a id="de"></a>
 ## Deutsch
 
+### Screenshots
+
+| | | |
+|:---:|:---:|:---:|
+| ![Startbild](manual/Handbuch_v1/images/startbild.jpg) | ![Editor](manual/Handbuch_v1/images/original_editor.jpg) | ![Wizard](manual/Handbuch_v1/images/original_wizard.jpg) |
+| Startscreen | Template-Editor | Template-Wizard |
+| ![Einstellungen](manual/Handbuch_v1/images/allgemeine_einstellungen.jpg) | ![Drucker](manual/Handbuch_v1/images/druckereinstellungen.jpg) | ![Render](manual/Handbuch_v1/images/render_einstellungen_1.jpg) |
+| Allgemeine Einstellungen | Druckereinstellungen | Render-Einstellungen |
+
 Browser-basierte Steuerung für eine Fotobox im Kioskbetrieb: **Startscreen**, **Capture-Flow**, **Template-Editor**, **CameraBridge** (LiveView/Capture) und **Python Tool-Server** (Render/Print/Service-Control).
 
 **Linux-Status:** Die Linux-Unterstützung ist bereits **größtenteils vorbereitet**, es müssen aber je nach Deployment noch einzelne Punkte angepasst werden (z. B. Pfade, Service-Start, Drucker-Listing/Integrationen).
@@ -110,14 +119,6 @@ Tools/Services:
 - **CameraBridge API-Server** (Standard-Port `8052`)
 - **Python Tool-Server** (Standard-Port `8053`, Auth per `X-Api-Key`)
 
-### Screenshots
-
-| | | |
-|:---:|:---:|:---:|
-| ![Startbild](manual/Handbuch_v1/images/startbild.jpg) | ![Editor](manual/Handbuch_v1/images/original_editor.jpg) | ![Wizard](manual/Handbuch_v1/images/original_wizard.jpg) |
-| Startscreen | Template-Editor | Template-Wizard |
-| ![Einstellungen](manual/Handbuch_v1/images/allgemeine_einstellungen.jpg) | ![Drucker](manual/Handbuch_v1/images/druckereinstellungen.jpg) | ![Render](manual/Handbuch_v1/images/render_einstellungen_1.jpg) |
-| Allgemeine Einstellungen | Druckereinstellungen | Render-Einstellungen |
 
 ### Quickstart (PC-Installation)
 
@@ -214,6 +215,17 @@ Zusätzliche Hinweise zu Third-Party-Files (u. a. `align_guidlines.js`, `centeri
 <a id="en"></a>
 ## English
 
+
+### Screenshots
+
+| | | |
+|:---:|:---:|:---:|
+| ![Start screen](manual/Handbuch_v1/images/startbild.jpg) | ![Editor](manual/Handbuch_v1/images/original_editor.jpg) | ![Wizard](manual/Handbuch_v1/images/original_wizard.jpg) |
+| Start screen | Template editor | Template wizard |
+| ![Settings](manual/Handbuch_v1/images/allgemeine_einstellungen.jpg) | ![Printer](manual/Handbuch_v1/images/druckereinstellungen.jpg) | ![Render](manual/Handbuch_v1/images/render_einstellungen_1.jpg) |
+| General settings | Printer settings | Render settings |
+
+
 Browser-based controller for a kiosk-style photo booth: **start screen**, **capture flow**, **template editor**, **CameraBridge** (live view/capture) and a **Python tool server** (render/print/service control).
 
 **Linux status:** Linux support is **mostly prepared**, but depending on your deployment you still need to adjust a few things (e.g., paths, service startup, printer listing/integrations).
@@ -309,14 +321,6 @@ Tools/Services:
 - **CameraBridge API server** (default port `8052`)
 - **Python tool server** (default port `8053`, auth via `X-Api-Key`)
 
-### Screenshots
-
-| | | |
-|:---:|:---:|:---:|
-| ![Start screen](manual/Handbuch_v1/images/startbild.jpg) | ![Editor](manual/Handbuch_v1/images/original_editor.jpg) | ![Wizard](manual/Handbuch_v1/images/original_wizard.jpg) |
-| Start screen | Template editor | Template wizard |
-| ![Settings](manual/Handbuch_v1/images/allgemeine_einstellungen.jpg) | ![Printer](manual/Handbuch_v1/images/druckereinstellungen.jpg) | ![Render](manual/Handbuch_v1/images/render_einstellungen_1.jpg) |
-| General settings | Printer settings | Render settings |
 
 ### Quickstart (PC Installation)
 
