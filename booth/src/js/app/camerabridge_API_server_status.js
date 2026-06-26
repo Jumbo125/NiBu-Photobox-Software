@@ -237,8 +237,9 @@ const refreshDeviceFromConfig = () => {
       .prop("disabled", true)
       .addClass("disabled");
 
-    // Spinner im Badge
-    if ($badge.length) {
+    // Spinner im Badge nur zeigen wenn Status noch unbekannt oder offline
+    // (verhindert unnötiges Flackern wenn Bridge bereits als Online bekannt ist)
+    if ($badge.length && !PB._bridgeLastHealth?.webserverReachable) {
       const currentText = $badge.text().trim();
       const label = currentText || t("bridge.badge.checking", "Checking...");
       $badge
@@ -308,7 +309,7 @@ const refreshDeviceFromConfig = () => {
     PB._bridgeCheckXhr = $.ajax({
       url: statusUrl,
       method: "GET",
-      timeout: 1200,
+      timeout: 3000,
       cache: true,
       dataType: "json",
     })
