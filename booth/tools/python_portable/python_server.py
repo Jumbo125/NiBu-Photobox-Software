@@ -1843,6 +1843,136 @@ class Handler(BaseHTTPRequestHandler):
                     "counter_updated": True,
                 })
 
+        if path == "/print/test":
+            # Test-Druck: rendert das aktive Template mit farbigen Placeholder-Bildern
+            # und schickt das Ergebnis an den Drucker. Kein Counter-Increment.
+            auth = _auth_or_403(self, qs, data)
+            if not auth.get("ok"):
+                return self._send_json(403, {"ok": False, **auth})
+
+            if print_image is None:
+                return self._send_json(500, {
+                    "ok": False,
+                    "error": "printer_core_import_failed",
+                    "message": _PRINTER_IMPORT_ERROR,
+                })
+            if render_collage_api is None:
+                return self._send_json(500, {
+                    "ok": False,
+                    "error": "render_core_import_failed",
+                    "detail": _RENDER_IMPORT_ERROR,
+                })
+
+            printer_name = str(data.get("printerName") or data.get("printer_name") or "").strip() or None
+
+            try:
+                import tempfile, shutil, xml.etree.ElementTree as _ET
+                from PIL import Image as _Image, ImageDraw as _ImageDraw, ImageFont as _ImageFont
+
+                booth_root = get_booth_root()
+                template_xml = booth_root / "activeTemplate" / "template.xml"
+                if not template_xml.exists():
+                    return self._send_json(400, {"ok": False, "error": "template_not_found", "path": str(template_xml)})
+
+                # Bunte Placeholder-Farben passend zum Editor
+                _PLACEHOLDER_COLORS = [
+                    (255,  99, 132),
+                    ( 54, 162, 235),
+                    (255, 206,  86),
+                    ( 75, 192, 192),
+                    (153, 102, 255),
+                    (255, 159,  64),
+                ]
+
+                # Foto-Layer aus Template lesen um Anzahl + Größen zu kennen
+                _tree = _ET.parse(template_xml)
+                _root = _tree.getroot()
+                _photo_layers = [
+                    n for n in _root.findall("layer")
+                    if (n.attrib.get("type") or "").strip().lower() == "photo"
+                ]
+                if not _photo_layers:
+                    return self._send_json(400, {"ok": False, "error": "no_photo_layers_in_template"})
+
+                tmp_dir = Path(tempfile.mkdtemp(prefix="pb_testprint_"))
+                try:
+                    # Placeholder-Bilder erzeugen (Photo_1.jpg, Photo_2.jpg, ...)
+                    for node in _photo_layers:
+                        idx = int(node.attrib.get("index") or 1)
+                        w = max(int(node.attrib.get("w") or 800), 1)
+                        h = max(int(node.attrib.get("h") or 600), 1)
+                        color = _PLACEHOLDER_COLORS[(idx - 1) % len(_PLACEHOLDER_COLORS)]
+                        img = _Image.new("RGB", (w, h), color)
+                        draw = _ImageDraw.Draw(img)
+                        label = f"FOTO {idx}"
+                        try:
+                            font = _ImageFont.truetype("arial.ttf", size=max(32, h // 8))
+                        except Exception:
+                            font = _ImageFont.load_default()
+                        try:
+                            bbox = draw.textbbox((0, 0), label, font=font)
+                            tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
+                        except AttributeError:
+                            tw, th = draw.textsize(label, font=font)
+                        draw.text(((w - tw) // 2, (h - th) // 2), label, fill=(255, 255, 255), font=font)
+                        img.save(tmp_dir / f"Photo_{idx}.jpg", "JPEG", quality=90)
+
+                    out_dir = tmp_dir / "out"
+                    orig_dir = tmp_dir / "orig"
+                    out_dir.mkdir()
+                    orig_dir.mkdir()
+
+                    render_cfg_path = booth_root / "config" / "config" / "render_config.json"
+                    render_payload = {
+                        "template": str(template_xml),
+                        "input_dir": str(tmp_dir),
+                        "output_collage": str(out_dir),
+                        "output_originals": str(orig_dir),
+                        "prefix": "testprint_",
+                        "ext": ".jpg",
+                    }
+                    if render_cfg_path.exists():
+                        render_payload["render_config"] = str(render_cfg_path)
+
+                    base_dir = Path(HERE).resolve()
+                    with _RENDER_LOCK:
+                        render_result = render_collage_api(render_payload, base_dir=base_dir)
+
+                    if not render_result.get("ok"):
+                        return self._send_json(400, {"ok": False, "error": "render_failed", "detail": render_result})
+
+                    collage_path = render_result.get("output_path") or ""
+                    if not collage_path or not Path(collage_path).exists():
+                        return self._send_json(500, {"ok": False, "error": "render_output_missing"})
+
+                    with _PRINT_LOCK:
+                        if DEBUG_SKIP_PRINT:
+                            return self._send_json(200, {
+                                **_debug_skip_result("print_test", collage_path=collage_path, printer=printer_name),
+                                "printed": False,
+                                "test_print": True,
+                            })
+                        pr = print_image(collage_path, copies=1, printer_name=printer_name)
+
+                    if not pr.get("ok"):
+                        return self._send_json(400, {"ok": False, "printed": False, "test_print": True, **pr})
+
+                    return self._send_json(200, {
+                        "ok": True,
+                        "printed": True,
+                        "test_print": True,
+                        "collage_path": collage_path,
+                        "printer": printer_name,
+                        "print_method": pr.get("method"),
+                        "photo_count": len(_photo_layers),
+                    })
+                finally:
+                    shutil.rmtree(tmp_dir, ignore_errors=True)
+
+            except Exception as exc:
+                log_event(logging.ERROR, "print_test_error", "Test-print failed", error=str(exc))
+                return self._send_json(500, {"ok": False, "error": "test_print_exception", "message": str(exc)})
+
         if path == "/dnp/info":
             printer = str(data.get("printer") or "").strip() or None
             model = str(data.get("model") or "").strip() or None
@@ -1963,6 +2093,7 @@ def main():
         f"  POST /printers/default     {{\"printer\":\"...\"}}\n"
         f"  POST /printers/dialog      {{\"printer\":\"...\",\"kind\":\"overview|properties|preferences\"}}\n"
         f"  POST /print/default        {{\"image_path\":\"...\",\"event_file\":\"...\",\"copies\":1}}\n"
+        f"  POST /print/test           {{\"printerName\":\"...\"}}  (Test-Druck: aktives Template mit Placeholdern, kein Counter)\n"
         f"  GET  /service/status?exe=...&api_key=...\n"
         f"  POST /service/start        {{\"exe\":\"...\",\"api_key\":\"...\"}}\n"
         f"  POST /service/stop         {{\"exe\":\"...\",\"api_key\":\"...\"}}\n"
