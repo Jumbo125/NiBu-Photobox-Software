@@ -358,6 +358,49 @@
       }
     });
 
+    $('#btnTestPrint').on('click', async function () {
+      const $btn     = $('#btnTestPrint');
+      const $spinner = $('#btnTestPrintSpinner');
+      const $icon    = $('#btnTestPrintIcon');
+      const $toast   = $('#testPrintToast');
+      const $msg     = $('#testPrintToastMsg');
+
+      if ($btn.prop('disabled')) return;
+      $btn.prop('disabled', true);
+      $spinner.removeClass('d-none');
+      $icon.addClass('d-none');
+
+      const showToast = (text, isError) => {
+        $toast.removeClass('bg-success bg-danger text-white');
+        $toast.addClass(isError ? 'bg-danger text-white' : 'bg-success text-white');
+        $msg.text(text);
+        const bsToast = bootstrap.Toast.getOrCreateInstance($toast[0], { delay: isError ? 6000 : 4000 });
+        bsToast.show();
+      };
+
+      try {
+        const resp = await fetch('/api/test_print.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        });
+        let result = {};
+        try { result = await resp.json(); } catch (_) {}
+        if (result && result.ok) {
+          showToast(tr('te.testprint.success', 'Test-Druck gesendet!'), false);
+        } else {
+          const msg = result?.message || result?.error || tr('te.testprint.err.unknown', 'Unbekannter Fehler.');
+          showToast(tr('te.testprint.err.failed', 'Test-Druck fehlgeschlagen: ') + msg, true);
+        }
+      } catch (err) {
+        showToast(tr('te.testprint.err.exception', 'Fehler: ') + String(err?.message || err), true);
+      } finally {
+        $btn.prop('disabled', false);
+        $spinner.addClass('d-none');
+        $icon.removeClass('d-none');
+      }
+    });
+
     // Z-order / Delete
     $('#btnBringFwd').on('click', function () { TE.bringForward(); });
     $('#btnSendBack').on('click', function () { TE.sendBackwards(); });
