@@ -1,0 +1,131 @@
+Datei:
+- capture_flow_paper_printer_debug.js
+
+Download-Link zur JS-Datei:
+- sandbox:/mnt/data/capture_flow_paper_printer_debug.js
+
+==================================================
+Alle Debug-Aufrufe für die Chrome-Konsole
+==================================================
+
+// Alles ausblenden
+PB.captureFlow.debug.hideAll();
+PB.captureUI.hideAll();
+
+// Allgemeine Layer direkt anzeigen
+PB.captureFlow.debug.showLayer("Capture_error", { text: "Allgemeiner Fehler" });
+PB.captureFlow.debug.showLayer("Capture_error_paper", { text: "Papierfehler" });
+PB.captureFlow.debug.showLayer("Capture_error_printer", { text: "Druckerfehler" });
+
+// Spezielle Helper
+PB.captureFlow.debug.showPaperError("Papier leer.");
+PB.captureFlow.debug.showPaperError("Nur noch 2 Prints übrig, benötigt werden 4.");
+PB.captureFlow.debug.showPrinterError("Drucker offline.");
+PB.captureFlow.debug.showPrinterError("Print API nicht erreichbar.");
+PB.captureFlow.debug.showError("Allgemeiner Capture-Fehler.");
+PB.captureFlow.debug.showCountdown("Nächstes Foto…", 5);
+PB.captureFlow.debug.showTrigger("Bitte still halten.");
+PB.captureFlow.debug.showRender("Verarbeite Bild…");
+PB.captureFlow.debug.showFinish("Fertig!", "");
+
+// HTML statt reinem Text testen
+PB.captureFlow.debug.showLayer("Capture_error_paper", {
+  html: "<strong>Remaining prints:</strong> 2<br><strong>Required:</strong> 4"
+});
+
+==================================================
+Alle Layer direkt per PB.captureUI.show(...)
+==================================================
+
+// Countdown
+PB.captureUI.show("Capture_countdown", {
+  text: "Nächstes Foto…",
+  counter: 3
+});
+
+// Trigger
+PB.captureUI.show("Capture_working_trigger", {
+  text: "Die Kamera macht das Foto… bitte nicht bewegen."
+});
+
+// Working Capture
+PB.captureUI.show("Capture_working_capture", {
+  text: "Aufnahme läuft…"
+});
+
+// Working Render
+PB.captureUI.show("Capture_working_render", {
+  text: "Verarbeitung läuft…"
+});
+
+// Abort
+PB.captureUI.show("Capture_working_abort", {
+  text: "Abbruch läuft…"
+});
+
+// Allgemeiner Fehler
+PB.captureUI.show("Capture_error", {
+  text: "Allgemeiner Fehler",
+  onClose: () => PB.captureUI.hideAll()
+});
+
+// Papierfehler
+PB.captureUI.show("Capture_error_paper", {
+  text: "Papier leer oder nicht ausreichend.",
+  onClose: () => PB.captureUI.hideAll()
+});
+
+// Papierfehler mit HTML
+PB.captureUI.show("Capture_error_paper", {
+  html: "<strong>Remaining prints:</strong> 2<br><strong>Required:</strong> 4",
+  onClose: () => PB.captureUI.hideAll()
+});
+
+// Druckerfehler
+PB.captureUI.show("Capture_error_printer", {
+  text: "Druckerfehler oder Drucker offline.",
+  onClose: () => PB.captureUI.hideAll()
+});
+
+// Finish ohne Bild
+PB.captureUI.show("Capture_finish", {
+  text: "Fertig!"
+});
+
+// Finish mit Bild
+PB.captureUI.show("Capture_finish_with_img", {
+  text: "Fertig!",
+  imgSrc: "./src/img/trigger_wait.svg",
+  onClose: () => PB.captureUI.hideAll()
+});
+
+// Preview zwischen Shots
+PB.captureUI.show("Capture_preview_between_shots", {
+  imgSrc: "./src/img/trigger_wait.svg"
+});
+
+==================================================
+Schnelltests
+==================================================
+
+// Komplettsequenz
+PB.captureFlow.debug.showCountdown("Startet…", 5);
+setTimeout(() => PB.captureFlow.debug.showTrigger("Bitte still halten."), 1500);
+setTimeout(() => PB.captureUI.show("Capture_working_capture", { text: "Aufnahme läuft…" }), 3000);
+setTimeout(() => PB.captureFlow.debug.showRender("Verarbeite Bild…"), 4500);
+setTimeout(() => PB.captureFlow.debug.showFinish("Fertig!", "./src/img/trigger_wait.svg"), 6000);
+
+// Papierfehler schnell testen
+PB.captureFlow.debug.showPaperError("Nur noch 2 Prints übrig, benötigt werden 4.");
+
+// Druckerfehler schnell testen
+PB.captureFlow.debug.showPrinterError("Drucker offline oder nicht erreichbar.");
+
+// HTML-Format schnell testen
+PB.captureFlow.debug.showLayer("Capture_error_paper", {
+  html: `
+    <div style="font-size:2rem;font-weight:bold;">Papierproblem</div>
+    <div style="margin-top:1rem;">Remaining prints: <strong>2</strong></div>
+    <div>Required: <strong>4</strong></div>
+  `
+});

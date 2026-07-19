@@ -10,6 +10,12 @@
   "btn.import": "Import",
   "btn.save": "Save",
   "btn.exportZip": "Export ZIP",
+  "btn.setActiveTemplate": "Set as active Template",
+  "te.setActive.confirm": "Set \"{name}\" as the active template?\nThe current active template will be overwritten.",
+  "te.setActive.success": "✅ \"{name}\" is now the active template.",
+  "te.setActive.err.failed": "Error: ",
+  "te.setActive.err.unknown": "Unknown error.",
+  "te.setActive.err.exception": "Exception: ",
 
   "btn.addPhoto": "Add Photo",
   "btn.addImage": "Add Image",
