@@ -16,6 +16,14 @@
     <input id="inW" type="number" step="1" class="form-control">
   </div>
 
+  <button id="btnLockAspect" type="button"
+          class="btn btn-outline-secondary btn-sm px-1"
+          title="Proportionen sperren"
+          data-i18n-title="inspector.lock_aspect"
+          style="min-width:28px;">
+    <i class="bi bi-lock" id="iconLockAspect"></i>
+  </button>
+
   <div class="input-group input-group-sm" style="width: 120px;">
     <span class="input-group-text" data-i18n="inspector.h">H</span>
     <input id="inH" type="number" step="1" class="form-control">
