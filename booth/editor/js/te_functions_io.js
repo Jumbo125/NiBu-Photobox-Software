@@ -100,11 +100,16 @@ window.TE = window.TE || {};
       .map((o) => {
         TE.ensureUid(o);
 
+        // getCenterPoint() returns the true visual center regardless of rotation/origin.
+        // x/y (top-left corner) are kept for backwards compat but cx/cy is the authoritative position.
+        const center = o.getCenterPoint();
         const base = {
           id: Number(o.pbUid || 0),
           type: o.pbType || 'item',
           x: Math.round(o.left || 0),
           y: Math.round(o.top || 0),
+          cx: Math.round(center.x),
+          cy: Math.round(center.y),
           w: Math.round(o.getScaledWidth()),
           h: Math.round(o.getScaledHeight()),
           rotation: Math.round(o.angle || 0)
@@ -119,6 +124,9 @@ window.TE = window.TE || {};
 
         if ((o.pbType || '') === 'photo') {
           base.index = Number(o.pbIndex || 0);
+          // Read the visible placeholder label from the text child inside the group
+          const tObj = typeof TE._getFirstTextInGroup === 'function' ? TE._getFirstTextInGroup(o) : null;
+          if (tObj && typeof tObj.text === 'string') base.label = tObj.text;
         } else if ((o.pbType || '') === 'image') {
           base.src = o.pbSrc || '';
           base.name = o.pbName || pbT('te.layer.image.default_name', 'IMAGE');
@@ -280,9 +288,17 @@ window.TE = window.TE || {};
           }
         );
 
+        // If cx/cy are stored, derive left/top from center minus half dimensions.
+        // This compensates for the fact that x/y were saved as the fabric anchor
+        // (top-left of unrotated bbox), which drifts after rotation.
+        const _gw = ly.w || 0;
+        const _gh = ly.h || 0;
+        const _gLeft = (ly.cx != null) ? (ly.cx - _gw / 2) : (ly.x || 0);
+        const _gTop  = (ly.cy != null) ? (ly.cy - _gh / 2) : (ly.y || 0);
+
         const g = new fabric.Group([rect, txt], {
-          left: ly.x || 0,
-          top: ly.y || 0,
+          left: _gLeft,
+          top: _gTop,
           angle: ly.rotation || 0,
           originX: 'left',
           originY: 'top',
@@ -338,9 +354,14 @@ window.TE = window.TE || {};
         img = await TE._fabricLoadImage(url);
       }
 
+      const _iw = ly.w || 0;
+      const _ih = ly.h || 0;
+      const _iLeft = (ly.cx != null) ? (ly.cx - _iw / 2) : (ly.x || 0);
+      const _iTop  = (ly.cy != null) ? (ly.cy - _ih / 2) : (ly.y || 0);
+
       img.set({
-        left: ly.x || 0,
-        top: ly.y || 0,
+        left: _iLeft,
+        top: _iTop,
         angle: ly.rotation || 0,
         originX: 'left',
         originY: 'top',

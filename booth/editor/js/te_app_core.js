@@ -379,10 +379,15 @@
       };
 
       try {
+        if (!TE.state || !TE.state.templateName) {
+          return showToast(tr('template_editor.toast.no_active_template', 'No template active.'), true);
+        }
+        await TE.saveTemplate();
+
         const resp = await fetch('/api/test_print.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({}),
+          body: JSON.stringify({ templateName: TE.state.templateName }),
         });
         let result = {};
         try { result = await resp.json(); } catch (_) {}
@@ -401,6 +406,56 @@
       }
     });
 
+    $('#btnSetActiveTemplate').on('click', async function () {
+      const $btn     = $('#btnSetActiveTemplate');
+      const $spinner = $('#btnSetActiveSpinner');
+      const $icon    = $('#btnSetActiveIcon');
+
+      if ($btn.prop('disabled')) return;
+
+      const name = (TE.state && TE.state.templateName) || '';
+      if (!name) {
+        return TE.toast(tr('template_editor.toast.no_active_template', 'No template active.'));
+      }
+
+      const confirmMsg = tr(
+        'te.setActive.confirm',
+        'Soll "' + name + '" als aktives Template gesetzt werden?\nDas bisherige aktive Template wird überschrieben.'
+      ).replace('{name}', name);
+
+      if (!window.confirm(confirmMsg)) return;
+
+      $btn.prop('disabled', true);
+      $spinner.removeClass('d-none');
+      $icon.addClass('d-none');
+
+      try {
+        await TE.saveTemplate();
+
+        const resp = await fetch('/api/template_set_active.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ templateName: name }),
+          cache: 'no-store'
+        });
+        let result = {};
+        try { result = await resp.json(); } catch (_) {}
+
+        if (result && result.ok) {
+          TE.toast(tr('te.setActive.success', '"' + name + '" ist jetzt das aktive Template.').replace('{name}', name));
+        } else {
+          const msg = result?.error || tr('te.setActive.err.unknown', 'Unbekannter Fehler.');
+          TE.toast(tr('te.setActive.err.failed', 'Fehler: ') + msg);
+        }
+      } catch (err) {
+        TE.toast(tr('te.setActive.err.exception', 'Fehler: ') + String(err?.message || err));
+      } finally {
+        $btn.prop('disabled', false);
+        $spinner.addClass('d-none');
+        $icon.removeClass('d-none');
+      }
+    });
+
     // Z-order / Delete
     $('#btnBringFwd').on('click', function () { TE.bringForward(); });
     $('#btnSendBack').on('click', function () { TE.sendBackwards(); });
@@ -411,12 +466,14 @@
       $('#' + id).on('change', function () {
         if (!TE.state || !TE.state.canvas) return;
         TE.state.suppressInspector = true;
-        TE.applyInspectorToSelected();
+        TE.applyInspectorToSelected(id);
         TE.state.suppressInspector = false;
         TE.syncInspectorFromSelected();
         refreshInspectors();
       });
     });
+
+    if (typeof TE.initAspectLockBtn === 'function') TE.initAspectLockBtn();
 
     // Projekte: beim Modal anzeigen aktualisieren
     $(document).on('shown.bs.modal', '#teModal', function () {

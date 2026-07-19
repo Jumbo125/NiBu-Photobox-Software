@@ -93,6 +93,26 @@
         <button id="btnExport" type="button" class="btn btn-primary">
           <i class="bi bi-file-zip me-1"></i><span data-i18n="btn.exportZip">Export ZIP</span>
         </button>
+        <button id="btnTestPrint" type="button" class="btn btn-outline-warning">
+          <span id="btnTestPrintSpinner" class="spinner-border spinner-border-sm me-1 d-none" role="status" aria-hidden="true"></span>
+          <i id="btnTestPrintIcon" class="bi bi-printer me-1"></i>
+          <span data-i18n="btn.testPrint">Test-Druck</span>
+        </button>
+        <button id="btnSetActiveTemplate" type="button" class="btn btn-outline-success">
+          <span id="btnSetActiveSpinner" class="spinner-border spinner-border-sm me-1 d-none" role="status" aria-hidden="true"></span>
+          <i id="btnSetActiveIcon" class="bi bi-check-circle me-1"></i>
+          <span data-i18n="btn.setActiveTemplate">Als aktives Template</span>
+        </button>
+      </div>
+
+      <!-- Test-Druck Ergebnis-Toast -->
+      <div id="testPrintToast" class="toast align-items-center border-0 position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive" aria-atomic="true" style="z-index:9999; min-width:260px;">
+        <div class="d-flex">
+          <div class="toast-body" id="testPrintToastMsg">
+            Druckauftrag gesendet.
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Schließen"></button>
+        </div>
       </div>
 
       <div class="vr text-secondary"></div>

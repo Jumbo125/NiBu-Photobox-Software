@@ -350,7 +350,30 @@ window.TE = window.TE || {};
     obj.set('scaleY', scale);
   };
 
-  TE.applyInspectorToSelected = function () {
+  // ---------------------------
+  // Aspect-ratio lock
+  // ---------------------------
+  TE.aspectLocked = false;
+
+  TE.setAspectLock = function (locked) {
+    TE.aspectLocked = !!locked;
+    const icon = document.getElementById('iconLockAspect');
+    const btn  = document.getElementById('btnLockAspect');
+    if (icon) icon.className = locked ? 'bi bi-lock-fill' : 'bi bi-lock';
+    if (btn)  btn.classList.toggle('btn-warning', locked);
+    if (btn)  btn.classList.toggle('btn-outline-secondary', !locked);
+  };
+
+  // Called from te_app_core.js after DOM ready
+  TE.initAspectLockBtn = function () {
+    const btn = document.getElementById('btnLockAspect');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      TE.setAspectLock(!TE.aspectLocked);
+    });
+  };
+
+  TE.applyInspectorToSelected = function (changedId) {
     const o = TE.state.selected;
     if (!o) return;
 
@@ -358,12 +381,32 @@ window.TE = window.TE || {};
       const el = document.getElementById(id);
       return el ? Number(el.value) : NaN;
     };
+    const setVal = (id, v) => {
+      const el = document.getElementById(id);
+      if (el) el.value = Math.round(v);
+    };
 
     const x = getN('inX');
     const y = getN('inY');
-    const w = getN('inW');
-    const h = getN('inH');
+    let w = getN('inW');
+    let h = getN('inH');
     const r = getN('inR');
+
+    // Proportional scaling when aspect lock is active
+    if (TE.aspectLocked && o) {
+      const curW = o.getScaledWidth();
+      const curH = o.getScaledHeight();
+      if (curW > 0 && curH > 0) {
+        const ratio = curW / curH;
+        if (changedId === 'inW' && !Number.isNaN(w) && w > 1) {
+          h = w / ratio;
+          setVal('inH', h);
+        } else if (changedId === 'inH' && !Number.isNaN(h) && h > 1) {
+          w = h * ratio;
+          setVal('inW', w);
+        }
+      }
+    }
 
     if (!Number.isNaN(x)) o.set('left', x);
     if (!Number.isNaN(y)) o.set('top', y);

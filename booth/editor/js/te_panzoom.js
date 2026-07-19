@@ -235,6 +235,8 @@
 
       $(document).on('keydown.teZoomKeys', function (e) {
         if (!TE.state || !TE.state.canvas) return;
+        const tag = document.activeElement && document.activeElement.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
         if (e.key === '0') return fitToScreen();
         if (e.key === '+' || e.key === '=') return zoomIn();
         if (e.key === '-') return zoomOut();

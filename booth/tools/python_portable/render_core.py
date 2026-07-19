@@ -74,7 +74,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
-from PIL import Image, ImageFilter, ImageOps, ImageDraw
+from PIL import Image, ImageFilter, ImageOps, ImageDraw, ImageFont
 from xml.etree import ElementTree as ET
 
 # Pillow-Kompatibilität (ältere Versionen)
@@ -270,7 +270,13 @@ class Layer:
     rotation: float
     z: int
 
+    # Visual center from Fabric getCenterPoint() — authoritative when rotation != 0.
+    # None means the template was saved before cx/cy were introduced (fall back to x+w/2).
+    cx: Optional[int] = None
+    cy: Optional[int] = None
+
     index: Optional[int] = None
+    label: Optional[str] = None  # Placeholder text visible in the editor (e.g. "FOTO 1")
     src: Optional[str] = None  # for "image"
 
     # Style / Effects (optional)
@@ -345,6 +351,10 @@ def parse_template_xml(xml_path: Path) -> Tuple[int, int, bool, str, str, List[L
         ltype = (node.attrib.get("type") or "").strip().lower()
         x = _parse_int(node.attrib.get("x"), 0)
         y = _parse_int(node.attrib.get("y"), 0)
+        cx_raw = node.attrib.get("cx")
+        cy_raw = node.attrib.get("cy")
+        cx = _parse_int(cx_raw) if cx_raw is not None else None
+        cy = _parse_int(cy_raw) if cy_raw is not None else None
         w = _parse_int(node.attrib.get("w"), 0)
         h = _parse_int(node.attrib.get("h"), 0)
         rotation = _parse_float(node.attrib.get("rotation"), 0.0)
@@ -369,12 +379,14 @@ def parse_template_xml(xml_path: Path) -> Tuple[int, int, bool, str, str, List[L
 
         if ltype == "photo":
             idx = _parse_int(node.attrib.get("index"), 0)
+            label = node.attrib.get("label") or None
             layers.append(
                 Layer(
                     type="photo",
-                    x=x, y=y, w=w, h=h,
+                    x=x, y=y, cx=cx, cy=cy, w=w, h=h,
                     rotation=rotation, z=z,
                     index=idx,
+                    label=label,
                     radius=radius,
                     border=border, border_color=border_color, border_style=border_style, border_width=border_width,
                     shadow=shadow, shadow_preset=shadow_preset, shadow_color=shadow_color,
@@ -386,7 +398,7 @@ def parse_template_xml(xml_path: Path) -> Tuple[int, int, bool, str, str, List[L
             layers.append(
                 Layer(
                     type="image",
-                    x=x, y=y, w=w, h=h,
+                    x=x, y=y, cx=cx, cy=cy, w=w, h=h,
                     rotation=rotation, z=z,
                     src=src,
                     radius=radius,
@@ -1088,10 +1100,16 @@ def place_layer(
     img_final = _compose_with_shadow(img_rot, layer)
 
     # 6) Zentrieren auf Layer-Box
-    cx = layer.x + layer.w / 2.0
-    cy = layer.y + layer.h / 2.0
-    px = int(round(cx - img_final.size[0] / 2.0))
-    py = int(round(cy - img_final.size[1] / 2.0))
+    # Prefer cx/cy (visual center saved by Fabric getCenterPoint) over x+w/2,
+    # which is wrong after rotation because x/y is the fabric anchor (not visual top-left).
+    if layer.cx is not None and layer.cy is not None:
+        center_x = float(layer.cx)
+        center_y = float(layer.cy)
+    else:
+        center_x = layer.x + layer.w / 2.0
+        center_y = layer.y + layer.h / 2.0
+    px = int(round(center_x - img_final.size[0] / 2.0))
+    py = int(round(center_y - img_final.size[1] / 2.0))
 
     canvas.alpha_composite(img_final, dest=(px, py))
 
