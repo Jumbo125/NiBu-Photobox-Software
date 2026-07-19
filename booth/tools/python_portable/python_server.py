@@ -1870,7 +1870,16 @@ class Handler(BaseHTTPRequestHandler):
                 from PIL import Image as _Image, ImageDraw as _ImageDraw, ImageFont as _ImageFont
 
                 booth_root = get_booth_root()
-                template_xml = booth_root / "activeTemplate" / "template.xml"
+
+                # template_dir: vom Editor mitgeschickt (für Test-Druck aus Editor)
+                # Fallback: activeTemplate (für zukünftige andere Aufrufer)
+                template_dir_raw = str(data.get("template_dir") or "").strip()
+                if template_dir_raw:
+                    active_template_dir = Path(template_dir_raw).resolve()
+                else:
+                    active_template_dir = booth_root / "activeTemplate"
+
+                template_xml = active_template_dir / "template.xml"
                 if not template_xml.exists():
                     return self._send_json(400, {"ok": False, "error": "template_not_found", "path": str(template_xml)})
 
@@ -1894,9 +1903,11 @@ class Handler(BaseHTTPRequestHandler):
                 if not _photo_layers:
                     return self._send_json(400, {"ok": False, "error": "no_photo_layers_in_template"})
 
-                tmp_dir = Path(tempfile.mkdtemp(prefix="pb_testprint_"))
+                # Placeholder-Fotos direkt in den Template-Ordner schreiben —
+                # nur so findet der Renderer Assets (assets/bg.png) relativ zum input_dir.
+                # finally-Block löscht die temporären Foto-Dateien zuverlässig wieder.
+                written_placeholders: list = []
                 try:
-                    # Placeholder-Bilder erzeugen (Photo_1.jpg, Photo_2.jpg, ...)
                     for node in _photo_layers:
                         idx = int(node.attrib.get("index") or 1)
                         w = max(int(node.attrib.get("w") or 800), 1)
@@ -1915,59 +1926,69 @@ class Handler(BaseHTTPRequestHandler):
                         except AttributeError:
                             tw, th = draw.textsize(label, font=font)
                         draw.text(((w - tw) // 2, (h - th) // 2), label, fill=(255, 255, 255), font=font)
-                        img.save(tmp_dir / f"Photo_{idx}.jpg", "JPEG", quality=90)
+                        dest = active_template_dir / f"Photo_{idx}.jpg"
+                        img.save(dest, "JPEG", quality=90)
+                        written_placeholders.append(dest)
 
-                    out_dir = tmp_dir / "out"
-                    orig_dir = tmp_dir / "orig"
-                    out_dir.mkdir()
-                    orig_dir.mkdir()
+                    tmp_out = Path(tempfile.mkdtemp(prefix="pb_testprint_out_"))
+                    try:
+                        out_dir = tmp_out / "out"
+                        orig_dir = tmp_out / "orig"
+                        out_dir.mkdir()
+                        orig_dir.mkdir()
 
-                    render_cfg_path = booth_root / "config" / "config" / "render_config.json"
-                    render_payload = {
-                        "template": str(template_xml),
-                        "input_dir": str(tmp_dir),
-                        "output_collage": str(out_dir),
-                        "output_originals": str(orig_dir),
-                        "prefix": "testprint_",
-                        "ext": ".jpg",
-                    }
-                    if render_cfg_path.exists():
-                        render_payload["render_config"] = str(render_cfg_path)
+                        render_cfg_path = booth_root / "config" / "config" / "render_config.json"
+                        render_payload = {
+                            "template": str(template_xml),
+                            "input_dir": str(active_template_dir),
+                            "output_collage": str(out_dir),
+                            "output_originals": str(orig_dir),
+                            "prefix": "testprint_",
+                            "ext": ".jpg",
+                        }
+                        if render_cfg_path.exists():
+                            render_payload["render_config"] = str(render_cfg_path)
 
-                    base_dir = Path(HERE).resolve()
-                    with _RENDER_LOCK:
-                        render_result = render_collage_api(render_payload, base_dir=base_dir)
+                        base_dir = Path(HERE).resolve()
+                        with _RENDER_LOCK:
+                            render_result = render_collage_api(render_payload, base_dir=base_dir)
 
-                    if not render_result.get("ok"):
-                        return self._send_json(400, {"ok": False, "error": "render_failed", "detail": render_result})
+                        if not render_result.get("ok"):
+                            return self._send_json(400, {"ok": False, "error": "render_failed", "detail": render_result})
 
-                    collage_path = render_result.get("output_path") or ""
-                    if not collage_path or not Path(collage_path).exists():
-                        return self._send_json(500, {"ok": False, "error": "render_output_missing"})
+                        collage_path = render_result.get("output_path") or ""
+                        if not collage_path or not Path(collage_path).exists():
+                            return self._send_json(500, {"ok": False, "error": "render_output_missing"})
 
-                    with _PRINT_LOCK:
-                        if DEBUG_SKIP_PRINT:
-                            return self._send_json(200, {
-                                **_debug_skip_result("print_test", collage_path=collage_path, printer=printer_name),
-                                "printed": False,
-                                "test_print": True,
-                            })
-                        pr = print_image(collage_path, copies=1, printer_name=printer_name)
+                        with _PRINT_LOCK:
+                            if DEBUG_SKIP_PRINT:
+                                return self._send_json(200, {
+                                    **_debug_skip_result("print_test", collage_path=collage_path, printer=printer_name),
+                                    "printed": False,
+                                    "test_print": True,
+                                })
+                            pr = print_image(collage_path, copies=1, printer_name=printer_name)
 
-                    if not pr.get("ok"):
-                        return self._send_json(400, {"ok": False, "printed": False, "test_print": True, **pr})
+                        if not pr.get("ok"):
+                            return self._send_json(400, {"ok": False, "printed": False, "test_print": True, **pr})
 
-                    return self._send_json(200, {
-                        "ok": True,
-                        "printed": True,
-                        "test_print": True,
-                        "collage_path": collage_path,
-                        "printer": printer_name,
-                        "print_method": pr.get("method"),
-                        "photo_count": len(_photo_layers),
-                    })
+                        return self._send_json(200, {
+                            "ok": True,
+                            "printed": True,
+                            "test_print": True,
+                            "collage_path": collage_path,
+                            "printer": printer_name,
+                            "print_method": pr.get("method"),
+                            "photo_count": len(_photo_layers),
+                        })
+                    finally:
+                        shutil.rmtree(tmp_out, ignore_errors=True)
                 finally:
-                    shutil.rmtree(tmp_dir, ignore_errors=True)
+                    for p in written_placeholders:
+                        try:
+                            p.unlink()
+                        except Exception:
+                            pass
 
             except Exception as exc:
                 log_event(logging.ERROR, "print_test_error", "Test-print failed", error=str(exc))
