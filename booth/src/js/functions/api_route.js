@@ -67,7 +67,8 @@
   };
 
   PB.bridgeBaseUrl = PB.bridgeBaseUrl || function () {
-    return `http://${PB.getApiHost()}:${PB.getBridgePort()}`;
+    // Caddy proxied /camerapi/* → Bridge:8052 — kein Cross-Origin-Problem
+    return window.location.origin + '/camerapi';
   };
 
   PB.phpBaseUrl = PB.phpBaseUrl || function () {
