@@ -122,7 +122,7 @@ S.ensureBridgeRunning = async function (opts = {}) {
         PB.bridge?.url ||
         window.PB_CONFIG?.cameraBridgeServer?.Url ||
         window.PB_CONFIG?.cameraBridgeServer?.url ||
-        "http://127.0.0.1:8052";
+        (typeof PB.bridgeBaseUrl === 'function' ? PB.bridgeBaseUrl() : "http://127.0.0.1:8052");
 
       const res = await fetch(String(baseUrl).replace(/\/+$/, "") + "/api/status", {
         method: "GET",

@@ -169,15 +169,32 @@
   };
 
   // ---------- Bridge calls (nur noch PB.bridge.*) ----------
-  PB.fetchCameraList = async function () {
+  PB.fetchCameraList = async function (opts) {
     if (!PB.bridge) throw new Error(tr("camera_bridge.err.bridge_not_loaded", "PB.bridge not loaded"));
 
-    // optional: refresh
-    try {
-      if (typeof PB.bridge.refresh === "function") await PB.bridge.refresh();
-    } catch (err) {
-      if (PB.isCameraBridgeOfflineError(err)) throw err;
-      console.warn("[DeviceRefresh] bridge.refresh error:", err);
+    // WICHTIG: bridge.refresh() löst im Worker Manager.ConnectToCamera() aus = volle
+    // Neu-Enumeration der Kamera. Das destabilisiert eine laufende LiveView-Session; vor
+    // allem Nikon-DSLRs kippen dabei in "MTP device busy" und der nächste Capture scheitert.
+    // Deshalb den Refresh überspringen, solange ein Capture läuft ODER LiveView aktiv ist.
+    // Nur mit explizitem { forceRefresh: true } (z.B. bewusster User-Refresh) trotzdem laufen.
+    const force = !!(opts && opts.forceRefresh);
+    const captureRunning = !!(PB.captureFlow && PB.captureFlow.isRunning && PB.captureFlow.isRunning());
+    const liveViewActive = PB._bridgeLastHealth && PB._bridgeLastHealth.liveViewRunning === true;
+    const skipRefresh = !force && (captureRunning || liveViewActive);
+
+    if (!skipRefresh) {
+      try {
+        if (typeof PB.bridge.refresh === "function") await PB.bridge.refresh();
+      } catch (err) {
+        if (PB.isCameraBridgeOfflineError(err)) throw err;
+        console.warn("[DeviceRefresh] bridge.refresh error:", err);
+      }
+    } else {
+      console.log(
+        "[DeviceRefresh] bridge.refresh übersprungen (captureRunning=" +
+          captureRunning + ", liveViewActive=" + liveViewActive +
+          ") um LiveView/Kamera nicht zu destabilisieren.",
+      );
     }
 
     // list

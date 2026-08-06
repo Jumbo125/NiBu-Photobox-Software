@@ -154,8 +154,8 @@
     // PHP fallback: non-bridge endpoints
     const basePhp = (window.location.origin || 'http://127.0.0.1:8050') + '/api/';
 
-    // Bridge-API base
-    const baseApi = `${apiProto()}//${apiHost()}:${getBridgePort()}/`;
+    // Bridge-API base — via Caddy-Proxy um CORS zu vermeiden
+    const baseApi = (typeof PB.bridgeBaseUrl === 'function' ? PB.bridgeBaseUrl() : `${apiProto()}//${apiHost()}:${getBridgePort()}`) + '/';
 
     const useApi = /^api\//i.test(String(path));
     const base = useApi ? baseApi : basePhp;
@@ -199,15 +199,15 @@
       const u = new URL(urlOrPath, window.location.origin);
       const p = (u.pathname || '').toLowerCase();
 
-      // nur Bridge API /api/... und NICHT die public endpoints
-      if (p.startsWith('/api/') && !isPublicPath(p)) apply();
+      // /api/... direkt oder /camerapi/api/... via Caddy-Proxy
+      const apiPath = p.startsWith('/camerapi/') ? p.slice('/camerapi'.length) : p;
+      if (apiPath.startsWith('/api/') && !isPublicPath(apiPath)) apply();
       return headers;
     } catch (_) {}
 
     // fallback: wenn nur path übergeben wurde
     const s = String(urlOrPath || '').toLowerCase();
-    if (s.startsWith('api/') || s.startsWith('/api/')) {
-      // hier kennen wir public-Check nicht sauber -> apply nur wenn nicht status
+    if (s.startsWith('api/') || s.startsWith('/api/') || s.includes('/camerapi/api/')) {
       if (!s.includes('api/status')) apply();
     }
     return headers;
@@ -292,7 +292,7 @@
   Object.defineProperty(PB.bridge, 'base', {
     get: () => {
       try { return new URL(urlFor('bridge_status')).origin; }
-      catch (_) { return `${apiProto()}//${apiHost()}:${getBridgePort()}`; }
+      catch (_) { return typeof PB.bridgeBaseUrl === 'function' ? PB.bridgeBaseUrl() : `${apiProto()}//${apiHost()}:${getBridgePort()}`; }
     }
   });
 
