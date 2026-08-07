@@ -43,6 +43,13 @@
     if (!h || h.webserverReachable !== true) return false;
     if (!h.selected) return false;
 
+    // Läuft LiveView bereits, ist nichts zu tun. WICHTIG bei Nikon: der Worker
+    // behandelt liveviewStart() dort NICHT als No-op, sondern stoppt/startet die
+    // Session hart neu (siehe CameraHost.StartLiveView). Ein Ping alle 45s hätte
+    // sonst ungewollt regelmäßige Hard-Restarts der laufenden Session zur Folge
+    // und kann nach ein paar Zyklen ohne jeden Auslöser in "MTP device busy" enden.
+    if (h.liveViewRunning === true) return false;
+
     return true;
   }
 

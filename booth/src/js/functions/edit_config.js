@@ -70,6 +70,10 @@
 
   /**
    * Baut aus einem Formular ein Patch-Objekt anhand data-json-parm / data-json-path.
+   * Felder mit data-sync-parm spiegeln ihren Wert zusätzlich unter dem
+   * angegebenen Parm-Namen (gleiche data-json-group) in denselben Patch —
+   * z.B. damit ein einzelnes sichtbares Feld zwei Config-Keys setzt, ohne
+   * dass dafür ein zweites (verstecktes) Formular-Element nötig ist.
    */
   PB.formToPatch = PB.formToPatch || function ($form) {
     const patch = {};
@@ -91,6 +95,12 @@
       if (String($el.attr('type') || '').toLowerCase() === 'radio' && val === undefined) return;
 
       PB._setDeep(patch, fullPath, val);
+
+      const syncParm = $el.data('syncParm');
+      if (syncParm && path === undefined) {
+        const syncPath = (group ? (group + '.') : '') + syncParm;
+        PB._setDeep(patch, syncPath, val);
+      }
     });
 
     return patch;

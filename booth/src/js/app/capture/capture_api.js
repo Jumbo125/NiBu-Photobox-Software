@@ -1236,4 +1236,5 @@ PB.captureApi.cameraPreflight = async function (opts) {
 
     return json;
   };
+
 })();

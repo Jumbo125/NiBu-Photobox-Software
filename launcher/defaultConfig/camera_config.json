@@ -10,7 +10,8 @@
         "liveview_show_on_startscreen": true,
         "liveview_fps_active": 20,
         "liveview_fps_idle": 10,
-        "liveview_auto_pause_minutes": 0,
+        "liveview_auto_pause_minutes": 30,
+        "liveview_max_runtime_minutes": 30,
         "preview_mirror": true,
         "fullImg": true
     }
