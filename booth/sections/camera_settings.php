@@ -321,40 +321,41 @@
                             </div>
 
                             <!-- FPS settings -->
-                            <!-- LiveView Auto-Pause -->
+                            <!-- LiveView Camera Protection (schreibt liveview_max_runtime_minutes UND liveview_auto_pause_minutes) -->
                             <div class="row g-2 mt-3">
                                 <div class="col-12">
                                     <label
-                                        for="cameraLiveviewAutoPauseMin"
+                                        for="cameraLiveviewMaxRuntimeMin"
                                         class="form-label mb-1"
-                                        data-lang-key="overlay.camera_settings.liveview_auto_pause.label">
-                                        <?= t('overlay.camera_settings.liveview_auto_pause.label', 'Auto-Pause LiveView after inactivity (minutes)') ?>
+                                        data-lang-key="overlay.camera_settings.liveview_max_runtime.label">
+                                        <?= t('overlay.camera_settings.liveview_max_runtime.label', 'Camera protection: stop LiveView after (minutes)') ?>
                                     </label>
 
                                     <div class="input-group input-group-sm" style="max-width:200px">
                                         <input
                                             type="number"
                                             class="form-control"
-                                            id="cameraLiveviewAutoPauseMin"
+                                            id="cameraLiveviewMaxRuntimeMin"
                                             min="0"
                                             max="120"
                                             step="1"
-                                            placeholder="<?= t('overlay.camera_settings.liveview_auto_pause.placeholder', '0 = off') ?>"
+                                            placeholder="<?= t('overlay.camera_settings.liveview_max_runtime.placeholder', '0 = off') ?>"
                                             data-json-group="camera_settings"
-                                            data-json-parm="liveview_auto_pause_minutes"
+                                            data-json-parm="liveview_max_runtime_minutes"
                                             data-json-type="int"
-                                            data-default-value="0">
-                                        <span class="input-group-text" data-lang-key="overlay.camera_settings.liveview_auto_pause.unit">
-                                            <?= t('overlay.camera_settings.liveview_auto_pause.unit', 'min') ?>
+                                            data-default-value="0"
+                                            data-sync-parm="liveview_auto_pause_minutes">
+                                        <span class="input-group-text" data-lang-key="overlay.camera_settings.liveview_max_runtime.unit">
+                                            <?= t('overlay.camera_settings.liveview_max_runtime.unit', 'min') ?>
                                         </span>
                                     </div>
 
                                     <div
                                         class="small text-secondary mt-1"
-                                        data-lang-key="overlay.camera_settings.liveview_auto_pause.hint">
+                                        data-lang-key="overlay.camera_settings.liveview_max_runtime.hint">
                                         <?= t(
-                                            'overlay.camera_settings.liveview_auto_pause.hint',
-                                            '0 = disabled. If set, LiveView stops automatically after X minutes without a capture. It restarts on the next capture. Protects the camera during long events.'
+                                            'overlay.camera_settings.liveview_max_runtime.hint',
+                                            '0 = disabled. LiveView is stopped automatically after X minutes to protect the camera — both during inactivity and during continuous use. It restarts on the next capture.'
                                         ) ?>
                                     </div>
                                 </div>

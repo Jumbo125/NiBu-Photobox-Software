@@ -281,25 +281,11 @@ const refreshDeviceFromConfig = () => {
     // -------------------------
     // Base URL
     // -------------------------
-    const Bridge = PB._getDeep?.(window.PB_CONFIG, "cameraBridgeServer.Bridge") || {};
-
-    const Port = parseInt(Bridge.Port, 10);
-    const Host = String(Bridge.Host || Bridge.IP || Bridge.Address || "127.0.0.1").trim();
-
-    const Proto =
-      Bridge.Https === true || String(Bridge.Protocol || "").toLowerCase() === "https"
-        ? "https"
-        : "http";
-
-    const RawBase = (Bridge.BaseUrl || Bridge.URL || Bridge.Url || "").trim();
-
-    let baseUrl;
-    if (RawBase) {
-      baseUrl = RawBase.replace(/\/+$/, "") + "/";
-    } else {
-      const portFinal = Number.isFinite(Port) && Port > 0 ? Port : 8052;
-      baseUrl = `${Proto}://${Host}:${portFinal}/`;
-    }
+    // Caddy proxied /camerapi/* → Bridge — kein Cross-Origin-Problem
+    const baseUrl = (typeof PB.bridgeBaseUrl === "function"
+      ? PB.bridgeBaseUrl()
+      : window.location.origin + "/camerapi"
+    ).replace(/\/+$/, "") + "/";
 
     const statusUrl = baseUrl + "api/status";
 
@@ -338,6 +324,10 @@ const refreshDeviceFromConfig = () => {
         PB._bridgeLastHealth = health;
 
         // -------- UI State --------
+        // Bridge ist erreichbar → Offline-Hint immer ausblenden
+        PB.toggleCameraBridgeOfflineHint?.(false);
+        PB._bridgeOfflineShown = false;
+
         let badgeCls = "bg-info";
         let badgeText = t("bridge.badge.ready", "Ready");
         let toast = t("bridge.toast.reachable", "CameraBridge reachable ✅");
@@ -348,8 +338,6 @@ const refreshDeviceFromConfig = () => {
           toast =
             t("bridge.toast.frames_sending", "✅ 1–4 OK: Stream is sending frames") +
             (health.selected ? " (" + health.selected + ")" : "");
-          PB.toggleCameraBridgeOfflineHint?.(false);
-          PB._bridgeOfflineShown = false;
         } else if (health.mjpegStreamRunning && !health.framesActive) {
           badgeCls = "bg-warning";
           badgeText = t("bridge.badge.stream_empty", "Stream empty");

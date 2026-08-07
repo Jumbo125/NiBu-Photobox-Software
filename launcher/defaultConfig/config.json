@@ -9,7 +9,7 @@
     "system": {
         "os": "windows",
         "fullscreen": false,
-        "ui_watchdog_minutes": 5,
+        "ui_watchdog_minutes": 10,
         "debugMode": false,
         "password": ""
     },
