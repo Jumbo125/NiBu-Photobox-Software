@@ -42,6 +42,12 @@
  *   0 = deaktiviert (default)
  *   >0 = Minuten Dauerbetrieb bis Zwangsstopp
  *
+ * Wenn der ToF-Bewegungssensor aktiv ist (pythonServer.external_pc.tof_enabled,
+ * server_config.json), übersteuert stattdessen IMMER
+ * pythonServer.external_pc.tof_max_runtime_minutes (falls >0) —
+ * unabhängig von liveview_always_active. Siehe getMaxRuntimeMinutes()
+ * unten sowie .claude/TOF_LIVEVIEW_PRETRIGGER.md.
+ *
  * Der Timer startet, sobald pb:bridgeHealth liveViewRunning=true
  * meldet, und wird zurückgesetzt sobald LiveView stoppt. Während
  * eines Captures wird nie eingegriffen.
@@ -83,8 +89,15 @@
     sessionStorage.removeItem(AUTOPAUSE_STORAGE_KEY);
   }
 
+  let _paused = false;
+
+  function isPaused() {
+    return _paused;
+  }
+
   function cancel() {
     clearInactiveSince();
+    _paused = false;
   }
 
   function pause() {
@@ -97,6 +110,8 @@
     // Nicht eingreifen wenn Capture läuft
     if (PB.captureFlow?.isRunning?.()) return;
 
+    _paused = true;
+
     PB.captureApi?.liveviewStop?.().catch(() => {});
     PB.preview?.showOverlay?.();
 
@@ -108,6 +123,8 @@
   }
 
   function reset() {
+    _paused = false;
+
     if (getConfigMinutes() <= 0 || !isAlwaysActive()) {
       clearInactiveSince();
       return;
@@ -116,7 +133,7 @@
     markInactiveSince(Date.now());
   }
 
-  PB.liveviewAutopause = { reset, cancel };
+  PB.liveviewAutopause = { reset, cancel, isPaused };
 
   // Inaktivitäts-Zeitpunkt bei Programmstart setzen
   $(document).on("pb:allConfigsLoaded.autopause", function () {
@@ -169,6 +186,25 @@
   let _liveviewCurrentlyRunning = false;
 
   function getMaxRuntimeMinutes() {
+    // ToF aktiv + eigener Zeit-Wert gesetzt -> übersteuert IMMER den
+    // Kamera-Standardwert, unabhängig von liveview_always_active (siehe
+    // .claude/TOF_LIVEVIEW_PRETRIGGER.md, Abschnitt "Eigenständiger
+    // ToF-Laufzeit-Timer"). Grund: Der ToF-Pretrigger kann LiveView auch
+    // ohne folgendes Capture starten lassen (Person schaut nur vorbei) —
+    // ohne eigenen Timer würde LiveView dann bis zu liveview_max_runtime_minutes
+    // durchlaufen, was bei praller Sonneneinstrahlung riskanter ist.
+    const tofEnabled = PB.readBool?.(
+      PB._getDeep?.(window.PB_CONFIG, "pythonServer.external_pc.tof_enabled")
+    );
+    if (tofEnabled) {
+      const tofRaw = PB._getDeep?.(
+        window.PB_CONFIG,
+        "pythonServer.external_pc.tof_max_runtime_minutes"
+      );
+      const tofMinutes = parseInt(tofRaw, 10);
+      if (Number.isFinite(tofMinutes) && tofMinutes > 0) return tofMinutes;
+    }
+
     const raw = PB._getDeep?.(
       window.PB_CONFIG,
       "camera.camera_settings.liveview_max_runtime_minutes"
@@ -198,6 +234,8 @@
     if (PB.captureFlow?.isRunning?.()) return;
 
     clearRuntimeStarted();
+
+    _paused = true;
 
     PB.captureApi?.liveviewStop?.().catch(() => {});
     PB.preview?.showOverlay?.();

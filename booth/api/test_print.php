@@ -33,9 +33,22 @@ if (!$host) $host = '127.0.0.1';
 
 // Optionaler printerName aus Request-Body
 $body = json_decode(file_get_contents('php://input'), true) ?: [];
-$pyPayload = [];
+// Template-Ordner auflösen (gleiche Logik wie template_editor_save.php)
+$boothRoot   = realpath(__DIR__ . '/..');
+$templateName = strtolower(trim((string) ($body['templateName'] ?? '')));
+$templateName = preg_replace('/\s+/', '_', $templateName);
+$templateName = preg_replace('/[^a-z0-9_-]/', '', $templateName);
+
+if ($templateName === '' || $templateName === 'activetemplate') {
+    $templateDir = $boothRoot . DIRECTORY_SEPARATOR . 'activeTemplate';
+} else {
+    $templateDir = $boothRoot . DIRECTORY_SEPARATOR . 'templates' . DIRECTORY_SEPARATOR . $templateName;
+}
+
+$pyPayload = new stdClass();
+$pyPayload->template_dir = $templateDir;
 if (!empty($body['printerName'])) {
-    $pyPayload['printerName'] = (string) $body['printerName'];
+    $pyPayload->printerName = (string) $body['printerName'];
 }
 
 $pythonUrl = "http://{$host}:{$port}/print/test";

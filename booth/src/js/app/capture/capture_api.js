@@ -367,7 +367,6 @@
 
     return (
       h.webserverReachable === true &&
-      (h.liveViewRunning === true || h.mjpegStreamRunning === true) &&
       (h.framesActive === true || h.framesReceiving === true)
     );
   };
@@ -793,7 +792,6 @@ PB.captureApi.cameraPreflight = async function (opts) {
 
       const ok =
         h.webserverReachable === true &&
-        (h.liveViewRunning === true || h.mjpegStreamRunning === true) &&
         (h.framesActive === true || h.framesReceiving === true);
 
       if (ok) {

@@ -7,7 +7,8 @@
     id="modalRenderSettings"
     tabindex="-1"
     aria-labelledby="modalRenderSettingsLabel"
-    aria-hidden="true">
+    aria-hidden="true"
+    data-pb-parent-modal="#modalSettings">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content bg-dark text-light border border-secondary">
             <div class="modal-header border-secondary">

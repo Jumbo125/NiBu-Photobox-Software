@@ -10,6 +10,48 @@
     </span>
     <span id="pb-connection-device_model"></span>
   <div class="pb-connection-row">
+    <span class="pb-connection-label" data-lang-key="externalPc.label">
+      <?= t('externalPc.label', 'External PC:') ?>
+    </span>
+
+    <span
+      id="pb-externalpc-status"
+      class="badge bg-secondary"
+      data-lang-key="externalPc.badge.unknown"
+    >
+      <?= t('externalPc.badge.unknown', 'unknown') ?>
+    </span>
+  </div>
+
+  <div class="pb-connection-row">
+    <span class="pb-connection-label" data-lang-key="externalPc.tof.label">
+      <?= t('externalPc.tof.label', 'ToF:') ?>
+    </span>
+
+    <span
+      id="pb-tof-status"
+      class="badge bg-secondary"
+      data-lang-key="externalPc.tof.disabled"
+    >
+      <?= t('externalPc.tof.disabled', 'disabled') ?>
+    </span>
+  </div>
+
+  <div class="pb-connection-row">
+    <span class="pb-connection-label" data-lang-key="externalPc.credit.label">
+      <?= t('externalPc.credit.label', 'Credit:') ?>
+    </span>
+
+    <span
+      id="pb-credit-balance"
+      class="badge bg-secondary"
+      data-lang-key="externalPc.credit.unknown"
+    >
+      <?= t('externalPc.credit.unknown', '—') ?>
+    </span>
+  </div>
+
+  <div class="pb-connection-row">
     <span class="pb-connection-label" data-lang-key="overlay.connection_info.bridge_label">
       <?= t('overlay.connection_info.bridge_label', 'CameraBridge:') ?>
     </span>

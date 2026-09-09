@@ -257,13 +257,22 @@ const refreshDeviceFromConfig = () => {
     PB._bridgeLastToast = PB._bridgeLastToast || null;
     PB._bridgeOfflineShown = PB._bridgeOfflineShown || false;
 
-    const setBadge = (clsAdd, text) => {
+    const setBadge = (clsAdd, text, langKey) => {
       if (!$badge.length) return;
       const last = PB._bridgeLastBadge;
       if (last.cls === clsAdd && last.text === text) return;
 
       last.cls = clsAdd;
       last.text = text;
+
+      // data-lang-key auf den aktuellen Status-Key nachziehen, sonst überschreibt
+      // PB.applyLanguage() (Sprachwechsel, Modal-Save) den Live-Text wieder mit
+      // dem PHP-Template-Default ("unbekannt").
+      if (langKey) {
+        $badge.attr("data-lang-key", langKey);
+      } else {
+        $badge.removeAttr("data-lang-key");
+      }
 
       $badge
         .removeClass("bg-success bg-danger bg-warning bg-info bg-secondary")
@@ -329,24 +338,28 @@ const refreshDeviceFromConfig = () => {
         PB._bridgeOfflineShown = false;
 
         let badgeCls = "bg-info";
-        let badgeText = t("bridge.badge.ready", "Ready");
+        let badgeLangKey = "bridge.badge.ready";
+        let badgeText = t(badgeLangKey, "Ready");
         let toast = t("bridge.toast.reachable", "CameraBridge reachable ✅");
 
         if (health.framesReceiving) {
           badgeCls = "bg-success";
-          badgeText = t("bridge.badge.active", "Active");
+          badgeLangKey = "bridge.badge.active";
+          badgeText = t(badgeLangKey, "Active");
           toast =
             t("bridge.toast.frames_sending", "✅ 1–4 OK: Stream is sending frames") +
             (health.selected ? " (" + health.selected + ")" : "");
         } else if (health.mjpegStreamRunning && !health.framesActive) {
           badgeCls = "bg-warning";
-          badgeText = t("bridge.badge.stream_empty", "Stream empty");
+          badgeLangKey = "bridge.badge.stream_empty";
+          badgeText = t(badgeLangKey, "Stream empty");
         } else if (!health.liveViewRunning) {
           badgeCls = "bg-info";
-          badgeText = t("bridge.badge.idle", "Idle");
+          badgeLangKey = "bridge.badge.idle";
+          badgeText = t(badgeLangKey, "Idle");
         }
 
-        setBadge(badgeCls, badgeText);
+        setBadge(badgeCls, badgeText, badgeLangKey);
         setToast(toast);
 
         // -------- Event NUR bei Änderung --------
@@ -363,7 +376,7 @@ const refreshDeviceFromConfig = () => {
         }
       })
       .fail(function (xhr, statusText, errThrown) {
-        setBadge("bg-danger", t("bridge.badge.offline", "Offline"));
+        setBadge("bg-danger", t("bridge.badge.offline", "Offline"), "bridge.badge.offline");
         setToast(t("bridge.toast.offline", "CameraBridge is not running ❌"));
         //show selected device
         refreshDeviceFromConfig();

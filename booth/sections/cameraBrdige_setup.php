@@ -3,7 +3,7 @@
 // Copyright (c) 2026 Andreas Rottmann
 ?>
 
-<div class="modal fade" id="modalCameraBridgeSettings" tabindex="-1" aria-labelledby="modalCameraBridgeSettingsLabel" aria-hidden="true">
+<div class="modal fade" id="modalCameraBridgeSettings" tabindex="-1" aria-labelledby="modalCameraBridgeSettingsLabel" aria-hidden="true" data-pb-parent-modal="#modalSettings">
   <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content bg-dark text-light border border-secondary">
 

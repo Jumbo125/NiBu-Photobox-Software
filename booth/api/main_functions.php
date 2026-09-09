@@ -52,10 +52,10 @@ if (is_file($langFile)) {
 
 // Übersetzung holen (HTML-escaped)
 if (!function_exists('t')) {
-    function t(string $key, string $fallback = ''): string
-    {
-        global $lang;
-        $value = $lang[$key] ?? $fallback;
-        return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
-    }
+  function t(string $key, string $fallback = ''): string
+{
+    global $lang;
+    $value = $lang[$key] ?? $fallback;
+    return nl2br(htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8'));
+}
 }

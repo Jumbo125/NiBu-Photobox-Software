@@ -87,6 +87,8 @@
           class="btn btn-outline-light btn-nav-lg"
           data-bs-toggle="modal"
           data-bs-target="#modalSettings"
+          title="<?= t('nav.general_settings', 'General Settings') ?>"
+          aria-label="<?= t('nav.general_settings', 'General Settings') ?>"
         >
           <i class="bi bi-gear"></i>
           <span data-lang-key="nav.general_settings">
@@ -99,6 +101,8 @@
           class="btn btn-outline-light btn-nav-lg"
           data-bs-toggle="modal"
           data-bs-target="#modalTemplateEditor"
+          title="<?= t('nav.template_editor', 'Template Editor') ?>"
+          aria-label="<?= t('nav.template_editor', 'Template Editor') ?>"
         >
           <i class="bi bi-palette"></i>
           <span data-lang-key="nav.template_editor">
@@ -111,6 +115,8 @@
           class="btn btn-outline-light btn-nav-lg"
           data-bs-toggle="modal"
           data-bs-target="#modalActiveEvent"
+          title="<?= t('nav.active_event', 'Active Event') ?>"
+          aria-label="<?= t('nav.active_event', 'Active Event') ?>"
         >
           <i class="bi bi-easel"></i>
           <span data-lang-key="nav.active_event">
@@ -124,6 +130,8 @@
           id="btnCameraSettings"
           data-bs-toggle="modal"
           data-bs-target="#modalCameraSettings"
+          title="<?= t('nav.camera_settings', 'Camera Settings') ?>"
+          aria-label="<?= t('nav.camera_settings', 'Camera Settings') ?>"
         >
           <i class="bi bi-camera"></i>
           <span data-lang-key="nav.camera_settings">
@@ -137,6 +145,8 @@
           id="btnSelectDevice"
           data-bs-toggle="modal"
           data-bs-target="#modalSelectDevice"
+          title="<?= t('nav.select_device', 'Select Camera') ?>"
+          aria-label="<?= t('nav.select_device', 'Select Camera') ?>"
         >
           <i class="bi bi-camera-fill"></i>
           <span data-lang-key="nav.select_device">
@@ -148,6 +158,8 @@
           type="button"
           class="btn btn-outline-light btn-nav-lg"
           id="btnFullscreen"
+          title="<?= t('nav.fullscreen', 'Fullscreen') ?>"
+          aria-label="<?= t('nav.fullscreen', 'Fullscreen') ?>"
         >
           <i class="bi bi-arrows-fullscreen"></i>
           <span data-lang-key="nav.fullscreen">

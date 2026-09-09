@@ -21,43 +21,57 @@
           data-bs-placement="top"
           title="<?= t('overlay.settings.tooltip.config_path', 'config/config.json') ?>"></i>&nbsp;
 
-        <h5 class="modal-title"
+        <h5 class="modal-title flex-grow-1"
           id="modalSettingsLabel"
           data-lang-key="overlay.settings.title">
           <?= t('overlay.settings.title', 'General Settings') ?>
         </h5>
 
         <button type="button"
-          class="btn btn-outline-success"
+          class="btn btn-outline-success btn-sm"
           data-bs-toggle="modal"
-          data-bs-target="#modalPrinterSettings">
+          data-bs-target="#modalPrinterSettings"
+          title="<?= t('overlay.settings.printer', 'Open Printer Settings') ?>"
+          aria-label="<?= t('overlay.settings.printer', 'Open Printer Settings') ?>">
           <i class="bi bi-printer"></i>
           <span data-lang-key="overlay.settings.printer">
             <?= t('overlay.settings.printer', 'Open Printer Settings') ?>
           </span>
         </button>
 
-        <i class="bi bi-distribute-horizontal" style="margin-left: 1rem;margin-right: 1rem;"></i>
-
         <button type="button"
-          class="btn btn-outline-warning"
+          class="btn btn-outline-warning btn-sm"
           data-bs-toggle="modal"
-          data-bs-target="#modalRenderSettings">
+          data-bs-target="#modalRenderSettings"
+          title="<?= t('overlay.settings.render', '(Advanced) Open Image Render Settings') ?>"
+          aria-label="<?= t('overlay.settings.render', '(Advanced) Open Image Render Settings') ?>">
           <i class="bi bi-card-image"></i>
           <span data-lang-key="overlay.settings.render">
             <?= t('overlay.settings.render', '(Advanced) Open Image Render Settings') ?>
           </span>
         </button>
 
-        <i class="bi bi-distribute-horizontal" style="margin-left: 1rem;margin-right: 1rem;"></i>
-
         <button type="button"
-          class="btn btn-outline-warning"
+          class="btn btn-outline-warning btn-sm"
           data-bs-toggle="modal"
-          data-bs-target="#modalCameraBridgeSettings">
+          data-bs-target="#modalCameraBridgeSettings"
+          title="<?= t('overlay.settings.cameraBridgeSetup', '(Advanced) Open Camera Bridge Setup') ?>"
+          aria-label="<?= t('overlay.settings.cameraBridgeSetup', '(Advanced) Open Camera Bridge Setup') ?>">
           <i class="bi bi-plugin"></i>
           <span data-lang-key="overlay.settings.cameraBridgeSetup">
             <?= t('overlay.settings.cameraBridgeSetup', '(Advanced) Open Camera Bridge Setup') ?>
+          </span>
+        </button>
+
+        <button type="button"
+          class="btn btn-outline-warning btn-sm"
+          data-bs-toggle="modal"
+          data-bs-target="#modalExternalPcSettings"
+          title="<?= t('overlay.settings.externalPc', 'Open External PC Settings') ?>"
+          aria-label="<?= t('overlay.settings.externalPc', 'Open External PC Settings') ?>">
+          <i class="bi bi-usb-symbol"></i>
+          <span data-lang-key="overlay.settings.externalPc">
+            <?= t('overlay.settings.externalPc', 'Open External PC Settings') ?>
           </span>
         </button>
 
@@ -528,6 +542,10 @@
                         data-lang-key="overlay.settings.capture.show_finish_image_seconds_help">
                         <?= t('overlay.settings.capture.show_finish_image_seconds_help', 'How long the final image should stay visible before returning to the start screen. (0 = disabled)') ?>
                       </div>
+                      <div class="form-text text-warning"
+                        data-lang-key="overlay.settings.capture.show_finish_image_seconds_coin_hint">
+                        <?= t('overlay.settings.capture.show_finish_image_seconds_coin_hint', 'Ignored while the coin counter is enabled (System section) — the final screen with the print button then stays open until the user closes it or prints, so it cannot disappear before a coin is inserted.') ?>
+                      </div>
                     </div>
   <hr/>
                     <!-- Faster Capture effekt -->
@@ -699,6 +717,42 @@
     <div class="form-text mb-3"
       data-lang-key="overlay.settings.system.task_planer_service_help">
       <?= t('overlay.settings.system.task_planer_service_help', 'Aktiviert die Überwachung des gesamten Programms. Dadurch können alle benötigten Programme kontrolliert und bei Bedarf automatisch neu gestartet werden.') ?>
+    </div>
+
+    <!-- ToF-Bewegungssensor (Externer PC) enable/disable -->
+    <div class="form-check form-switch mb-2">
+      <input class="form-check-input" type="checkbox"
+        id="settingTofEnabled"
+        data-python-toggle="tof"
+        data-enable-endpoint="/pi_pico/tof/enable"
+        data-disable-endpoint="/pi_pico/tof/disable">
+      <label class="form-check-label" for="settingTofEnabled"
+        data-lang-key="overlay.settings.system.tof">
+        <?= t('overlay.settings.system.tof', 'Bewegungssender (ToF) aktivieren/deaktivieren') ?>
+      </label>
+    </div>
+
+    <div class="form-text mb-3"
+      data-lang-key="overlay.settings.system.tof_help">
+      <?= t('overlay.settings.system.tof_help', 'Löst LiveView-Vorwärmung aus, sobald sich eine Person dem Sensor nähert.') ?>
+    </div>
+
+    <!-- Münzzähler (Externer PC) enable/disable -->
+    <div class="form-check form-switch mb-2">
+      <input class="form-check-input" type="checkbox"
+        id="settingCoinEnabled"
+        data-python-toggle="coin"
+        data-enable-endpoint="/pi_pico/coin/enable"
+        data-disable-endpoint="/pi_pico/coin/disable">
+      <label class="form-check-label" for="settingCoinEnabled"
+        data-lang-key="overlay.settings.system.coin">
+        <?= t('overlay.settings.system.coin', 'Münzzähler aktivieren/deaktivieren') ?>
+      </label>
+    </div>
+
+    <div class="form-text mb-3"
+      data-lang-key="overlay.settings.system.coin_help">
+      <?= t('overlay.settings.system.coin_help', 'Verbucht Münzeinwürfe des ST-001-Münzprüfers als Guthaben.') ?>
     </div>
 
     <div class="form-text" data-lang-key="overlay.settings.system.debug_help">

@@ -24,5 +24,16 @@
     "linux": {
       "startScript": "../../../launcher/kiosk_WaitAndStart.sh"
     }
+  },
+  "external_pc": {
+    "tof_enabled": false,
+    "coin_enabled": false,
+    "serial_port": "COM5",
+    "baudrate": 115200,
+    "cooldown_sec": 90,
+    "distance_threshold_mm": 800,
+    "distance_cooldown_sec": 180,
+    "tof_max_runtime_minutes": 0,
+    "print_cost_euro": 1.5
   }
 }

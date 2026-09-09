@@ -75,6 +75,7 @@ import shutil
 import socket
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 import traceback
@@ -278,6 +279,53 @@ except Exception as e:
     _systemmd_linux = None
 else:
     _SYSTEMMD_LINUX_IMPORT_ERROR = ""
+
+# -----------------------------
+# Pi Pico (ToF-Präsenz-Pretrigger) import
+# -----------------------------
+try:
+    from pi_pico_core import get_status as _pi_pico_get_status
+    from pi_pico_core import start_pico_listener as _pi_pico_start_listener
+    from pi_pico_core import set_tof_enabled as _pi_pico_set_tof_enabled
+    from pi_pico_core import set_coin_enabled as _pi_pico_set_coin_enabled
+    from pi_pico_core import set_capture_active as _pi_pico_set_capture_active
+except Exception as e:
+    _PI_PICO_IMPORT_ERROR = str(e)
+    _pi_pico_get_status = None
+    _pi_pico_start_listener = None
+    _pi_pico_set_tof_enabled = None
+    _pi_pico_set_coin_enabled = None
+    _pi_pico_set_capture_active = None
+else:
+    _PI_PICO_IMPORT_ERROR = ""
+
+# -----------------------------
+# Externer PC (Pico-Identify) import
+# -----------------------------
+try:
+    from identify_external_pc_core import list_identify as _external_pc_list_identify
+    from identify_external_pc_core import check_identify as _external_pc_check_identify
+except Exception as e:
+    _EXTERNAL_PC_IMPORT_ERROR = str(e)
+    _external_pc_list_identify = None
+    _external_pc_check_identify = None
+else:
+    _EXTERNAL_PC_IMPORT_ERROR = ""
+
+# -----------------------------
+# Credit (Münzprüfer-Guthaben) import
+# -----------------------------
+try:
+    from credit_core import get_credit_cent as _credit_get_cent
+    from credit_core import load_credit as _credit_load
+    from credit_core import spend_credit as _credit_spend
+except Exception as e:
+    _CREDIT_IMPORT_ERROR = str(e)
+    _credit_get_cent = None
+    _credit_load = None
+    _credit_spend = None
+else:
+    _CREDIT_IMPORT_ERROR = ""
 
 # -----------------------------
 # Service core
@@ -843,6 +891,17 @@ def _debug_skip_result(action: str, **extra: Any) -> Dict[str, Any]:
     return result
 
 
+def _print_debug_skip_effective() -> bool:
+    """DEBUG_SKIP_PRINT plus der per UI umschaltbare printer.debugSkipPrint aus config.json."""
+    if DEBUG_SKIP_PRINT:
+        return True
+    booth_root = _pb_get_booth_root_safe()
+    if booth_root is None:
+        return False
+    cfg = _pb_load_booth_config(booth_root)
+    return bool(_pb_deep_get(cfg, "printer.debugSkipPrint", False))
+
+
 def _normalize_endpoint_action(path: str) -> str:
     """Extrahiert enable/disable/status aus Endpunkten wie /autostart/enable."""
     try:
@@ -877,6 +936,113 @@ def _autostart_dispatch(action: str) -> Dict[str, Any]:
         return _autostart_linux.handle_action(action, base_dir=base_dir, config=config)
 
     return {"ok": False, "error": "unsupported_os", "os": os_name, "allowed_os": ["windows", "linux"]}
+
+
+def _pi_pico_print_cost_cent(pico_cfg: Dict[str, Any]) -> int:
+    """
+    Rundet external_pc.print_cost_euro (Dezimalzahl, z.B. 1.5) auf ganze
+    Cent — Guthaben wird intern konsequent in Cent geführt (credit_core.py),
+    das WebUI-Feld erlaubt aber Dezimalstellen (10/20/50-Cent-Münzen).
+    """
+    try:
+        euro = float((pico_cfg or {}).get("print_cost_euro") or 0)
+    except (TypeError, ValueError):
+        euro = 0.0
+    return max(0, round(euro * 100))
+
+
+def _pi_pico_toggle_atomic_write(patch_key: str, value: bool) -> Dict[str, Any]:
+    """
+    Schreibt external_pc.<patch_key> = value atomar in server_config.json
+    (tempfile + os.replace, gleiches Muster wie printer_core._atomic_write_json
+    / credit_core._atomic_write_json) und hält _SERVER_CFG synchron.
+    """
+    global _SERVER_CFG
+    try:
+        current: Dict[str, Any] = {}
+        if os.path.isfile(SERVER_CFG_PATH):
+            with open(SERVER_CFG_PATH, "r", encoding="utf-8-sig") as f:
+                current = json.load(f)
+        if not isinstance(current, dict):
+            current = {}
+        current.setdefault("external_pc", {})
+        if not isinstance(current["external_pc"], dict):
+            current["external_pc"] = {}
+        current["external_pc"][patch_key] = value
+
+        directory = os.path.dirname(os.path.abspath(SERVER_CFG_PATH)) or "."
+        fd, tmp = tempfile.mkstemp(prefix="._tmp_", dir=directory, text=True)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as f:
+                json.dump(current, f, ensure_ascii=False, indent=2)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp, SERVER_CFG_PATH)
+        finally:
+            if os.path.exists(tmp):
+                try:
+                    os.remove(tmp)
+                except Exception:
+                    pass
+
+        if isinstance(_SERVER_CFG, dict):
+            _SERVER_CFG.setdefault("external_pc", {})
+            if not isinstance(_SERVER_CFG["external_pc"], dict):
+                _SERVER_CFG["external_pc"] = {}
+            _SERVER_CFG["external_pc"][patch_key] = value
+
+        return {"ok": True}
+    except Exception as e:
+        return {"ok": False, "error": "server_config_write_failed", "detail": str(e)}
+
+
+def _pi_pico_toggle_dispatch(kind: str, action: str) -> Dict[str, Any]:
+    """
+    Delegiert enable/disable/status für 'tof' bzw. 'coin' — anders als
+    autostart/task_planer_service gibt es kein OS-Äquivalent, die Wahrheit
+    liegt direkt in server_config.json (external_pc.tof_enabled /
+    external_pc.coin_enabled). enable/disable wirken sofort auf den
+    laufenden pi_pico_core-Listener (falls schon gestartet) UND werden
+    persistiert, damit der nächste Server-Start denselben Zustand wieder
+    einliest.
+    """
+    action = (action or "").strip().lower()
+    if kind not in ("tof", "coin"):
+        return {"ok": False, "error": "invalid_kind", "kind": kind}
+    if action not in ("enable", "disable", "status"):
+        return {"ok": False, "error": "invalid_action", "allowed": ["enable", "disable", "status"], "action": action}
+
+    patch_key = "tof_enabled" if kind == "tof" else "coin_enabled"
+    setter = _pi_pico_set_tof_enabled if kind == "tof" else _pi_pico_set_coin_enabled
+
+    if action == "status":
+        cfg = (_SERVER_CFG or {}).get("external_pc") if isinstance(_SERVER_CFG, dict) else {}
+        enabled = bool((cfg or {}).get(patch_key))
+        return {"ok": True, "enabled": enabled}
+
+    enabled = action == "enable"
+
+    if _pi_pico_get_status is None or setter is None:
+        return {"ok": False, "error": "pi_pico_import_failed", "detail": _PI_PICO_IMPORT_ERROR}
+
+    write_result = _pi_pico_toggle_atomic_write(patch_key, enabled)
+    if not write_result.get("ok"):
+        return write_result
+
+    try:
+        setter(enabled)
+    except Exception as e:
+        return {"ok": False, "error": "runtime_flag_update_failed", "detail": str(e)}
+
+    # Falls der Listener noch nicht läuft (z.B. beides war vorher deaktiviert),
+    # jetzt starten — start_pico_listener() ist idempotent (already_running).
+    if enabled and _pi_pico_start_listener is not None and isinstance(_SERVER_CFG, dict):
+        try:
+            _pi_pico_start_listener(_SERVER_CFG, log_warning=log_warning, log_event=log_event)
+        except Exception as e:
+            log_warning("pi_pico_listener_restart_exception", "Pi Pico listener failed to (re)start after toggle", kind=kind, error=str(e))
+
+    return {"ok": True, "enabled": enabled}
 
 
 def _task_planer_service_dispatch(action: str) -> Dict[str, Any]:
@@ -1171,6 +1337,59 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/ping":
             return self._send_json(200, {"ok": True})
 
+        if path == "/pico/status":
+            if _pi_pico_get_status is None:
+                return self._send_json(500, {"ok": False, "error": "pi_pico_import_failed", "detail": _PI_PICO_IMPORT_ERROR})
+            return self._send_json(200, {"ok": True, "status": _pi_pico_get_status()})
+
+        if path == "/credit/status":
+            if _credit_get_cent is None:
+                return self._send_json(500, {"ok": False, "error": "credit_core_import_failed", "detail": _CREDIT_IMPORT_ERROR})
+            pico_cfg = (_SERVER_CFG or {}).get("external_pc") if isinstance(_SERVER_CFG, dict) else {}
+            coin_enabled = bool((pico_cfg or {}).get("coin_enabled"))
+            print_cost_cent = _pi_pico_print_cost_cent(pico_cfg)
+            return self._send_json(200, {
+                "ok": True,
+                "credit_cent": _credit_get_cent(),
+                "coin_enabled": coin_enabled,
+                "print_cost_cent": print_cost_cent,
+            })
+
+        if path == "/pi_pico/list_identify":
+            if _external_pc_list_identify is None:
+                return self._send_json(500, {"ok": False, "error": "identify_external_pc_import_failed", "detail": _EXTERNAL_PC_IMPORT_ERROR})
+            pico_cfg = (_SERVER_CFG or {}).get("external_pc") if isinstance(_SERVER_CFG, dict) else {}
+            if bool((pico_cfg or {}).get("coin_enabled")):
+                # Identify pausiert den Presence-/Coin-Reader-Thread für die
+                # gesamte Scan-Dauer (mehrere Ports x bis zu 0.5s Timeout) --
+                # ein Münzeinwurf in diesem Fenster ginge unwiderruflich
+                # verloren (der Pico wiederholt COIN-Events nicht). Deshalb
+                # bewusst gesperrt, solange der Münzzähler aktiv ist.
+                return self._send_json(409, {"ok": False, "error": "coin_enabled_identify_blocked"})
+            baudrate = int((pico_cfg or {}).get("baudrate") or 115200)
+            result = _external_pc_list_identify(baudrate=baudrate)
+            return self._send_json(200 if result.get("ok") else 500, result)
+
+        if path == "/pi_pico/check_identify":
+            if _external_pc_check_identify is None:
+                return self._send_json(500, {"ok": False, "error": "identify_external_pc_import_failed", "detail": _EXTERNAL_PC_IMPORT_ERROR})
+            pico_cfg = (_SERVER_CFG or {}).get("external_pc") if isinstance(_SERVER_CFG, dict) else {}
+            if bool((pico_cfg or {}).get("coin_enabled")):
+                # Gleiche Begründung wie bei list_identify oben.
+                return self._send_json(409, {"ok": False, "error": "coin_enabled_identify_blocked"})
+            port = (qs.get("port") or [""])[0]
+            baudrate = int((pico_cfg or {}).get("baudrate") or 115200)
+            result = _external_pc_check_identify(port, baudrate=baudrate)
+            return self._send_json(200 if result.get("ok") else 500, result)
+
+        if path == "/pi_pico/tof/status":
+            result = _pi_pico_toggle_dispatch("tof", "status")
+            return self._send_json(200 if result.get("ok") else 500, result)
+
+        if path == "/pi_pico/coin/status":
+            result = _pi_pico_toggle_dispatch("coin", "status")
+            return self._send_json(200 if result.get("ok") else 500, result)
+
         if path == "/runtime":
             user = os.environ.get("USERNAME") or ""
             session_name = os.environ.get("SESSIONNAME") or ""
@@ -1201,10 +1420,13 @@ class Handler(BaseHTTPRequestHandler):
                 "greenwall_profile_import_error": _GREENWALL_PROFILE_IMPORT_ERROR,
                 "service_import_error": _SERVICE_IMPORT_ERROR,
                 "dnp_import_error": _DNP_IMPORT_ERROR,
+                "pi_pico_import_error": _PI_PICO_IMPORT_ERROR,
+                "external_pc_import_error": _EXTERNAL_PC_IMPORT_ERROR,
+                "credit_import_error": _CREDIT_IMPORT_ERROR,
                 "log_path": LOG_PATH,
                 "debug_flags": {
                     "skip_render": DEBUG_SKIP_RENDER,
-                    "skip_print": DEBUG_SKIP_PRINT,
+                    "skip_print": _print_debug_skip_effective(),
                     "skip_print_counter": DEBUG_SKIP_PRINT_COUNTER,
                     "skip_service_actions": DEBUG_SKIP_SERVICE_ACTIONS,
                     "skip_close_browser": DEBUG_SKIP_CLOSE_BROWSER,
@@ -1740,7 +1962,7 @@ class Handler(BaseHTTPRequestHandler):
             )
 
             with _PRINT_LOCK:
-                if DEBUG_SKIP_PRINT:
+                if _print_debug_skip_effective():
                     log_event(
                         logging.WARNING,
                         "print_default_skipped_debug",
@@ -1961,7 +2183,7 @@ class Handler(BaseHTTPRequestHandler):
                             return self._send_json(500, {"ok": False, "error": "render_output_missing"})
 
                         with _PRINT_LOCK:
-                            if DEBUG_SKIP_PRINT:
+                            if _print_debug_skip_effective():
                                 return self._send_json(200, {
                                     **_debug_skip_result("print_test", collage_path=collage_path, printer=printer_name),
                                     "printed": False,
@@ -2015,6 +2237,54 @@ class Handler(BaseHTTPRequestHandler):
             log_event(logging.INFO, "task_planer_service_action_requested", "Task planer/systemd action requested", action=action, os=platform.system(), **_handler_log_context(self))
             result = _task_planer_service_dispatch(action)
             code = 200 if result.get("ok") else (400 if result.get("error") in ("invalid_action", "unsupported_os") else 500)
+            return self._send_json(code, result)
+
+        if path in ("/pi_pico/tof/enable", "/pi_pico/tof/disable"):
+            action = _normalize_endpoint_action(path)
+            log_event(logging.INFO, "pi_pico_tof_toggle_requested", "ToF toggle requested", action=action, **_handler_log_context(self))
+            result = _pi_pico_toggle_dispatch("tof", action)
+            code = 200 if result.get("ok") else (400 if result.get("error") in ("invalid_action", "invalid_kind") else 500)
+            return self._send_json(code, result)
+
+        if path in ("/pi_pico/coin/enable", "/pi_pico/coin/disable"):
+            action = _normalize_endpoint_action(path)
+            log_event(logging.INFO, "pi_pico_coin_toggle_requested", "Coin toggle requested", action=action, **_handler_log_context(self))
+            result = _pi_pico_toggle_dispatch("coin", action)
+            code = 200 if result.get("ok") else (400 if result.get("error") in ("invalid_action", "invalid_kind") else 500)
+            return self._send_json(code, result)
+
+        if path == "/pico/capture_state":
+            # capture_flow.js meldet Start/Ende eines Capture-Vorgangs, damit
+            # pi_pico_core.py währenddessen keine ToF-ausgelösten StartLiveView-
+            # IPC-Calls an die CameraBridge schickt (konkurriert sonst mit dem
+            # laufenden CapturePhoto()-Zyklus um dieselbe Kamera-Hardware,
+            # sichtbar als "MTP device busy" im Worker-Log).
+            if _pi_pico_set_capture_active is None:
+                return self._send_json(500, {"ok": False, "error": "pi_pico_import_failed", "detail": _PI_PICO_IMPORT_ERROR})
+            active = bool(data.get("active"))
+            try:
+                _pi_pico_set_capture_active(active)
+            except Exception as e:
+                return self._send_json(500, {"ok": False, "error": "set_capture_active_failed", "detail": str(e)})
+            return self._send_json(200, {"ok": True, "active": active})
+
+        if path == "/credit/spend":
+            if _credit_spend is None:
+                return self._send_json(500, {"ok": False, "error": "credit_core_import_failed", "detail": _CREDIT_IMPORT_ERROR})
+
+            pico_cfg = (_SERVER_CFG or {}).get("external_pc") if isinstance(_SERVER_CFG, dict) else {}
+            coin_enabled = bool((pico_cfg or {}).get("coin_enabled"))
+            if not coin_enabled:
+                return self._send_json(403, {"ok": False, "error": "coin_disabled"})
+
+            # Preis kommt bewusst serverseitig aus server_config.json, nicht
+            # aus dem Request-Body — das Frontend kann den Preis nicht manipulieren.
+            print_cost_cent = _pi_pico_print_cost_cent(pico_cfg)
+            if print_cost_cent <= 0:
+                return self._send_json(400, {"ok": False, "error": "no_print_cost_configured"})
+
+            result = _credit_spend(print_cost_cent, log_warning=log_warning, log_event=log_event)
+            code = 200 if result.get("ok") else (402 if result.get("error") == "insufficient_credit" else 400)
             return self._send_json(code, result)
 
         if path in ("/service/start", "/service/stop", "/service/restart"):
@@ -2161,6 +2431,22 @@ def main():
     except Exception as e:
         print(f"  startup json check failed: {e}")
         log_error("startup_json_check_exception", "Startup JSON check raised exception", error=str(e), traceback=traceback.format_exc())
+
+    if _credit_load is not None:
+        try:
+            _credit_load(log_warning=log_warning)
+        except Exception as e:
+            log_warning("credit_load_exception", "Credit balance failed to load at startup", error=str(e), traceback=traceback.format_exc())
+
+    if _pi_pico_start_listener is not None:
+        try:
+            _pi_pico_start_listener(
+                _SERVER_CFG if isinstance(_SERVER_CFG, dict) else {},
+                log_warning=log_warning,
+                log_event=log_event,
+            )
+        except Exception as e:
+            log_warning("pi_pico_listener_start_exception", "Pi Pico listener failed to start", error=str(e), traceback=traceback.format_exc())
 
     try:
         httpd = ThreadingHTTPServer((HOST, PORT), Handler)

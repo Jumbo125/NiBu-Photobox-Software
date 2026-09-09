@@ -50,13 +50,26 @@
     // und kann nach ein paar Zyklen ohne jeden Auslöser in "MTP device busy" enden.
     if (h.liveViewRunning === true) return false;
 
+    // Autopause hat LiveView bewusst schlafen gelegt (Inaktivität /
+    // Laufzeitlimit) — erst ein echter Capture-Start soll wieder aufwecken
+    if (PB.liveviewAutopause?.isPaused?.()) {
+      console.log("[camera_keepalive] Ping ausgelassen — Autopause aktiv.");
+      return false;
+    }
+
     return true;
   }
 
-  function ping() {
+  async function ping() {
     if (!isSafeToRun()) return;
 
-    PB.captureApi?.liveviewStart?.().catch(() => {});
+    console.log("[camera_keepalive] Kamera anpingen (Puls ~1.5s) zum Wachhalten…");
+    try {
+      await PB.captureApi?.liveviewStart?.();
+      await PB.sleep(1500);
+      await PB.captureApi?.liveviewStop?.();
+      console.log("[camera_keepalive] Puls beendet.");
+    } catch (_) {}
   }
 
   function start() {

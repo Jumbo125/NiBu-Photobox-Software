@@ -90,6 +90,28 @@ body.pb-capture-running #btnLiveviewToggle {
   ensureCaptureFlowCss();
 
   // -----------------------------------------------------------------------
+  // ToF-Trigger-Unterdrückung: python_server.py/pi_pico_core.py wissen so,
+  // wann ein Capture läuft, und schicken in der Zeit keinen ToF-ausgelösten
+  // StartLiveView-IPC-Call an die CameraBridge (konkurriert sonst mit dem
+  // laufenden CapturePhoto()-Zyklus um dieselbe Kamera-Hardware, sichtbar
+  // im Worker-Log als "MTP device busy"). Fire-and-forget: darf den
+  // Capture-Flow nicht verzögern oder blockieren, falls der Python-Server
+  // gerade nicht erreichbar ist.
+  // -----------------------------------------------------------------------
+  function notifyCaptureState(active) {
+    try {
+      const base = String(PB.PYTHON_BASE || "").replace(/\/+$/g, "");
+      if (!base) return;
+      fetch(base + "/pico/capture_state", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active: !!active }),
+        keepalive: true,
+      }).catch(() => {});
+    } catch (_) {}
+  }
+
+  // -----------------------------------------------------------------------
   // UX: Pre-Capture Pause (nach Countdown, vor Capture)
   // -----------------------------------------------------------------------
   async function runBeforeCaptureHook(slot, total, phase, delaySeconds) {
@@ -200,6 +222,13 @@ body.pb-capture-running #btnLiveviewToggle {
           if (opts.html != null) $text.html(String(opts.html));
           else if (opts.text != null) $text.text(String(opts.text));
           else $text.text("");
+        }
+
+        const $debugPrintHint = $root
+          .find('[data-role="debug-print-hint"]')
+          .first();
+        if ($debugPrintHint.length) {
+          $debugPrintHint.toggleClass("d-none", !opts.debugPrintSkipped);
         }
 
         const $counter = $root.find('[data-role="counter"]').first();
@@ -713,6 +742,7 @@ body.pb-capture-running #btnLiveviewToggle {
     text,
     imgUrl,
     closeAfterSeconds,
+    debugPrintSkipped,
   }) {
     const secRaw = Number(closeAfterSeconds);
     const timeoutMs =
@@ -735,6 +765,7 @@ body.pb-capture-running #btnLiveviewToggle {
       PB.captureUI.show("Capture_finish_with_img", {
         text: text || "",
         imgSrc: imgUrl || "",
+        debugPrintSkipped: !!debugPrintSkipped,
         onClose: () => finish("close"),
       });
 
@@ -1292,12 +1323,15 @@ body.pb-capture-running #btnLiveviewToggle {
           : { ok: true, skipped: true };
 
       if (!framesRes || framesRes.ok !== true) {
+        const rawErr = framesRes?.error;
         const err =
-          framesRes?.error ||
-          new Error(
-            `Timed out waiting for live-view frames before capture flow. timeout=${frameTimeout}ms`,
-          );
-        err.code = err.code || "frames_time_out";
+          rawErr instanceof Error
+            ? rawErr
+            : new Error(
+                framesRes?.message ||
+                  `Timed out waiting for live-view frames before capture flow. timeout=${frameTimeout}ms`,
+              );
+        err.code = err.code || (typeof rawErr === "string" ? rawErr : "frames_time_out");
         throw err;
       }
 
@@ -1717,6 +1751,7 @@ body.pb-capture-running #btnLiveviewToggle {
     let pendingPaperEmptyMessage = null;
 
     try {
+      notifyCaptureState(true);
       $(document).trigger("pb:captureSessionStarted", [session]);
       await requireSnapshotWrite(session, "snapshot_init_failed");
 
@@ -1975,9 +2010,16 @@ body.pb-capture-running #btnLiveviewToggle {
           - Reprint ist separat und nutzt immer 1 Kopie
           - die Papierprüfung muss immer zur echten Kopienzahl passen
       */
-      const auto_print = PB.readBool(
-        PB._getDeep(CFG, "general.print.print_automatically_when_finish"),
-      );
+      // Münz-Print-Flow (siehe coin_print_flow.js): Ist der Münzzähler
+      // aktiviert, entscheidet der Nutzer selbst über den Druckbutton im
+      // Finish-Screen (Guthaben vs. Preis) -- kein automatischer Druck.
+      const coinPrintFlowActive = PB.creditState?.coinEnabled === true;
+
+      const auto_print =
+        !coinPrintFlowActive &&
+        PB.readBool(
+          PB._getDeep(CFG, "general.print.print_automatically_when_finish"),
+        );
       const requestedCopies = getRequiredPrintCount() || 1;
       let finalStatus = "DONE";
 
@@ -2132,10 +2174,13 @@ body.pb-capture-running #btnLiveviewToggle {
       const isFinishImageTimeoutZero =
         Number.isFinite(finishImageSecondsNum) && finishImageSecondsNum === 0;
       const canShowFinishImage =
-        show_finish_image && (allow_reprint || !isFinishImageTimeoutZero);
+        coinPrintFlowActive ||
+        (show_finish_image && (allow_reprint || !isFinishImageTimeoutZero));
 
       const previewUrl =
         renderRes?.preview_url || renderRes?.previewUrl || null;
+
+      const debugPrintSkipped = !!session?.print?.autoPrintResult?.debug;
 
       $("#Capture_finish_with_img").css(
         "display",
@@ -2143,15 +2188,47 @@ body.pb-capture-running #btnLiveviewToggle {
       );
       $("#print_again").css("display", allow_reprint ? "block" : "none");
 
+      // Solange der Münzzähler aktiv ist, darf show_finish_image_seconds
+      // nicht greifen (siehe Hinweis in general_settings.php): der
+      // Finish-Screen mit Druckbutton würde sonst verschwinden, bevor
+      // jemand Geld einwerfen und drucken kann. Der Nutzer schließt
+      // stattdessen aktiv über den neuen "Neues Foto"-Button
+      // (coin_print_flow.js).
+      const effectiveCloseAfterSeconds = coinPrintFlowActive
+        ? 0
+        : close_after_seconds;
+
       if (canShowFinishImage) {
+        if (coinPrintFlowActive && typeof PB.initCoinPrintArea === "function") {
+          PB.initCoinPrintArea({
+            imagePath: renderRes?.output_path || renderRes?.outputPath || null,
+            eventConfigPath:
+              String(
+                PB._getDeep(CFG, "activeEvent.active_event.config_path") ||
+                  "",
+              )
+                .trim()
+                .replace(/[\/\\]+$/g, "") || null,
+            copies: requestedCopies,
+          });
+        }
+
         await showFinishWithOptionalImage({
           text: finish_text,
           imgUrl: previewUrl,
-          closeAfterSeconds: close_after_seconds,
+          closeAfterSeconds: effectiveCloseAfterSeconds,
+          debugPrintSkipped,
         });
+
+        if (typeof PB.teardownCoinPrintArea === "function") {
+          PB.teardownCoinPrintArea();
+        }
       } else {
-        PB.captureUI.show("Capture_finish", { text: finish_text });
-        await PB.sleep(800);
+        PB.captureUI.show("Capture_finish", {
+          text: finish_text,
+          debugPrintSkipped,
+        });
+        await PB.sleep(debugPrintSkipped ? 2500 : 800);
         PB.captureUI.hideAll();
       }
 
@@ -2204,6 +2281,10 @@ body.pb-capture-running #btnLiveviewToggle {
       running = false;
       currentRun = null;
       throw err;
+    } finally {
+      // Garantiert ausgeführt bei jedem Exit-Pfad (Erfolg, Cancel, Fehler) --
+      // die ToF-Sperre darf nie hängen bleiben, egal wie der Flow endet.
+      notifyCaptureState(false);
     }
   };
 })(jQuery);

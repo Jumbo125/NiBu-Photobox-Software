@@ -4,7 +4,7 @@
  * Copyright (c) 2026 Andreas Rottmann
  */
 ?>
-<div class="modal fade" id="modalPrinterSettings" tabindex="-1" aria-labelledby="modalPrinterSettingsLabel" aria-hidden="true">
+<div class="modal fade" id="modalPrinterSettings" tabindex="-1" aria-labelledby="modalPrinterSettingsLabel" aria-hidden="true" data-pb-parent-modal="#modalSettings">
   <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content bg-dark text-light border border-secondary">
 
@@ -121,6 +121,35 @@
 
             <div class="form-text text-secondary mt-2" data-lang-key="overlay.printer_settings.copies.hint">
               <?= t('overlay.printer_settings.copies.hint', 'This value is saved and used for automatic printing.') ?>
+            </div>
+          </div>
+
+          <h6 class="mt-3 mb-2" data-lang-key="overlay.printer_settings.debug.section">
+            <?= t('overlay.printer_settings.debug.section', 'Debug') ?>
+          </h6>
+
+          <div class="mb-3">
+            <div class="form-check form-switch">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="pbPrinterDebugSkipPrint"
+                data-json-group="printer"
+                data-json-parm="debugSkipPrint"
+                data-default-value="false"
+              />
+
+              <label
+                class="form-check-label"
+                for="pbPrinterDebugSkipPrint"
+                data-lang-key="overlay.printer_settings.debug.skip_print.label"
+              >
+                <?= t('overlay.printer_settings.debug.skip_print.label', 'Druckvorgang überspringen (Debug)') ?>
+              </label>
+            </div>
+
+            <div class="form-text text-secondary mt-2" data-lang-key="overlay.printer_settings.debug.skip_print.hint">
+              <?= t('overlay.printer_settings.debug.skip_print.hint', 'Wenn aktiviert, wird der eigentliche Druck übersprungen. Alle anderen Schritte (Rendern, Zähler, etc.) laufen normal weiter.') ?>
             </div>
           </div>
 

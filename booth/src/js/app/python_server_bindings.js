@@ -410,6 +410,8 @@
   // ------------------------------------------------------------
   UI.$autostartToggle = () => $("#settingAutostartEnabled");
   UI.$taskPlanerServiceToggle = () => $("#settingTaskPlanerServiceEnabled");
+  UI.$tofToggle = () => $("#settingTofEnabled");
+  UI.$coinToggle = () => $("#settingCoinEnabled");
 
   UI.systemToggleConfigs = {
     autostart: {
@@ -443,6 +445,38 @@
       failEnableFallback: "Task-Planer/systemd-Überwachung konnte nicht aktiviert werden.",
       failDisableKey: "python.ui.task_planer_service.disable_failed",
       failDisableFallback: "Task-Planer/systemd-Überwachung konnte nicht deaktiviert werden."
+    },
+    tof: {
+      name: "tof",
+      label: "ToF-Bewegungssensor",
+      $el: UI.$tofToggle,
+      statusEndpoint: "/pi_pico/tof/status",
+      enableEndpoint: "/pi_pico/tof/enable",
+      disableEndpoint: "/pi_pico/tof/disable",
+      successEnableKey: "python.ui.tof.enabled",
+      successEnableFallback: "✅ ToF-Bewegungssensor aktiviert.",
+      successDisableKey: "python.ui.tof.disabled",
+      successDisableFallback: "✅ ToF-Bewegungssensor deaktiviert.",
+      failEnableKey: "python.ui.tof.enable_failed",
+      failEnableFallback: "ToF-Bewegungssensor konnte nicht aktiviert werden.",
+      failDisableKey: "python.ui.tof.disable_failed",
+      failDisableFallback: "ToF-Bewegungssensor konnte nicht deaktiviert werden."
+    },
+    coin: {
+      name: "coin",
+      label: "Münzzähler",
+      $el: UI.$coinToggle,
+      statusEndpoint: "/pi_pico/coin/status",
+      enableEndpoint: "/pi_pico/coin/enable",
+      disableEndpoint: "/pi_pico/coin/disable",
+      successEnableKey: "python.ui.coin.enabled",
+      successEnableFallback: "✅ Münzzähler aktiviert.",
+      successDisableKey: "python.ui.coin.disabled",
+      successDisableFallback: "✅ Münzzähler deaktiviert.",
+      failEnableKey: "python.ui.coin.enable_failed",
+      failEnableFallback: "Münzzähler konnte nicht aktiviert werden.",
+      failDisableKey: "python.ui.coin.disable_failed",
+      failDisableFallback: "Münzzähler konnte nicht deaktiviert werden."
     }
   };
 
@@ -569,7 +603,9 @@
   UI.loadAllSystemToggleStatuses = async () => {
     await Promise.all([
       UI.loadSystemToggleStatus("autostart"),
-      UI.loadSystemToggleStatus("task_planer_service")
+      UI.loadSystemToggleStatus("task_planer_service"),
+      UI.loadSystemToggleStatus("tof"),
+      UI.loadSystemToggleStatus("coin")
     ]);
   };
 
@@ -642,6 +678,18 @@
       .off("change.pbSystemToggle")
       .on("change.pbSystemToggle", async function () {
         await UI.applySystemToggle("task_planer_service", this.checked);
+      });
+
+    UI.$tofToggle()
+      .off("change.pbSystemToggle")
+      .on("change.pbSystemToggle", async function () {
+        await UI.applySystemToggle("tof", this.checked);
+      });
+
+    UI.$coinToggle()
+      .off("change.pbSystemToggle")
+      .on("change.pbSystemToggle", async function () {
+        await UI.applySystemToggle("coin", this.checked);
       });
 
     UI.loadAllSystemToggleStatuses();

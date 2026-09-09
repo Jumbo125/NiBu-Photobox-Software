@@ -201,6 +201,15 @@
           console.warn(e);
         }
       }
+
+      // 10) Externer PC (Pi Pico): gespeicherten Port prüfen, sonst neu identifizieren
+      if (typeof PB.syncExternalPcIdentifyFromPython === "function") {
+        try {
+          await PB.syncExternalPcIdentifyFromPython();
+        } catch (e) {
+          console.warn(e);
+        }
+      }
     };
 
   // Active Event UI: aktuellen Eventnamen + Druckzähler anzeigen

@@ -112,6 +112,9 @@ foreach ($layers as $ly) {
 
   $el->setAttribute('x', (string)((int)($ly['x'] ?? 0)));
   $el->setAttribute('y', (string)((int)($ly['y'] ?? 0)));
+  // cx/cy = visual center from Fabric getCenterPoint(), rotation-invariant (preferred by renderer)
+  if (isset($ly['cx'])) $el->setAttribute('cx', (string)((int)$ly['cx']));
+  if (isset($ly['cy'])) $el->setAttribute('cy', (string)((int)$ly['cy']));
   $el->setAttribute('w', (string)((int)($ly['w'] ?? 0)));
   $el->setAttribute('h', (string)((int)($ly['h'] ?? 0)));
   $el->setAttribute('rotation', (string)((int)($ly['rotation'] ?? 0)));
@@ -148,6 +151,9 @@ foreach ($layers as $ly) {
 
   if ($type === 'photo') {
     $el->setAttribute('index', (string)((int)($ly['index'] ?? 0)));
+    if (isset($ly['label']) && $ly['label'] !== '') {
+      $el->setAttribute('label', (string)$ly['label']);
+    }
   } elseif ($type === 'image') {
     // ✅ CRITICAL: src immer relativ speichern
     $src = normalizeAssetSrc((string)($ly['src'] ?? ''));

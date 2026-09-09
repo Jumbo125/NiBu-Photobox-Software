@@ -108,6 +108,9 @@
       <?= t('capture.finish.title', 'Done') ?>
     </div>
     <div class="pb-capture-text mt-2" data-role="text"></div>
+    <div class="pb-capture-debug-print-hint alert alert-warning small mt-3 d-none" data-role="debug-print-hint">
+      <?= t('capture.finish.debug_print_skipped', 'Debug-Modus: Es wurde nicht gedruckt.') ?>
+    </div>
   </div>
 </div>
 
@@ -124,13 +127,50 @@
       </div>
       <div class="pb-capture-text mt-2" data-role="text"></div>
 
+      <div class="pb-capture-debug-print-hint alert alert-warning small mt-3 d-none" data-role="debug-print-hint">
+        <?= t('capture.finish.debug_print_skipped', 'Debug-Modus: Es wurde nicht gedruckt.') ?>
+      </div>
+
+      <!-- Coin-Print-Flow: Saldo-Anzeige + Druckbutton statt Auto-Print, wenn Münzzähler aktiv ist.
+           Saldo bewusst groß/prominent (nicht "small") -- das Guthaben-Badge im
+           #pb-connection-panel unten rechts ist während dieses Vollbild-Overlays
+           nicht sichtbar, hier ist die einzige Anzeige, die der Nutzer sieht. -->
+      <div id="coin_print_area" class="mt-3 d-none">
+        <div class="mb-2" data-lang-key="capture.finish.coin.balance_label" style="font-size: 1.1rem;">
+          <?= t('capture.finish.coin.balance_label', 'Credit:') ?>
+        </div>
+        <div class="mb-3">
+          <span id="coin_print_balance" class="badge bg-success" style="font-size: 2rem; padding: 0.4em 0.7em;"></span>
+        </div>
+
+        <button type="button" id="coin_print_btn" class="btn btn-success btn-lg" disabled>
+          <i class="bi bi-printer-fill"></i>
+          <span data-lang-key="capture.finish.coin.print_btn"><?= t('capture.finish.coin.print_btn', 'Print') ?></span>
+          <span id="coin_print_cost"></span>
+        </button>
+
+        <div id="coin_print_insufficient_hint" class="pb-capture-text small mt-2 text-warning d-none" data-lang-key="capture.finish.coin.insufficient">
+          <?= t('capture.finish.coin.insufficient', 'Please insert more coins to print.') ?>
+        </div>
+      </div>
+
        <div class="mt-3">
         <button type="button" id="print_again" class="btn btn-warning btn-lg">
          <i class="bi bi-printer-fill"></i> <span data-lang-key="form.print_again"><?= t('form.print_again', 'Print again') ?></span>
         </button>
       </div>
 
-      <div class="mt-3">
+      <!-- Coin-Print-Flow: ersetzt den generischen Close-Button, damit das
+           Overlay offen bleibt, bis der Nutzer aktiv ein neues Foto startet
+           (statt automatisch/vorzeitig zu schließen, während noch gedruckt
+           werden könnte). -->
+      <div class="mt-3 d-none" id="coin_print_new_photo_area">
+        <button type="button" id="coin_print_new_photo_btn" class="btn btn-primary btn-lg">
+          <span data-lang-key="capture.finish.coin.new_photo_btn"><?= t('capture.finish.coin.new_photo_btn', 'New photo') ?></span>
+        </button>
+      </div>
+
+      <div class="mt-3" id="capture_finish_close_area">
         <button type="button" class="btn btn-primary btn-lg" data-role="close" data-lang-key="form.close">
           <?= t('form.close', 'Close') ?>
         </button>
