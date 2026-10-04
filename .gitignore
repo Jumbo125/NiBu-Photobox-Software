@@ -30,6 +30,11 @@ booth/editor/js/fabric.min.js
 # Backup-Duplikat, keine eigene Historie
 booth_alt_nicht_ändern/
 
+# Interne Arbeitsdoku, Testdaten, gespeicherte Nutzer-Templates
+/.claude/
+/test/
+booth/templates/
+
 # Caddy Laufzeit-Daten (Cache/State), Caddyfile/Config bleiben versioniert
 Caddy/cache/
 Caddy/data/
