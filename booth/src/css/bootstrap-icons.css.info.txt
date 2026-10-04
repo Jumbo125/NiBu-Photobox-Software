@@ -1,0 +1,13 @@
+Externe Library, NICHT Teil dieses Repos (siehe .gitignore).
+
+Name:     Bootstrap Icons (CSS + zugehörige Font-Dateien bootstrap-icons.woff/.woff2)
+Lizenz:   MIT
+Download: https://icons.getbootstrap.com/#install (Abschnitt "From source")
+          oder via CDN: https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/
+
+Benötigte Dateien, alle hier/in booth/src/fonts/ ablegen:
+  - bootstrap-icons.css
+  - bootstrap-icons.woff
+  - bootstrap-icons.woff2
+
+Nach dem Klonen hier ablegen, bevor der Editor/die App läuft.
