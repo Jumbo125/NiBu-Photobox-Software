@@ -45,6 +45,14 @@ changes_*.md
 # Lokales Start-/Dev-Skript, nicht Teil der Release-Auslieferung
 /run_php_fcgi.ps1
 
+# Lokal generierte/angepasste Konfigs mit echten Pfaden/Zugangsdaten.
+# Die passenden *Templates* für den Install-Button bleiben versioniert
+# (launcher/defaultConfig/, *.template.json).
+booth/config/config/
+launcher/caddy_php_port.json
+launcher/ops_manifest.json
+launcher/watchdog_pause.json
+
 # Caddy Laufzeit-Daten (Cache/State), Caddyfile/Config bleiben versioniert
 Caddy/cache/
 Caddy/data/
