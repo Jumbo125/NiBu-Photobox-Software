@@ -47,3 +47,6 @@ Caddy/data/
 
 # Launcher-Dependencies (VC++ Redistributable Installer)
 launcher/VC_redist.x64.exe
+
+# Edge-Kiosk-Browserprofil (lokaler State/Cache, keine Quelldatei)
+launcher/edge_kiosk_profile/
