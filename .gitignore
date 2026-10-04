@@ -37,6 +37,14 @@ booth_alt_nicht_ändern/
 /test/
 booth/templates/
 
+# Changelog-Dateien und Office-Dokumente (keine Quelldateien)
+changes.md
+changes_*.md
+*.docx
+
+# Lokales Start-/Dev-Skript, nicht Teil der Release-Auslieferung
+/run_php_fcgi.ps1
+
 # Caddy Laufzeit-Daten (Cache/State), Caddyfile/Config bleiben versioniert
 Caddy/cache/
 Caddy/data/
