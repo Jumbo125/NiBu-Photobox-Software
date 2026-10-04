@@ -12,6 +12,8 @@ booth/uploads/
 booth/EVENTS/
 booth/activeTemplate/
 booth/photos/
+booth/.ACTIVE_SESSION_TMP/
+booth/api/.ACTIVE_SESSION_TMP/
 
 # Mitgelieferte Runtimes/Tools (portable Python, Camera-Bridge, Browser, PHP)
 booth/tools/
