@@ -1,0 +1,42 @@
+# Eigene GitHub-Repos, nicht Teil dieses Projekts
+DEV/
+
+# Laufzeit-/generierte Daten, keine Quelldateien
+logs/
+dumps/
+screenshots/
+Debug/
+booth/logs/
+booth/CAPTURE/
+booth/uploads/
+booth/EVENTS/
+booth/activeTemplate/
+booth/photos/
+
+# Mitgelieferte Runtimes/Tools (portable Python, Camera-Bridge, Browser, PHP)
+booth/tools/
+browser/
+php/
+
+# Externe Vendor-Libraries (Bootstrap, jQuery, Fabric.js) - nicht weitergeben
+booth/src/js/bootstrap.bundle.min.js
+booth/src/js/jquery-3.7.1.min.js
+booth/src/css/bootstrap.css
+booth/src/css/bootstrap-icons.css
+booth/src/fonts/bootstrap-icons.woff
+booth/src/fonts/bootstrap-icons.woff2
+booth/editor/js/fabric.min.js
+
+# Backup-Duplikat, keine eigene Historie
+booth_alt_nicht_ändern/
+
+# Caddy Laufzeit-Daten (Cache/State), Caddyfile/Config bleiben versioniert
+Caddy/cache/
+Caddy/data/
+
+# Große Installer/Binaries im Root
+*.exe
+*.zip
+
+# Launcher-Dependencies (VC++ Redistributable Installer)
+launcher/VC_redist.x64.exe

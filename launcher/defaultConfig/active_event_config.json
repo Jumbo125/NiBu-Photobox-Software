@@ -1,0 +1,11 @@
+{
+  "active_event": {
+    "eventName": "Event",
+    "photo_storage_path": "__BASE_DIR__\\booth\\EVENTS",
+    "max_prints": 5,
+    "print_counter": 4,
+    "allow_reprint": false,
+    "multiple_print": 1,
+    "config_path": "__BASE_DIR__\\booth\\config\\config\\active_event_config.json"
+  }
+}
