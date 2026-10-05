@@ -1,0 +1,68 @@
+# Eigene GitHub-Repos, nicht Teil dieses Projekts
+DEV/
+
+# Laufzeit-/generierte Daten, keine Quelldateien
+logs/
+dumps/
+screenshots/
+Debug/
+booth/logs/
+booth/CAPTURE/
+booth/uploads/
+booth/EVENTS/
+booth/activeTemplate/
+booth/photos/
+booth/.ACTIVE_SESSION_TMP/
+booth/api/.ACTIVE_SESSION_TMP/
+
+# Mitgelieferte Runtimes/Tools (portable Python, Camera-Bridge, Browser, PHP)
+booth/tools/
+browser/
+php/
+
+# Externe Vendor-Libraries (Bootstrap, jQuery, Fabric.js) - nicht weitergeben
+booth/src/js/bootstrap.bundle.min.js
+booth/src/js/jquery-3.7.1.min.js
+booth/src/css/bootstrap.css
+booth/src/css/bootstrap-icons.css
+booth/src/fonts/bootstrap-icons.woff
+booth/src/fonts/bootstrap-icons.woff2
+booth/editor/js/fabric.min.js
+
+# Backup-Duplikat, keine eigene Historie
+booth_alt_nicht_ändern/
+
+# Interne Arbeitsdoku, Testdaten, gespeicherte Nutzer-Templates
+/.claude/
+/test/
+booth/templates/
+
+# Changelog-Dateien und Office-Dokumente (keine Quelldateien)
+changes.md
+changes_*.md
+*.docx
+
+# Lokales Start-/Dev-Skript, nicht Teil der Release-Auslieferung
+/run_php_fcgi.ps1
+
+# Lokal generierte/angepasste Konfigs mit echten Pfaden/Zugangsdaten.
+# Die passenden *Templates* für den Install-Button bleiben versioniert
+# (launcher/defaultConfig/, *.template.json).
+booth/config/config/
+launcher/caddy_php_port.json
+launcher/ops_manifest.json
+launcher/watchdog_pause.json
+
+# Caddy Laufzeit-Daten (Cache/State), Caddyfile/Config bleiben versioniert
+Caddy/cache/
+Caddy/data/
+
+# Große Installer/Binaries im Root
+*.exe
+*.zip
+
+# Launcher-Dependencies (VC++ Redistributable Installer)
+launcher/VC_redist.x64.exe
+
+# Edge-Kiosk-Browserprofil (lokaler State/Cache, keine Quelldatei)
+launcher/edge_kiosk_profile/
