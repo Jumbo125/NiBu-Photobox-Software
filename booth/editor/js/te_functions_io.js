@@ -152,6 +152,24 @@ window.TE = window.TE || {};
     };
   };
 
+  TE.capturePreviewDataUrl = function () {
+    const c = TE.state.canvas;
+    if (!c) return null;
+
+    const prevSel = c.getActiveObject && c.getActiveObject();
+    c.discardActiveObject();
+    c.requestRenderAll();
+
+    const dataUrl = c.toDataURL({ format: 'jpeg', quality: 0.85 });
+
+    if (prevSel) {
+      c.setActiveObject(prevSel);
+      c.requestRenderAll();
+    }
+
+    return dataUrl;
+  };
+
   TE.saveTemplate = async function () {
     const payload = TE.serializeTemplate();
     if (!payload) return;
@@ -160,6 +178,8 @@ window.TE = window.TE || {};
       alert(pbT('te.alert.no_active_project', 'Kein aktives Projekt gewählt / Template-Name fehlt.'));
       return;
     }
+
+    payload.previewDataUrl = TE.capturePreviewDataUrl();
 
     return await TE.postJson('/api/template_editor_save.php', payload);
   };

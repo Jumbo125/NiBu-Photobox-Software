@@ -562,6 +562,11 @@ SPDX-License-Identifier: Apache-2.0
 
             PB.uploadActiveEventTemplateZip($modal)
               .done(function () {
+                // Upload kann templateCount geändert haben (neue Slots,
+                // z.B. 1 -> 3 Templates) -> Startscreen-Auswahl + Vorschau
+                // im Modal aktualisieren. Siehe .claude/ACTIVE_TEMPLATE.md
+                PB.templateSelector?.refresh();
+
                 const req = saveFormToJson($form, btnEl, $modal);
                 if (req && typeof req.always === "function")
                   req.always(() => (btnEl.disabled = false));

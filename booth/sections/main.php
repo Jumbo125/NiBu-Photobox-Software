@@ -42,6 +42,25 @@
 
   <div id="previewOverlayWrap" class="pb-preview-overlay">
     <section id="start-area" class="start-area text-center">
+
+      <!-- Template-Auswahl: liegt INNERHALB von start-area als oberste Ebene.
+           Wird start-area durch den (unveränderten) Capture-Flow sichtbar
+           geschaltet (setStartAreaVisible(true)), erscheint automatisch
+           zuerst diese Auswahl, falls mehr als ein Template verfügbar ist.
+           Standardmäßig d-none — PB.templateSelector blendet sie nur ein,
+           wenn PB_CONFIG.activeEvent.active_event.templateCount > 1 ist.
+           Siehe .claude/ACTIVE_TEMPLATE.md für den Gesamtzusammenhang. -->
+      <section id="templateSelectArea" class="template-select-area d-none text-center">
+        <h2 class="start-title" data-lang-key="screen.template_select.title">
+          <?= t('screen.template_select.title', 'Choose your template') ?>
+        </h2>
+        <p class="start-subtitle" data-lang-key="screen.template_select.subtitle">
+          <?= t('screen.template_select.subtitle', 'Tap a template to continue.') ?>
+        </p>
+
+        <div id="templateSelectGrid" class="template-select-grid"></div>
+      </section>
+
       <h1 class="start-title" data-lang-key="screen.main_placeholder_title">
         <?= t('screen.main_placeholder_title', 'Touch to start') ?>
       </h1>

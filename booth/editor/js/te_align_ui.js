@@ -240,6 +240,45 @@ window.TE = window.TE || {};
     try { if (typeof window.initAligningGuidelines === 'function') initAligningGuidelines(canvas); } catch (_) {}
   }
 
+  // -------- Arrow-key nudge --------
+  function bindArrowKeyNudge() {
+    $(document).on('keydown.teArrowNudge', function (e) {
+      const canvas = getCanvas();
+      if (!canvas) return;
+
+      const tag = document.activeElement && document.activeElement.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+      let dx = 0, dy = 0;
+      switch (e.key) {
+        case 'ArrowLeft':  dx = -1; break;
+        case 'ArrowRight': dx = 1;  break;
+        case 'ArrowUp':    dy = -1; break;
+        case 'ArrowDown':  dy = 1;  break;
+        default: return;
+      }
+
+      const objs = getSelectedObjects(canvas).filter((o) => o && !isBorderOverlay(o) && o.selectable !== false);
+      if (!objs.length) return;
+
+      e.preventDefault();
+
+      const step = (e.shiftKey ? 10 : 1) * dx;
+      const stepY = (e.shiftKey ? 10 : 1) * dy;
+
+      objs.forEach((o) => {
+        moveByCanvasDelta(o, step, stepY);
+        syncBorderOverlay(o);
+      });
+
+      refreshActiveSelection(canvas);
+      canvas.requestRenderAll();
+
+      try { TE.syncInspectorFromSelected && TE.syncInspectorFromSelected(); } catch (_) {}
+      try { TE.refreshLayers && TE.refreshLayers(); } catch (_) {}
+    });
+  }
+
   // -------- UI binding --------
   function bindUi() {
     $('#btnAlignLeft').off('click.teAlign').on('click.teAlign', function () { TE.alignSelected('left'); });
@@ -253,6 +292,7 @@ window.TE = window.TE || {};
 
   $(function () {
     bindUi();
+    bindArrowKeyNudge();
 
     if (typeof TE.onEditorReady === 'function') {
       TE.onEditorReady(function (canvas) {

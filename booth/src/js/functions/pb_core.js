@@ -251,8 +251,8 @@
       }
 
       const fileEl = $inp[0];
-      const file = fileEl && fileEl.files && fileEl.files[0] ? fileEl.files[0] : null;
-      if (!file) {
+      const files = fileEl && fileEl.files ? Array.from(fileEl.files) : [];
+      if (!files.length) {
         dfd.resolve({ skipped: true, reason: "no file selected" });
         return dfd.promise();
       }
@@ -261,10 +261,15 @@
       const endpoint = String($inp.attr("data-pb-upload-endpoint") || "api/set_Active_template.php").trim();
       const field = String($inp.attr("data-pb-upload-field") || "zip").trim();
 
+      // Mehrfachauswahl: ein Feldname "zip[]" pro Datei, Backend legt je Datei
+      // einen eigenen Slot-Unterordner unter activeTemplate/<n>/ an.
       const fd = new FormData();
-      fd.append(field, file);
+      files.forEach((file) => fd.append(field + "[]", file));
 
-      (PB._dbg || console.log)("[ZIP] upload start ->", endpoint, "field=", field, "name=", file.name);
+      (PB._dbg || console.log)(
+        "[ZIP] upload start ->", endpoint, "field=", field,
+        "count=", files.length, "names=", files.map((f) => f.name)
+      );
 
       $.ajax({
         url: endpoint,

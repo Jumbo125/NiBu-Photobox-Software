@@ -169,6 +169,14 @@ foreach ($layers as $ly) {
 $xmlPath = $tplDir . DIRECTORY_SEPARATOR . 'template.xml';
 if ($dom->save($xmlPath) === false) fail('Kann template.xml nicht schreiben', 500);
 
+$previewDataUrl = (string)($data['previewDataUrl'] ?? '');
+if ($previewDataUrl !== '' && preg_match('#^data:image/(jpeg|jpg);base64,(.+)$#i', $previewDataUrl, $m)) {
+  $previewBin = base64_decode($m[2], true);
+  if ($previewBin !== false) {
+    @file_put_contents($tplDir . DIRECTORY_SEPARATOR . 'preview.jpg', $previewBin);
+  }
+}
+
 echo json_encode([
   'ok' => true,
   'templateName' => $name,

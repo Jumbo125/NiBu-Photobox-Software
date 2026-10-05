@@ -180,20 +180,33 @@ $boothPhotosBaseOut = (DIRECTORY_SEPARATOR === '\\')
                             <?= t('overlay.active_event.template.label', 'Template (ZIP)') ?>
                         </label>
 
-                        <!-- Note: File inputs are not stored via JSON. Handle upload via a dedicated endpoint (FormData). -->
+                        <!-- Note: File inputs are not stored via JSON. Handle upload via a dedicated endpoint (FormData).
+                             multiple: Besucher sollen zwischen mehreren Templates wählen können (Slots 1..N).
+                             Wählt der Benutzer hier mehrere ZIPs aus, legt der Upload-Endpoint für jede Datei
+                             einen eigenen nummerierten Unterordner unter activeTemplate/<n>/ an. -->
                         <input
                             type="file"
                             class="form-control form-control-sm"
                             id="eventTemplateZip"
                             accept=".zip"
+                            multiple
                         >
 
                         <div class="form-text small" data-lang-key="overlay.active_event.template.help">
                             <?= t(
                                 'overlay.active_event.template.help',
-                                'Select the template ZIP archive. It will be unpacked into the current event template folder.'
+                                'Select one or more template ZIP archives. One file = single active template. Multiple files = the visitor can choose between them before starting the capture.'
                             ) ?>
                         </div>
+
+                        <!-- Vorschau der aktuell aktiven Templates (activeTemplate/<n>/preview.jpg).
+                             Rein lesend, wird per JS (active_event.js) aus
+                             api/list_active_templates.php befüllt. Klick auf ein Thumbnail
+                             öffnet die Dateiauswahl erneut, um dieses Template zu ersetzen.
+                             Zeigt nichts an, solange kein preview.jpg im Template-ZIP liegt
+                             (Feature wird an anderer Stelle separat ergänzt, siehe
+                             .claude/ACTIVE_TEMPLATE.md). -->
+                        <div id="activeTemplatePreviewWrap" class="d-flex flex-wrap gap-2 mt-2"></div>
                     </div>
 
                     <!-- Maximum prints -->

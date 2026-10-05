@@ -66,6 +66,46 @@
     $display.val(fullPath);
   }
 
+  /**
+   * Befüllt #activeTemplatePreviewWrap mit einem klickbaren Thumbnail pro
+   * aktuell aktivem Template-Slot (activeTemplate/<n>/preview.jpg).
+   * Liest ausschließlich aus PB_CONFIG.activeTemplates, das bereits von
+   * template_selector.js geladen wird (kein zusätzlicher Request hier).
+   * Klick auf ein Thumbnail öffnet erneut die Dateiauswahl
+   * (#eventTemplateZip), um dieses Template zu ersetzen.
+   */
+  function _renderActiveTemplatePreviews() {
+    const $wrap = $('#activeTemplatePreviewWrap');
+    if (!$wrap.length) return;
+
+    const info = (window.PB_CONFIG && window.PB_CONFIG.activeTemplates) || {};
+    const templates = Array.isArray(info.templates) ? info.templates : [];
+
+    $wrap.empty();
+
+    templates.forEach((tpl) => {
+      if (!tpl.hasPreview) return; // noch kein preview.jpg im Template vorhanden
+
+      const $thumb = $('<img>')
+        .attr('src', tpl.previewUrl)
+        .attr('alt', tpl.label || ('#' + tpl.slot))
+        .attr('title', tpl.label || ('#' + tpl.slot))
+        .css({
+          width: '90px',
+          height: '120px',
+          objectFit: 'cover',
+          borderRadius: '0.5rem',
+          cursor: 'pointer',
+          border: '2px solid rgba(255,255,255,0.25)'
+        })
+        .on('click', function () {
+          $('#eventTemplateZip').trigger('click');
+        });
+
+      $wrap.append($thumb);
+    });
+  }
+
   PB.initActiveEventBindings = PB.initActiveEventBindings || function () {
     $(document).on('click', '#btnActiveEvent, [data-pb-action="open-active-event"]', function (ev) {
       ev.preventDefault();
@@ -80,10 +120,20 @@
     // Pfad beim Öffnen des Modals aktualisieren (JSON wurde gerade geladen)
     $(document).on('shown.bs.modal', '#modalActiveEvent', function () {
       _updateStoragePath();
+      _renderActiveTemplatePreviews();
+      // Falls noch nicht geladen (Modal vor pb:allConfigsLoaded geöffnet) neu anfragen.
+      if (!window.PB_CONFIG || !window.PB_CONFIG.activeTemplates) {
+        PB.templateSelector?.refresh().done(_renderActiveTemplatePreviews);
+      }
     });
     // Auch nach dem JSON-Laden (configLoaded event)
     $(document).on('pb:configLoaded', function (e, cfg, key) {
       if (key === 'activeEvent') _updateStoragePath();
+    });
+
+    // Nach jedem erfolgreichen Template-Upload: Vorschau sofort aktualisieren.
+    $(document).on('pb:activeTemplatesLoaded', function () {
+      _renderActiveTemplatePreviews();
     });
 
     $(document).on('click', '#btnNewEvent', function (ev) {

@@ -47,6 +47,7 @@ include __DIR__ . '/sections/general_settings.php';
 include __DIR__ . '/sections/render_settings.php';
 include __DIR__ . '/sections/printer_settings.php';
 include __DIR__ . '/sections/cameraBrdige_setup.php';
+include __DIR__ . '/sections/external_pc_settings.php';
 include __DIR__ . '/sections/template_editor.php';
 include __DIR__ . '/sections/active_event_settings.php';
 include __DIR__ . '/sections/camera_settings.php';
@@ -105,23 +106,29 @@ include __DIR__ . '/sections/connection_info.php';
 <!-- Event-Handler / Initialisierung -->
 <script src="src/js/app/preview_bindings.js?v=<?php echo time(); ?>"></script>
 <script src="src/js/app/modal_config_bindings.js?v=<?php echo time(); ?>"></script>
+<script src="src/js/app/modal_stack_bindings.js?v=<?php echo time(); ?>"></script>
 <script src="src/js/app/fullscreen_unlock_bindings.js?v=<?php echo time(); ?>"></script>
 <script src="src/js/app/windows_picker_bindings.js?v=<?php echo time(); ?>"></script>
 <script src="src/js/app/printer_settings.js?v=<?php echo time(); ?>"></script>
 <script src="src/js/app/active_event.js?v=<?php echo time(); ?>"></script>
+<script src="src/js/app/template_selector.js?v=<?php echo time(); ?>"></script>
 <script src="src/js/app/photo_explorer.js?v=<?php echo time(); ?>"></script>
 <!--<script src="src/js/app/app.js?v=<?php //echo time(); ?>"></script>-->
 <script src="src/js/app/camerabridge_API_server_status.js?v=<?php echo time(); ?>"></script>
 <script src="src/js/app/camerabridge_API_server_start_restart.js?v=<?php echo time(); ?>"></script>
 <script src="src/js/app/icon_for_os.js?v=<?php echo time(); ?>"></script>
 <script src="src/js/app/python_server_bindings.js?v=<?php echo time(); ?>"></script>
+<script src="src/js/app/external_pc_identify.js?v=<?php echo time(); ?>"></script>
+<script src="src/js/app/pico_status_poll.js?v=<?php echo time(); ?>"></script>
 
 
 <!-- capture js -->
 <script src="src/js/app/capture/capture_api.js?v=<?php echo time(); ?>"></script>
+<script src="src/js/app/coin_print_flow.js?v=<?php echo time(); ?>"></script>
 
 <script src="src/js/app/capture/capture_bindings.js?v=<?php echo time(); ?>"></script>
 <script src="src/js/app/capture/capture_flow.js?v=<?php echo time(); ?>"></script>
+
 <script src="src/js/functions/capture_test_photo.js?v=<?php echo time(); ?>"></script>
 
 

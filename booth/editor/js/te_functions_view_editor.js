@@ -325,10 +325,15 @@ window.TE = window.TE || {};
 
     if (hint) hint.textContent = TE._objLabel(o);
 
-    const x = Math.round(o.left || 0);
-    const y = Math.round(o.top || 0);
-    const w = Math.round(o.getScaledWidth());
-    const h = Math.round(o.getScaledHeight());
+    // Use the rotation-aware absolute bounding box so X/Y reflect the visible
+    // top-left corner. o.left/o.top are the unrotated anchor and drift away
+    // from the visible position once the object is rotated.
+    const rect = (typeof o.getBoundingRect === 'function') ? o.getBoundingRect(true, true) : null;
+
+    const x = Math.round(rect ? rect.left : (o.left || 0));
+    const y = Math.round(rect ? rect.top : (o.top || 0));
+    const w = Math.round(rect ? rect.width : o.getScaledWidth());
+    const h = Math.round(rect ? rect.height : o.getScaledHeight());
     const r = Math.round(o.angle || 0);
 
     set('inX', x);
@@ -408,13 +413,27 @@ window.TE = window.TE || {};
       }
     }
 
-    if (!Number.isNaN(x)) o.set('left', x);
-    if (!Number.isNaN(y)) o.set('top', y);
-
     if (!Number.isNaN(w) && w > 1) TE.scaleObjectToWidth(o, w);
     if (!Number.isNaN(h) && h > 1) TE.scaleObjectToHeight(o, h);
-
     if (!Number.isNaN(r)) o.set('angle', r);
+    o.setCoords();
+
+    // X/Y describe the desired absolute (rotation-aware) top-left corner.
+    // Apply the remaining delta as a move so rotated objects don't jump.
+    if ((!Number.isNaN(x) || !Number.isNaN(y)) && typeof o.getBoundingRect === 'function') {
+      const rect = o.getBoundingRect(true, true);
+      const dx = Number.isNaN(x) ? 0 : (x - rect.left);
+      const dy = Number.isNaN(y) ? 0 : (y - rect.top);
+      if (dx || dy) {
+        o.set({
+          left: (Number(o.left) || 0) + dx,
+          top: (Number(o.top) || 0) + dy
+        });
+      }
+    } else {
+      if (!Number.isNaN(x)) o.set('left', x);
+      if (!Number.isNaN(y)) o.set('top', y);
+    }
 
     o.setCoords();
     TE.state.canvas.requestRenderAll();
