@@ -37,6 +37,9 @@ booth_alt_nicht_ändern/
 /test/
 booth/templates/
 
+# Persönliche/maschinenspezifische VS-Code-Einstellungen (enthält lokale Pfade)
+/.vscode/
+
 # Changelog-Dateien und Office-Dokumente (keine Quelldateien)
 changes.md
 changes_*.md
