@@ -78,6 +78,30 @@
   }
 
   /**
+   * Wartet kurz, bis die Kamera-LiveView tatsächlich läuft (oder maximal
+   * WAIT_MS ms vergangen sind), bevor der Capture-Start ausgelöst wird.
+   * Reiner Komfort-Puffer für den Fall "Besucher klickt sofort nach dem
+   * Öffnen der Seite auf eine Kachel, Kamera läuft noch hoch" — löst NICHTS
+   * an capture_flow.js' eigener, robusterer Readiness-Prüfung, reduziert nur
+   * die Chance, dass deren kürzerer (Nicht-Erstlauf-)Timeout zuschlägt.
+   */
+  function _waitForLiveviewThenStart() {
+    const WAIT_MS = 3000;
+    const POLL_MS = 150;
+    const deadline = Date.now() + WAIT_MS;
+
+    function tick() {
+      if (PB._bridgeLastHealth?.liveViewRunning || Date.now() >= deadline) {
+        $('#start-area').trigger('click');
+        return;
+      }
+      setTimeout(tick, POLL_MS);
+    }
+
+    tick();
+  }
+
+  /**
    * Zeigt die Auswahl-Section an (innerhalb von #start-area).
    */
   function showSelector() {
@@ -108,9 +132,11 @@
     const sep = base.includes('\\') ? '\\' : '/';
     const trimmedBase = base.replace(/[\\/]+$/, '');
 
-    // Wurzel-Ordnername von activeTemplate.path ohne Zahl-Unterordner
-    // ermitteln: der Pfad zeigt bereits auf .../activeTemplate[/n], wir
-    // normalisieren ihn auf .../activeTemplate und hängen den neuen Slot an.
+    // activeTemplate.path zeigt immer auf .../activeTemplate[/n] (n = Zahl),
+    // da der Server inzwischen für jedes Template ausnahmslos einen
+    // nummerierten Unterordner anlegt (set_Active_template.php,
+    // template_set_active.php). Letztes Segment abschneiden, falls
+    // numerisch, und den neu gewählten Slot anhängen.
     const parts = trimmedBase.split(/[\\/]/);
     const last = parts[parts.length - 1];
     const isNumericLast = /^[0-9]+$/.test(last);
@@ -180,9 +206,34 @@
   };
 
   function initBindings() {
+    // #templateSelectArea liegt INNERHALB von #start-area, dessen
+    // document-delegierter Klick-Handler (capture_bindings.js) bei jedem
+    // Klick den Capture-Flow startet. Solange die Auswahl sichtbar ist,
+    // MUSS der Besucher erst ein Template wählen — ein Klick daneben
+    // (z.B. auf Titel/Hintergrund der Auswahl-Section) darf also nicht
+    // zum Start durchsickern.
+    //
+    // Wichtig: direkt auf dem Element binden (nicht document-delegiert wie
+    // sonst in dieser Datei) — bei zwei document-delegierten Handlern
+    // entscheidet die Bindungsreihenfolge, nicht die DOM-Tiefe, daher würde
+    // stopPropagation() in einem document-Handler hier NICHT zuverlässig
+    // vor capture_bindings.js feuern. Ein direkt gebundener Handler läuft
+    // beim Bubbling immer vor jedem document-delegierten Handler.
+    // capture_bindings.js bleibt dadurch unverändert.
+    $area().on('click', function (ev) {
+      if ($(this).hasClass('d-none')) return; // ausgeblendet -> kein Eingriff nötig
+      // Klick auf eine Kachel selbst NICHT stoppen — dessen eigener
+      // (document-delegierter) Handler unten soll weiterhin greifen und die
+      // Auswahl treffen. Nur Klicks daneben (Titel, Hintergrund der Section)
+      // sollen nicht zum Capture-Start durchsickern.
+      if ($(ev.target).closest('.template-select-tile').length) return;
+      ev.stopPropagation();
+    });
+
     $(document).on('click keydown', '.template-select-tile', function (ev) {
       if (ev.type === 'keydown' && ev.key !== 'Enter' && ev.key !== ' ') return;
       ev.preventDefault();
+      ev.stopPropagation(); // nicht zusätzlich den Capture-Start in capture_bindings.js auslösen
 
       const slot = $(this).attr('data-slot');
       if (!slot) return;
@@ -192,7 +243,22 @@
 
       applySelection(slot)
         .done(() => {
-          hideSelector();
+          // Die Auswahl-Section bleibt immer sichtbar (kein "Touch to
+          // start" darunter, solange mehrere Templates aktiv sind) — ein
+          // Klick auf die Kachel muss also sowohl auswählen als auch
+          // direkt den Capture-Flow starten. #start-area selbst (und
+          // damit capture_bindings.js) bleibt unverändert; wir lösen hier
+          // nur dessen bestehenden, document-delegierten Klick-Handler
+          // erneut aus, nachdem der neue Pfad in PB_CONFIG steht.
+          //
+          // Anders als beim bisherigen "Touch to start"-Screen stand der
+          // Besucher hier nicht schon eine Weile auf dem Bildschirm,
+          // während die Kamera-LiveView im Hintergrund hochfährt — ohne
+          // kurze Wartezeit schlägt capture_flow.js' eigener
+          // LiveView-Readiness-Check (preparePreviewForSeries) regelmäßig
+          // mit Timeout fehl. Kurz auf PB._bridgeLastHealth.liveViewRunning
+          // pollen (max. 3s), statt capture_flow.js selbst anzufassen.
+          _waitForLiveviewThenStart();
         })
         .fail(() => {
           PB.showMsg?.(
@@ -223,6 +289,14 @@
     // Auswahl-Ebene davor, falls weiterhin mehrere Templates zur Wahl
     // stehen — ohne irgendetwas an capture_flow.js zu ändern.
     $(document).on('pb:captureFlowDone', function () {
+      PB.templateSelector.showIfNeeded();
+    });
+
+    // Capture-Flow mit Fehler abgebrochen: eigenes Event, wird NICHT
+    // zusätzlich zu pb:captureFlowDone gefeuert (siehe capture_flow.js) —
+    // ohne diesen Listener bliebe die Auswahl-Section nach einem Fehler
+    // fälschlich ausgeblendet, obwohl #start-area wieder sichtbar wird.
+    $(document).on('pb:captureFlowError', function () {
       PB.templateSelector.showIfNeeded();
     });
   }

@@ -543,10 +543,22 @@
       e.stopPropagation();
 
       const projectId = 'activeTemplate';
-      const xmlUrl = '/activeTemplate/template.xml';
-      const baseUrl = '/activeTemplate/';
 
       try {
+        // The active template now always lives in a numbered slot folder
+        // (activeTemplate/<n>/template.xml) — ask the server which slots
+        // exist instead of assuming the old flat activeTemplate/template.xml
+        // layout. Multiple slots: this button loads the first one (slot 1).
+        const slotsRes = await $.getJSON('/api/list_active_templates.php?_=' + Date.now());
+        const firstTemplate = (slotsRes && Array.isArray(slotsRes.templates)) ? slotsRes.templates[0] : null;
+
+        const slotDir = firstTemplate
+          ? (slotsRes.multiSlot ? '/activeTemplate/' + firstTemplate.slot + '/' : '/activeTemplate/')
+          : '/activeTemplate/';
+
+        const xmlUrl = slotDir + 'template.xml';
+        const baseUrl = slotDir;
+
         let xmlText = await $.ajax({
           url: xmlUrl,
           method: 'GET',

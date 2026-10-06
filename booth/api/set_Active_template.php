@@ -316,11 +316,14 @@ try {
   }
 
   // Target folder: booth/activeTemplate
-  // Structure:
-  //   - exactly 1 ZIP  -> booth/activeTemplate/template.xml        (legacy, unchanged)
-  //   - 2+ ZIPs        -> booth/activeTemplate/1/template.xml, /2/, ...
+  // Structure (always slotted, regardless of upload count):
+  //   booth/activeTemplate/1/template.xml, /2/, ...
+  // A single ZIP still gets its own numbered slot (1/) instead of being
+  // extracted flat — this keeps exactly one on-disk layout for the whole
+  // app (list_active_templates.php, capture path resolution, the editor's
+  // "Set Active" action) instead of two special-cased layouts.
   $target = $boothRoot . DIRECTORY_SEPARATOR . 'activeTemplate';
-  $multiSlot = count($uploads) > 1;
+  $multiSlot = true;
 
   if (!is_dir($target)) {
     if (!@mkdir($target, 0777, true) && !is_dir($target)) {

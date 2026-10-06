@@ -972,6 +972,7 @@ height: auto;
   border-radius: 18px;
   background: rgba(0, 0, 0, 0.92);
   color: #fff;
+  cursor: default;
 }
 
 .template-select-area.d-none {

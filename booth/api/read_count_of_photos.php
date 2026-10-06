@@ -10,9 +10,47 @@ function respond(int $code, array $payload) {
 }
 
 $boothDir = dirname(__DIR__); // .../booth
-$xmlPath  = $boothDir . DIRECTORY_SEPARATOR . 'activeTemplate' . DIRECTORY_SEPARATOR . 'template.xml';
+$base     = $boothDir . DIRECTORY_SEPARATOR . 'activeTemplate';
 
-if (!file_exists($xmlPath)) {
+// Active template always lives in a numbered slot (1/, 2/, ...) now — see
+// template_info.php for the same resolution against config.json. Mirror the
+// config-driven lookup here, falling back to the lowest slot / legacy flat
+// layout if config.json has no (valid) path yet.
+$xmlPath = false;
+
+$cfgPath = $boothDir . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'config.json';
+if (is_file($cfgPath)) {
+  $cfgRaw = @file_get_contents($cfgPath);
+  $cfg = $cfgRaw !== false ? json_decode($cfgRaw, true) : null;
+  $configuredPath = is_array($cfg) ? ($cfg['activeTemplate']['path'] ?? null) : null;
+
+  if (is_string($configuredPath) && $configuredPath !== '') {
+    $candidate = rtrim($configuredPath, "\\/") . DIRECTORY_SEPARATOR . 'template.xml';
+    if (is_file($candidate)) $xmlPath = $candidate;
+  }
+}
+
+if ($xmlPath === false) {
+  $slotNums = [];
+  foreach (@scandir($base) ?: [] as $entry) {
+    if (preg_match('/^[0-9]+$/', $entry) && is_dir($base . DIRECTORY_SEPARATOR . $entry)) {
+      $slotNums[] = (int)$entry;
+    }
+  }
+  sort($slotNums);
+
+  foreach ($slotNums as $n) {
+    $candidate = $base . DIRECTORY_SEPARATOR . $n . DIRECTORY_SEPARATOR . 'template.xml';
+    if (is_file($candidate)) { $xmlPath = $candidate; break; }
+  }
+
+  if ($xmlPath === false) {
+    $flat = $base . DIRECTORY_SEPARATOR . 'template.xml';
+    if (is_file($flat)) $xmlPath = $flat;
+  }
+}
+
+if ($xmlPath === false || !file_exists($xmlPath)) {
   respond(404, ['ok' => false, 'error' => 'template.xml nicht gefunden', 'path' => $xmlPath]);
 }
 

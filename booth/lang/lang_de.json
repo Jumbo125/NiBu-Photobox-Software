@@ -19,6 +19,11 @@
   "screen.main_placeholder_title": "Zum Starten berühren",
   "screen.main_placeholder_text": "Tippe irgendwo auf den Bildschirm, um die Fotosession zu starten.",
 
+  "screen.template_select.title": "Wähle dein Template",
+  "screen.template_select.subtitle": "Tippe auf ein Template, um fortzufahren.",
+  "screen.template_select.preview_alt": "Template-Vorschau",
+  "screen.template_select.err.apply_failed": "Dieses Template konnte nicht ausgewählt werden. Bitte versuche es erneut.",
+
   "overlay.preloader_title": "Lade Konfiguration...",
 
   "overlay.settings.title": "Allgemeine Einstellungen",
@@ -194,7 +199,8 @@
   "overlay.active_event.printed.counter": "Gedruckte Fotos",
 
   "overlay.active_event.template.label": "Template (ZIP)",
-  "overlay.active_event.template.help": "Wähle das Template-ZIP-Archiv. Es wird in den aktuellen Event-Template-Ordner entpackt.",
+  "overlay.active_event.template.help": "Wähle ein oder mehrere Template-ZIP-Archive. Ein Archiv = einzelnes aktives Template. Mehrere Archive = der Besucher kann vor dem Start zwischen den Templates wählen.",
+  "overlay.active_event.template.preview_zoom": "Vorschau vergrößern",
 
   "overlay.active_event.prints.label": "Maximale Anzahl an Ausdrucken",
   "overlay.active_event.prints.placeholder": "0",

@@ -62,14 +62,20 @@ try {
 
   $boothRoot = realpath(__DIR__ . DIRECTORY_SEPARATOR . '..') ?: dirname(__DIR__);
   $src       = $boothRoot . DIRECTORY_SEPARATOR . 'templates' . DIRECTORY_SEPARATOR . $name;
-  $dst       = $boothRoot . DIRECTORY_SEPARATOR . 'activeTemplate';
+  $base      = $boothRoot . DIRECTORY_SEPARATOR . 'activeTemplate';
+  // Always a single slot (1/): this action makes $name THE one active
+  // template, replacing any multi-slot selection from the Active-Event
+  // ZIP upload. Same on-disk layout as set_Active_template.php, so
+  // list_active_templates.php / capture path resolution need no special
+  // case for "came from the editor" vs. "came from a ZIP upload".
+  $dst       = $base . DIRECTORY_SEPARATOR . '1';
 
   if (!is_dir($src)) json_out(['ok' => false, 'error' => "Template '$name' nicht gefunden"], 404);
 
   $xmlCheck = $src . DIRECTORY_SEPARATOR . 'template.xml';
   if (!file_exists($xmlCheck)) json_out(['ok' => false, 'error' => "template.xml fehlt in '$name'"], 400);
 
-  rrmdir_contents($dst);
+  rrmdir_contents($base);
   rcopy($src, $dst);
 
   json_out(['ok' => true, 'templateName' => $name, 'target' => $dst]);

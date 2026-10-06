@@ -19,6 +19,11 @@
   "screen.main_placeholder_title": "Tap to start",
   "screen.main_placeholder_text": "Tap anywhere on the screen to start the photo session.",
 
+  "screen.template_select.title": "Choose your template",
+  "screen.template_select.subtitle": "Tap a template to continue.",
+  "screen.template_select.preview_alt": "Template preview",
+  "screen.template_select.err.apply_failed": "Could not select this template. Please try again.",
+
   "overlay.preloader_title": "Load Configuration...",
 
   "overlay.settings.title": "General Settings",
@@ -193,7 +198,8 @@
   "overlay.active_event.printed.counter": "Printed Pictures",
 
   "overlay.active_event.template.label": "Template (ZIP)",
-  "overlay.active_event.template.help": "Select the template ZIP archive. It will be unpacked into the current event template folder.",
+  "overlay.active_event.template.help": "Select one or more template ZIP archives. One archive = single active template. Multiple archives = the visitor can choose between them before starting the capture.",
+  "overlay.active_event.template.preview_zoom": "Enlarge preview",
 
   "overlay.active_event.prints.label": "Maximum number of prints",
   "overlay.active_event.prints.placeholder": "0",

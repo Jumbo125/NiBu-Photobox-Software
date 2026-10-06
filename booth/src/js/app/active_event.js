@@ -89,20 +89,62 @@
       const $thumb = $('<img>')
         .attr('src', tpl.previewUrl)
         .attr('alt', tpl.label || ('#' + tpl.slot))
-        .attr('title', tpl.label || ('#' + tpl.slot))
+        .attr('title', PB.t ? PB.t('overlay.active_event.template.preview_zoom', 'Vorschau vergrößern') : 'Vorschau vergrößern')
+        .attr('draggable', 'false')
         .css({
           width: '90px',
           height: '120px',
           objectFit: 'cover',
           borderRadius: '0.5rem',
-          cursor: 'pointer',
+          cursor: 'zoom-in',
           border: '2px solid rgba(255,255,255,0.25)'
         })
         .on('click', function () {
-          $('#eventTemplateZip').trigger('click');
+          _openTemplatePreviewLightbox(tpl.previewUrl, tpl.label || ('#' + tpl.slot));
         });
 
       $wrap.append($thumb);
+    });
+  }
+
+  /**
+   * Zeigt preview.jpg eines Templates als großes Overlay an (reine
+   * Sichtkontrolle, kein Datei-Dialog). Schließt bei Klick auf Overlay
+   * oder Escape.
+   */
+  function _openTemplatePreviewLightbox(src, label) {
+    $('#activeTemplatePreviewLightbox').remove();
+
+    const $overlay = $('<div>')
+      .attr('id', 'activeTemplatePreviewLightbox')
+      .css({
+        position: 'fixed',
+        top: 0, left: 0, right: 0, bottom: 0,
+        background: 'rgba(0,0,0,0.85)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 50070,
+        cursor: 'zoom-out'
+      })
+      .on('click', function () {
+        $(this).remove();
+      });
+
+    const $img = $('<img>')
+      .attr('src', src)
+      .attr('alt', label)
+      .css({
+        maxWidth: '90vw',
+        maxHeight: '90vh',
+        borderRadius: '0.5rem',
+        boxShadow: '0 0 2rem rgba(0,0,0,0.6)'
+      });
+
+    $overlay.append($img).appendTo('body');
+
+    $(document).one('keydown.activeTemplatePreviewLightbox', function (ev) {
+      if (ev.key === 'Escape') $('#activeTemplatePreviewLightbox').remove();
     });
   }
 
@@ -120,10 +162,13 @@
     // Pfad beim Öffnen des Modals aktualisieren (JSON wurde gerade geladen)
     $(document).on('shown.bs.modal', '#modalActiveEvent', function () {
       _updateStoragePath();
-      _renderActiveTemplatePreviews();
-      // Falls noch nicht geladen (Modal vor pb:allConfigsLoaded geöffnet) neu anfragen.
-      if (!window.PB_CONFIG || !window.PB_CONFIG.activeTemplates) {
-        PB.templateSelector?.refresh().done(_renderActiveTemplatePreviews);
+      // Stets frisch vom Server laden: zeigt zuverlässig das/die aktuell
+      // aktive(n) Template(s) an, unabhängig davon, ob PB_CONFIG.activeTemplates
+      // schon zuvor (z.B. durch den Startbildschirm) befüllt wurde.
+      if (PB.templateSelector && typeof PB.templateSelector.refresh === 'function') {
+        PB.templateSelector.refresh().done(_renderActiveTemplatePreviews);
+      } else {
+        _renderActiveTemplatePreviews();
       }
     });
     // Auch nach dem JSON-Laden (configLoaded event)
@@ -134,6 +179,22 @@
     // Nach jedem erfolgreichen Template-Upload: Vorschau sofort aktualisieren.
     $(document).on('pb:activeTemplatesLoaded', function () {
       _renderActiveTemplatePreviews();
+    });
+
+    // Sobald Datei(en) gewählt werden: sofort hochladen + installieren,
+    // ohne auf den Speichern-Button zu warten. Der Speichern-Button bleibt
+    // für die übrigen Formularfelder (Eventname, Pfad, Drucklimits, ...)
+    // weiterhin nötig; sein ZIP-Upload-Versuch läuft danach ins Leere, da
+    // der Input hier bereits geleert wird.
+    $(document).on('change', '#eventTemplateZip', function () {
+      const $modal = $(this).closest('#modalActiveEvent');
+      if (!$modal.length || typeof PB.uploadActiveEventTemplateZip !== 'function') return;
+
+      PB.uploadActiveEventTemplateZip($modal)
+        .done(function (res) {
+          if (res && res.skipped) return;
+          PB.templateSelector?.refresh().done(_renderActiveTemplatePreviews);
+        });
     });
 
     $(document).on('click', '#btnNewEvent', function (ev) {
