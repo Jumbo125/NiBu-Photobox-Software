@@ -1,6 +1,9 @@
 # Eigene GitHub-Repos, nicht Teil dieses Projekts
 DEV/
 
+# PC-spezifische Windows-Verknüpfung (enthält absolute lokale Pfade)
+/NibuBox_Autostart.lnk
+
 # Laufzeit-/generierte Daten, keine Quelldateien
 logs/
 dumps/
