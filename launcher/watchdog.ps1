@@ -1,7 +1,8 @@
 ﻿param(
   [int]$IntervalSeconds        = 5,
-  [int]$StartupWaitSeconds     = 20,
-  [int]$RestartCooldownSeconds = 60
+  [int]$StartupWaitSeconds     = 60,
+  [int]$RestartCooldownSeconds = 60,
+  [int]$FullStartFallbackSecs  = 600
 )
 
 # ============================================================
@@ -12,7 +13,7 @@
 $debug_log = $true
 
 # ===================== BASIS =====================
-$BaseDir   = "C:\Users\andre\Desktop\photo-software"
+$BaseDir   = "C:\Users\Nibelungenbox\Desktop\NibuPhotoBox"
 $CaddyPort = [int]"8050"
 $PhpPort   = [int]"8051"
 $BridgePort = [int]"8052"
@@ -204,11 +205,13 @@ function ApiHealthOk {
 }
 
 # ===================== STATE =====================
-$failCount        = 0
-$apiFailCount     = 0
-$lastRestart      = Get-Date "2000-01-01"
-$startupBlockedTo = Get-Date "2000-01-01"
-$loopCount        = 0
+$failCount          = 0
+$apiFailCount       = 0
+$lastRestart        = Get-Date "2000-01-01"
+$startupBlockedTo   = Get-Date "2000-01-01"
+$loopCount          = 0
+$fullStartTime      = $null
+$healthEverOk       = $false
 
 # ===================== BAT RUNNER =====================
 function Run-Bat([string]$batPath, [string]$args) {
@@ -237,33 +240,30 @@ function Run-Bat([string]$batPath, [string]$args) {
 
 # ===================== ACTION =====================
 function Start-Web {
+  param([switch]$ForceFull)
   $now = Get-Date
 
   if (($now - $lastRestart).TotalSeconds -lt $RestartCooldownSeconds) {
     Log "RESTART skipped (cooldown)"
+    [Console]::WriteLine("[NiBuBox Watchdog] Neustart noch im Cooldown, warte...")
     return
   }
 
-  if ($IsFirstStartThisBoot -and -not $script:FullStartAlreadyUsed) {
+  if (($IsFirstStartThisBoot -and -not $script:FullStartAlreadyUsed) -or $ForceFull) {
 
     Log "FIRST START THIS BOOT -> FULL START (start.bat)"
-
-    if ($bootStamp) {
-      try {
-        Set-Content -LiteralPath $BootAttemptFile -Value $bootStamp -Encoding ASCII
-        LogD "Wrote bootattempt marker"
-      } catch {
-        LogW "WARN: failed to write bootattempt file"
-        if ($debug_log) { LogEx "bootattempt write ex" $_ }
-      }
-    }
+    [Console]::WriteLine("[NiBuBox Watchdog] Erster Start nach Boot -> starte alle Server (start.bat)...")
 
     $ok = Run-Bat $StartFullBat "/nopause"
-    if ($ok) { $script:FullStartAlreadyUsed = $true }
+    if ($ok) {
+      $script:FullStartAlreadyUsed = $true
+      $script:fullStartTime = $now
+    }
 
   } else {
 
     Log "RESTART -> WEB-ONLY (start_only_web.bat)"
+    [Console]::WriteLine("[NiBuBox Watchdog] Neustart -> starte Webserver (start_only_web.bat)...")
     Run-Bat $StartWebBat "/nopause" | Out-Null
   }
 
@@ -271,6 +271,7 @@ function Start-Web {
   $script:startupBlockedTo = $now.AddSeconds($StartupWaitSeconds)
 
   Log ("WAIT {0} s (startup grace)" -f $StartupWaitSeconds)
+  [Console]::WriteLine("[NiBuBox Watchdog] Warte $StartupWaitSeconds s auf Server-Start...")
 }
 
 function Start-Api {
@@ -291,6 +292,7 @@ function Start-Api {
 }
 
 Log "WATCHDOG START"
+[Console]::WriteLine("[NiBuBox Watchdog] Gestartet. Pruefe Server alle $IntervalSeconds Sekunden...")
 
 # ===================== MAIN LOOP =====================
 try {
@@ -303,12 +305,17 @@ try {
 
     if (Test-Path -LiteralPath $StopFile) {
       Log "STOPFILE -> exit"
+      [Console]::WriteLine("[NiBuBox Watchdog] Stop-Signal empfangen. Beende.")
       break
     }
 
     $now = Get-Date
 
     if ($now -lt $startupBlockedTo) {
+      $remaining = [int]($startupBlockedTo - $now).TotalSeconds
+      if ($loopCount % 3 -eq 0) {
+        [Console]::WriteLine("[NiBuBox Watchdog] Warte auf Server-Start... noch ca. $remaining s")
+      }
       Start-Sleep -Seconds $IntervalSeconds
       continue
     }
@@ -316,6 +323,23 @@ try {
     $ok = HealthOk
     if ($ok) {
       if ($debug_log) { LogD "HEALTH OK" }
+
+      if (-not $script:healthEverOk) {
+        $script:healthEverOk = $true
+        [Console]::WriteLine("[NiBuBox Watchdog] Server sind bereit!")
+        Log "HEALTH OK (first time)"
+
+        # BootAttemptFile erst jetzt schreiben, wenn Server wirklich laufen
+        if ($bootStamp -and $IsFirstStartThisBoot) {
+          try {
+            Set-Content -LiteralPath $BootAttemptFile -Value $bootStamp -Encoding ASCII
+            LogD "Wrote bootattempt marker (after confirmed health)"
+          } catch {
+            LogW "WARN: failed to write bootattempt file"
+          }
+        }
+      }
+
       $failCount = 0
       if (ApiHealthOk) {
         if ($debug_log) { LogD "API HEALTH OK" }
@@ -335,9 +359,27 @@ try {
     $failCount++
     Log ("HEALTH FAIL (#{0})" -f $failCount)
 
-    if ($failCount -ge 2) {
+    # Fallback: wenn FullStart bereits versucht aber nach FullStartFallbackSecs immer noch kein Health
+    if ($script:FullStartAlreadyUsed -and -not $script:healthEverOk -and $null -ne $script:fullStartTime) {
+      $secsSinceStart = ($now - $script:fullStartTime).TotalSeconds
+      if ($secsSinceStart -ge $FullStartFallbackSecs) {
+        Log ("FALLBACK: {0} s nach Full-Start noch kein Health -> starte nochmal start.bat" -f [int]$secsSinceStart)
+        [Console]::WriteLine("[NiBuBox Watchdog] FALLBACK: Server nach $([int]$secsSinceStart) s noch nicht bereit, starte erneut...")
+        $script:FullStartAlreadyUsed = $false
+        $script:fullStartTime = $null
+        Start-Web
+        $failCount = 0
+        Start-Sleep -Seconds $IntervalSeconds
+        continue
+      }
+      if ($loopCount % 6 -eq 0) {
+        [Console]::WriteLine("[NiBuBox Watchdog] Versuch $loopCount`: warte auf Server... ($([int]$secsSinceStart) s seit Start-Versuch)")
+      }
+    } elseif ($failCount -ge 2) {
       Start-Web
       $failCount = 0
+    } else {
+      [Console]::WriteLine("[NiBuBox Watchdog] Versuch $loopCount`: Server noch nicht erreichbar (Health-Fail #$failCount)...")
     }
 
     Start-Sleep -Seconds $IntervalSeconds
