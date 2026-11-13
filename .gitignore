@@ -88,3 +88,7 @@ autologWin/Autologon.exe
 autologWin/Autologon64.exe
 autologWin/Autologon64a.exe
 autologWin/Eula.txt
+
+# Code-Signing-Zertifikat und Signatur-Tools (sensibel, nicht Teil des Repos)
+/Install_NiBu_CodeSigning_Cert.cmd
+/sig/
