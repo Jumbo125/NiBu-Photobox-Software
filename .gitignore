@@ -78,3 +78,7 @@ DEV/Releases/
 
 
 /NibuBox_Autostart.lnk
+
+# Watchdog-Laufzeitdaten (werden automatisch verändert)
+launcher/Watchdog_flags/last_action.txt
+launcher/Watchdog_flags/watchdog.bootattempt
