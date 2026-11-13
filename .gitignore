@@ -82,3 +82,9 @@ DEV/Releases/
 # Watchdog-Laufzeitdaten (werden automatisch verändert)
 launcher/Watchdog_flags/last_action.txt
 launcher/Watchdog_flags/watchdog.bootattempt
+
+# Sysinternals Autologon (nur am Release-PC vorhanden, nicht Teil des Repos)
+autologWin/Autologon.exe
+autologWin/Autologon64.exe
+autologWin/Autologon64a.exe
+autologWin/Eula.txt
