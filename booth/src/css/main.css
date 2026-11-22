@@ -776,10 +776,11 @@ width: 10vw;
   padding:24px;
   width:100%;
   height:100%;
+  box-sizing:border-box;
 }
 
 .pb-finish-img-left{
-  flex:0 0 80vw;              /* <- links 80vw */
+  flex:0 1 65vw;
   display:flex;
   align-items:center;
   justify-content:center;
