@@ -60,6 +60,7 @@ from typing import Any, Dict, Optional
 
 try:
     import serial  # pyserial
+    import serial.tools.list_ports
 except Exception as e:
     serial = None
     _PYSERIAL_IMPORT_ERROR = str(e)
@@ -364,8 +365,29 @@ def _handle_coin_line(line: str, log_warning=None, log_event=None) -> None:
         _update_state(last_credit_cent=new_balance)
 
 
+_SERIAL_PORT_DIAGNOSTIC_THRESHOLD = 3
+
+
+def _log_port_diagnostic(port: str, consecutive_failures: int, log_warning=None) -> None:
+    """Nach wiederholten Fehlschlägen: unterscheidet "Port verschwunden" von
+    "Port vorhanden, aber Öffnen schlägt fehl" (z. B. durch anderen Prozess
+    belegt oder Windows-Enumerierung noch nicht abgeschlossen)."""
+    try:
+        available_ports = [p.device for p in serial.tools.list_ports.comports()]
+    except Exception:
+        available_ports = []
+    port_present = port in available_ports
+    _log(
+        log_warning, "pi_pico_serial_port_diagnostic",
+        "Pi Pico port diagnostic after repeated failures",
+        port=port, port_present_in_os=port_present,
+        available_ports=available_ports, consecutive_failures=consecutive_failures,
+    )
+
+
 def _serial_reader_loop(port: str, baudrate: int, bridge_url: str, cooldown_sec: float, distance_threshold_mm: float, distance_cooldown_sec: float, log_warning=None, log_event=None) -> None:
     backoff = 1.0
+    consecutive_failures = 0
     while not _stop_event.is_set():
         if _pause_event.is_set():
             _update_state(connected=False)
@@ -383,6 +405,7 @@ def _serial_reader_loop(port: str, baudrate: int, bridge_url: str, cooldown_sec:
                 _reset_distance_edge_state()
                 _log(log_event, "pi_pico_serial_connected", "Connected to Pi Pico", port=port, baudrate=baudrate)
                 backoff = 1.0
+                consecutive_failures = 0
                 while not _stop_event.is_set() and not _pause_event.is_set():
                     line = ser.readline().decode(errors="ignore").strip()
                     if not line:
@@ -414,6 +437,9 @@ def _serial_reader_loop(port: str, baudrate: int, bridge_url: str, cooldown_sec:
         except (serial.SerialException, OSError) as e:
             _update_state(connected=False, last_error=str(e))
             _log(log_warning, "pi_pico_serial_error", "Pi Pico serial connection lost/unavailable", port=port, error=str(e))
+            consecutive_failures += 1
+            if consecutive_failures >= _SERIAL_PORT_DIAGNOSTIC_THRESHOLD:
+                _log_port_diagnostic(port, consecutive_failures, log_warning=log_warning)
         if _stop_event.wait(backoff):
             break
         backoff = min(backoff * 2, 30.0)
