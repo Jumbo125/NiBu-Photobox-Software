@@ -32,11 +32,23 @@ beobachten, was ausgegeben wird:
       main.py (parse_st001_line) nicht erkennt -- Zeile hier im Log
       vergleichen mit dem erwarteten "value:<cent>,frequency:<...>".
 
-Mit DEBUG=True in main.py auf dem Pico (vor main() testweise aendern)
-sieht man zusaetzlich rohe UART1-Bytes als "DBG:ST001 raw: ..."-Zeilen.
-Danach main.py wieder auf DEBUG=False zuruecksetzen, bevor der normale
-Betrieb weiterlaeuft -- DEBUG-Ausgaben sind nicht fuer Produktivbetrieb
-gedacht (Spam auf dem seriellen Kanal).
+Mit --debug-on schaltet dieses Skript DEBUG auf dem Pico zur Laufzeit ein
+(ueber das Kommando "DEBUG:ON", kein Neu-Flash noetig) -- sichtbar werden
+dann zusaetzlich rohe UART1-Bytes als "DBG:ST001 raw: ..."-Zeilen, bevor
+main.py sie als Muenz-Zeile parst. So laesst sich sehen, ob am Pico
+UEBERHAUPT irgendwelche Bytes vom ST-001 ankommen, auch wenn sie sich
+nicht zu einer gueltigen "value:<cent>"-Zeile zusammensetzen.
+
+    python.exe coin_debug_monitor.py COM4 --debug-on
+
+DEBUG-Ausgaben sind nicht fuer Produktivbetrieb gedacht (zusaetzlicher
+Spam auf dem seriellen Kanal). Dieses Skript schaltet DEBUG beim
+regulaeren Beenden (Strg+C) automatisch wieder aus (Kommando
+"DEBUG:OFF"). Bei Stromverlust/Absturz bleibt DEBUG dagegen an, bis es
+explizit per --debug-off ausgeschaltet oder der Pico neu gestartet wird
+(DEBUG=False ist der main.py-Default nach jedem Boot).
+
+    python.exe coin_debug_monitor.py COM4 --debug-off
 
 Beenden mit Strg+C.
 """
@@ -76,11 +88,31 @@ def classify(line: str) -> str:
     return "UNBEKANNT"
 
 
+def send_pico_command(ser: "serial.Serial", command: str) -> None:
+    """Sendet ein PC-Kommando an den Pico (gleiches Protokoll wie ID?,
+    siehe main.py: process_pc_command() -- Zeilenende noetig, damit der
+    Pico das Kommando als abgeschlossen erkennt)."""
+    ser.write((command + "\n").encode())
+    ser.flush()
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("port", help="Serieller Port des Pi Pico, z.B. COM4")
     parser.add_argument("--baud", type=int, default=115200, help="Baudrate (Default: 115200)")
+    parser.add_argument(
+        "--debug-on", action="store_true",
+        help="Schaltet DEBUG auf dem Pico zur Laufzeit ein (DEBUG:ON), zeigt rohe UART1-Bytes vom ST-001.",
+    )
+    parser.add_argument(
+        "--debug-off", action="store_true",
+        help="Schaltet DEBUG auf dem Pico zur Laufzeit aus (DEBUG:OFF) und beendet sofort, ohne zu monitoren.",
+    )
     args = parser.parse_args()
+
+    if args.debug_on and args.debug_off:
+        print("FEHLER: --debug-on und --debug-off schliessen sich aus.")
+        return 1
 
     print(f"Oeffne {args.port} @ {args.baud} Baud ...")
     try:
@@ -93,6 +125,17 @@ def main() -> int:
         print("Prozess 'python.exe' bzw. den Autostart-Launcher), dann erneut")
         print("versuchen.")
         return 1
+
+    if args.debug_off:
+        print("Sende DEBUG:OFF an den Pico ...")
+        send_pico_command(ser, "DEBUG:OFF")
+        ser.close()
+        print("Fertig. (Kein Monitoring, da --debug-off angegeben wurde.)")
+        return 0
+
+    if args.debug_on:
+        print("Sende DEBUG:ON an den Pico (rohe ST-001-Bytes werden sichtbar) ...")
+        send_pico_command(ser, "DEBUG:ON")
 
     print(f"Verbunden. Warte auf Zeilen vom Pico ... (Strg+C zum Beenden)")
     print(f"Jetzt eine Testmuenze in den ST-001 einwerfen.")
@@ -116,6 +159,17 @@ def main() -> int:
     except KeyboardInterrupt:
         pass
     finally:
+        if args.debug_on:
+            # Produktiv-Betrieb darf nicht mit aktivem DEBUG weiterlaufen
+            # (Spam auf dem seriellen Kanal) -- beim regulaeren Beenden
+            # (Strg+C) automatisch zuruecksetzen.
+            try:
+                print("Sende DEBUG:OFF an den Pico (Aufraeumen) ...")
+                send_pico_command(ser, "DEBUG:OFF")
+            except Exception as e:
+                print(f"WARNUNG: DEBUG:OFF konnte nicht gesendet werden: {e}")
+                print("Bitte manuell zuruecksetzen: python.exe coin_debug_monitor.py "
+                      f"{args.port} --debug-off")
         ser.close()
 
     print("-" * 70)
