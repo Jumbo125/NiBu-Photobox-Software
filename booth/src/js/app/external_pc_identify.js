@@ -72,6 +72,10 @@
       el.classList.add("bg-danger");
       el.textContent = tr("externalPc.badge.notFound", "not found");
       el.setAttribute("data-lang-key", "externalPc.badge.notFound");
+    } else if (reachable === "blockedByCoin") {
+      el.classList.add("bg-secondary");
+      el.textContent = tr("externalPc.badge.blockedByCoin", "unknown (coin counter active)");
+      el.setAttribute("data-lang-key", "externalPc.badge.blockedByCoin");
     } else {
       el.classList.add("bg-secondary");
       el.textContent = tr("externalPc.badge.unknown", "unknown");
@@ -146,8 +150,10 @@
         if (e?.code === "coin_enabled_identify_blocked") {
           // Erwartbar/harmlos: Identify wird bewusst übersprungen, solange
           // der Münzzähler aktiv ist (siehe python_server.py) -- kein
-          // echter Fehler, daher kein console.warn und kein Badge-Wechsel
-          // auf "nicht gefunden" (Zustand bleibt wie zuletzt bekannt).
+          // echter Fehler. Badge zeigt das explizit an (statt stumm auf
+          // "unbekannt" zu bleiben), damit nicht der Eindruck entsteht, der
+          // Pico sei generell nicht erkannt worden.
+          setBadge("blockedByCoin");
           return { ok: false, error: "coin_enabled_identify_blocked" };
         }
         console.warn("[externalPc] check_identify failed:", e);
@@ -168,6 +174,7 @@
       return json;
     } catch (e) {
       if (e?.code === "coin_enabled_identify_blocked") {
+        setBadge("blockedByCoin");
         return { ok: false, error: "coin_enabled_identify_blocked" };
       }
       console.warn("[externalPc] list_identify failed:", e);

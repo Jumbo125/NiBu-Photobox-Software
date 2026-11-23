@@ -74,6 +74,7 @@
   "externalPc.badge.unknown": "unbekannt",
   "externalPc.badge.reachable": "erreichbar",
   "externalPc.badge.notFound": "nicht gefunden",
+  "externalPc.badge.blockedByCoin": "unbekannt (Münzzähler aktiv)",
   "externalPc.identify.found": "Pi Pico gefunden.",
   "externalPc.identify.notFound": "Kein Pi Pico gefunden.",
   "externalPc.identify.error": "Suche fehlgeschlagen.",
