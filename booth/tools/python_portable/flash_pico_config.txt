@@ -1,0 +1,16 @@
+# flash_pico_config.txt
+#
+# Wird von flash_pico.py gelesen (liegt im selben Ordner).
+# Enthaelt NUR den Pfad zum lokalen Pico-Projektordner (NiBu Muenz_TOF-
+# Repo) AUF DIESEM RECHNER. main.py und lib/vl53l1x.py werden relativ
+# dazu gesucht:
+#   <PICO_PROJECT_DIR>\main.py
+#   <PICO_PROJECT_DIR>\lib\vl53l1x.py
+#
+# WICHTIG: Dieser Pfad ist auf jedem Rechner (Dev-PC, Release-PC, ...)
+# unterschiedlich -- diese Datei deshalb NICHT mit ins Repo/den Release
+# kopieren, sondern auf jedem Rechner einmalig lokal anpassen.
+#
+# Format: KEY=WERT, Zeilen mit "#" sind Kommentare und werden ignoriert.
+
+PICO_PROJECT_DIR=C:\Users\AndreasRottmann\Documents\arduino_platform_ide\NiBu Muenz_TOF
