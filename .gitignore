@@ -26,7 +26,6 @@ booth/tools/python_portable/*
 !booth/tools/python_portable/install_requirements.bat
 !booth/tools/python_portable/DATEIEN_UEBERSICHT.md
 !booth/tools/python_portable/flash_pico.py
-!booth/tools/python_portable/flash_pico_config.txt
 browser/
 php/
 
