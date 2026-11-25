@@ -11,12 +11,12 @@ REM
 REM Voraussetzung: python_server.py muss vorher beendet sein (Port sonst
 REM belegt), siehe flash_pico.py.
 
-setlocal
+setlocal enabledelayedexpansion
 set "HERE=%~dp0"
 
 if "%~1"=="" (
     set /p PICO_PORT="Serieller Port des Pi Pico (z.B. COM4): "
-    "%HERE%python.exe" "%HERE%flash_pico.py" %PICO_PORT%
+    "%HERE%python.exe" "%HERE%flash_pico.py" !PICO_PORT!
 ) else (
     "%HERE%python.exe" "%HERE%flash_pico.py" %*
 )
