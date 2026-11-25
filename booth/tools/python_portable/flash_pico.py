@@ -96,22 +96,33 @@ def run_mpremote(port: str, *args: str) -> subprocess.CompletedProcess:
     return result
 
 
-def wait_for_ready(port: str, baud: int, timeout_sec: float = 5.0) -> bool:
+def wait_for_ready(port: str, baud: int, timeout_sec: float = 10.0) -> bool:
+    """
+    Oeffnet den Port nach dem Reset erneut und wartet auf READY.
+    Der Pico/USB-CDC braucht nach einem Reset unter Windows unterschiedlich
+    lang, um sich wieder zu melden (Reenumeration) -- deshalb wird das
+    Oeffnen des Ports selbst wiederholt versucht statt nur einmal.
+    """
     try:
         import serial
     except ImportError:
         print("Hinweis: pyserial nicht verfuegbar, kann READY nicht automatisch pruefen.")
         return False
 
-    time.sleep(1.0)  # Pico Zeit zum Neustarten geben, bevor der Port erneut geoeffnet wird
-    try:
-        ser = serial.Serial(port, baud, timeout=1)
-    except Exception as e:
-        print(f"WARNUNG: Konnte Port fuer READY-Pruefung nicht oeffnen: {e}")
+    deadline = time.monotonic() + timeout_sec
+
+    ser = None
+    while ser is None and time.monotonic() < deadline:
+        try:
+            ser = serial.Serial(port, baud, timeout=1)
+        except Exception:
+            time.sleep(0.5)
+
+    if ser is None:
+        print(f"WARNUNG: Port {port} kam nach dem Reset nicht innerhalb von {timeout_sec:.0f}s wieder.")
         return False
 
     ok = False
-    deadline = time.monotonic() + timeout_sec
     try:
         while time.monotonic() < deadline:
             line = ser.readline().decode(errors="ignore").strip()
