@@ -19,7 +19,13 @@ booth/.ACTIVE_SESSION_TMP/
 booth/api/.ACTIVE_SESSION_TMP/
 
 # Mitgelieferte Runtimes/Tools (portable Python, Camera-Bridge, Browser, PHP)
-booth/tools/
+booth/tools/*
+!booth/tools/python_portable/
+booth/tools/python_portable/*
+!booth/tools/python_portable/requirements.txt
+!booth/tools/python_portable/install_requirements.bat
+!booth/tools/python_portable/DATEIEN_UEBERSICHT.md
+!booth/tools/python_portable/flash_pico.py
 browser/
 php/
 
