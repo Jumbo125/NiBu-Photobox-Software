@@ -100,8 +100,11 @@ def wait_for_ready(port: str, baud: int, timeout_sec: float = 10.0) -> bool:
     """
     Oeffnet den Port nach dem Reset erneut und wartet auf READY.
     Der Pico/USB-CDC braucht nach einem Reset unter Windows unterschiedlich
-    lang, um sich wieder zu melden (Reenumeration) -- deshalb wird das
-    Oeffnen des Ports selbst wiederholt versucht statt nur einmal.
+    lang, um sich wieder zu melden (Reenumeration) -- das kann sogar noch
+    passieren, NACHDEM der Port schon erfolgreich geoeffnet wurde (das
+    Handle wird dann beim naechsten read() ungueltig). Deshalb wird nicht
+    nur das Oeffnen, sondern der komplette Open-+Read-Versuch wiederholt,
+    bis entweder READY ankommt oder das Zeitbudget aufgebraucht ist.
     """
     try:
         import serial
@@ -110,30 +113,33 @@ def wait_for_ready(port: str, baud: int, timeout_sec: float = 10.0) -> bool:
         return False
 
     deadline = time.monotonic() + timeout_sec
+    ok = False
 
-    ser = None
-    while ser is None and time.monotonic() < deadline:
+    while not ok and time.monotonic() < deadline:
+        ser = None
         try:
             ser = serial.Serial(port, baud, timeout=1)
+            while time.monotonic() < deadline:
+                line = ser.readline().decode(errors="ignore").strip()
+                if not line:
+                    continue
+                print(f"  Pico: {line}")
+                if line == "READY":
+                    ok = True
+                    break
         except Exception:
+            # Port gerade am (Re-)Enumerieren -- kurz warten, erneut
+            # versuchen statt abzubrechen.
             time.sleep(0.5)
+        finally:
+            if ser is not None:
+                try:
+                    ser.close()
+                except Exception:
+                    pass
 
-    if ser is None:
-        print(f"WARNUNG: Port {port} kam nach dem Reset nicht innerhalb von {timeout_sec:.0f}s wieder.")
-        return False
-
-    ok = False
-    try:
-        while time.monotonic() < deadline:
-            line = ser.readline().decode(errors="ignore").strip()
-            if not line:
-                continue
-            print(f"  Pico: {line}")
-            if line == "READY":
-                ok = True
-                break
-    finally:
-        ser.close()
+    if not ok:
+        print(f"WARNUNG: Keine READY-Zeile innerhalb von {timeout_sec:.0f}s empfangen.")
     return ok
 
 
