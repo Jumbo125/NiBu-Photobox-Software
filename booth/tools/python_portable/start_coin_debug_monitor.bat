@@ -10,6 +10,6 @@ if "%COMPORT%"=="" (
     exit /b 1
 )
 
-"%SCRIPT_DIR%python.exe" "%SCRIPT_DIR%coin_debug_monitor.py" %COMPORT%
+"%SCRIPT_DIR%python.exe" "%SCRIPT_DIR%coin_debug_monitor.py" %COMPORT% --debug-on
 pause
 endlocal
