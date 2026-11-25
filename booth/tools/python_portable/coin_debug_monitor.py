@@ -81,6 +81,14 @@ def classify(line: str) -> str:
         return "ToF (Altprotokoll)"
     if line.startswith("STATUS:"):
         return "Status"
+    if line.startswith("FATAL:"):
+        return "FATAL (Pico-Absturz)"
+    if line.startswith("VERSION:"):
+        return "Firmware-Version"
+    if line.startswith("DEBUG:STATE="):
+        return "Debug-Status"
+    if line.startswith("ALIVE:"):
+        return "Heartbeat"
     if line.startswith("DBG:"):
         return "Debug (Pico)"
     if line == "READY":
