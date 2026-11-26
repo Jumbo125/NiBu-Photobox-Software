@@ -208,15 +208,6 @@ Großes Danke an diese Projekte (und deren Maintainer/Contributor):
 - PHP – https://www.php.net/  
 - Python – https://www.python.org/
 
-### Third-party software
-
-This project includes Dimmer by Nelson Pires.
-
-Dimmer is freeware and is redistributed unmodified
-under the original author's distribution terms.
-
-https://www.nelsonpires.com/software/dimmer
-
 Zusätzliche Hinweise zu Third-Party-Files (u. a. `align_guidlines.js`, `centering_guidlines.js`, `crypto.js`) findest du in `THIRD_PARTY_NOTICES.md`.
 
 ---
@@ -389,13 +380,3 @@ Thanks to these projects:
 - Python – https://www.python.org/
 
 For additional third-party notes (incl. `align_guidlines.js`, `centering_guidlines.js`, `crypto.js`) see `THIRD_PARTY_NOTICES.md`.
-
-
-### Third-party software
-
-This project includes Dimmer by Nelson Pires.
-
-Dimmer is freeware and is redistributed unmodified
-under the original author's distribution terms.
-
-https://www.nelsonpires.com/software/dimmer 
