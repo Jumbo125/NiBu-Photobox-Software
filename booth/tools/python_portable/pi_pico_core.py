@@ -410,6 +410,8 @@ def _serial_reader_loop(port: str, baudrate: int, bridge_url: str, cooldown_sec:
                     line = ser.readline().decode(errors="ignore").strip()
                     if not line:
                         continue
+                    if line.startswith("COIN:") or line.startswith("DBG:") or line.startswith("FATAL:"):
+                        _log(log_event, "pi_pico_raw_line", "Raw line from Pico", line=line)
                     flags = get_runtime_flags()
                     if line.startswith("DISTANCE:"):
                         if not flags["tof_enabled"]:
