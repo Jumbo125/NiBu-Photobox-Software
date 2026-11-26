@@ -398,4 +398,4 @@ This project includes Dimmer by Nelson Pires.
 Dimmer is freeware and is redistributed unmodified
 under the original author's distribution terms.
 
-https://www.nelsonpires.com/software/dimmer
+https://www.nelsonpires.com/software/dimmer 
