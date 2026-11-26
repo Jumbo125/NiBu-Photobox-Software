@@ -210,6 +210,13 @@ Großes Danke an diese Projekte (und deren Maintainer/Contributor):
 
 Zusätzliche Hinweise zu Third-Party-Files (u. a. `align_guidlines.js`, `centering_guidlines.js`, `crypto.js`) findest du in `THIRD_PARTY_NOTICES.md`.
 
+This project includes Dimmer by Nelson Pires.
+
+Dimmer is freeware and is redistributed unmodified
+under the original author's distribution terms.
+
+https://www.nelsonpires.com/software/dimmer
+
 ---
 
 <a id="en"></a>
