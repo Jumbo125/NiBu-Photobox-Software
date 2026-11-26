@@ -90,6 +90,8 @@
                                 <option value="1/15">1/15</option>
                                 <option value="1/30">1/30</option>
                                 <option value="1/60" selected>1/60</option>
+                                <option value="1/80">1/80</option>
+                                <option value="1/100">1/100</option>
                                 <option value="1/125">1/125</option>
                                 <option value="1/250">1/250</option>
                                 <option value="1/500">1/500</option>
