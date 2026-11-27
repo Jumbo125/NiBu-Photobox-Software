@@ -256,7 +256,7 @@
         fd.append('templateName', TE.state.templateName);
         fd.append('file', file);
 
-        const res = await TE.uploadFile('/api/template_editor_upload_asset.php', fd);
+        const res = await TE.uploadFile('/api/template_editor_upload_asset', fd);
         TE.addImageFromServer(res.url, res.relPath, res.name);
 
         TE.toast(tr('template_editor.toast.image_added', 'Image added.'));
@@ -315,7 +315,7 @@
         fd.append('file', file);
         fd.append('targetName', targetName);
 
-        const res = await TE.uploadFile('/api/template_editor_upload_asset.php', fd);
+        const res = await TE.uploadFile('/api/template_editor_upload_asset', fd);
         const saved = res.savedName || targetName;
 
         TE.state.greenwallAsset = { name: saved, relPath: res.relPath, url: res.url };
@@ -384,9 +384,21 @@
         }
         await TE.saveTemplate();
 
-        const resp = await fetch('/api/test_print.php', {
+        // AuthKey fuer /pyapi/print/test -- Editor laedt PB_CONFIG nicht,
+        // daher direkt aus server_config.json (wird von Caddy als statische
+        // Datei ausgeliefert, gleiches Muster wie pb_core.js PB.CONFIG_PATHS.pythonServer).
+        let pyApiKey = '';
+        try {
+          const cfgResp = await fetch('../tools/python_portable/server_config.json?_=' + Date.now(), { cache: 'no-store' });
+          if (cfgResp.ok) {
+            const cfg = await cfgResp.json();
+            pyApiKey = String(cfg?.AuthKey || '').trim();
+          }
+        } catch (_) {}
+
+        const resp = await fetch('/pyapi/print/test', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'X-Api-Key': pyApiKey },
           body: JSON.stringify({ templateName: TE.state.templateName }),
         });
         let result = {};
@@ -432,7 +444,7 @@
       try {
         await TE.saveTemplate();
 
-        const resp = await fetch('/api/template_set_active.php', {
+        const resp = await fetch('/api/template_set_active', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ templateName: name }),
@@ -549,7 +561,7 @@
         // (activeTemplate/<n>/template.xml) — ask the server which slots
         // exist instead of assuming the old flat activeTemplate/template.xml
         // layout. Multiple slots: this button loads the first one (slot 1).
-        const slotsRes = await $.getJSON('/api/list_active_templates.php?_=' + Date.now());
+        const slotsRes = await $.getJSON('/api/list_active_templates?_=' + Date.now());
         const firstTemplate = (slotsRes && Array.isArray(slotsRes.templates)) ? slotsRes.templates[0] : null;
 
         const slotDir = firstTemplate

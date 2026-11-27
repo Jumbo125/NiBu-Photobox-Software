@@ -189,6 +189,7 @@ $PhpCliExe = Join-Path $BaseDir "php\php.exe"
 $BridgeExe = Join-Path $BaseDir "booth\tools\camerabridge\APIServer\Photobox.Bridge.ApiServer.exe"
 $PyExe     = Join-Path $BaseDir "booth\tools\python_portable\python.exe"
 $PyServer  = Join-Path $BaseDir "booth\tools\python_portable\python_server.py"
+$WatchdogServer = Join-Path $BaseDir "booth\tools\python_portable\watchdog_server.py"
 
 $DevDir       = Join-Path $BaseDir "DEV"
 $ProcDumpDir  = Join-Path $DevDir "ProcDump"
@@ -354,13 +355,16 @@ function Stop-ProcessByPorts {
 function Stop-PythonServerByCommandLine {
     param(
         [Parameter(Mandatory)]
-        [string]$ScriptPath
+        [string]$ScriptPath,
+
+        [string]$Label = "Python Server"
     )
 
-    Write-Host "[6] Python Server (python_server.py)"
+    Write-Host "[$Label]"
 
     $normalizedScript = (Normalize-PathSafe $ScriptPath).ToLowerInvariant()
     $normalizedScriptAlt = $normalizedScript -replace '\\', '/'
+    $scriptFileName = (Split-Path -Leaf $ScriptPath).ToLowerInvariant()
 
     $targets = @(
         Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object {
@@ -369,7 +373,7 @@ function Stop-PythonServerByCommandLine {
             $cmd = $_.CommandLine.ToLowerInvariant()
             $cmdAlt = $cmd -replace '\\', '/'
 
-            ($cmd -like "*python_server.py*") -or
+            ($cmd -like "*$scriptFileName*") -or
             ($cmd -like "*$normalizedScript*") -or
             ($cmdAlt -like "*$normalizedScriptAlt*")
         }
@@ -449,8 +453,10 @@ if (-not $Web) {
 
     Stop-ProcessesByName      -Label "[8] Worker (Name-Fallback)" -Names @("CameraWorker", "worker")
 
-    Stop-PythonServerByCommandLine -ScriptPath $PyServer
-    Stop-ProcessByPorts            -Label "[9] Python (Port-Fallback)" -Ports @($PyPort)
+    Stop-PythonServerByCommandLine -ScriptPath $PyServer -Label "9] Python Server (python_server.py)"
+    Stop-ProcessByPorts            -Label "[10] Python (Port-Fallback)" -Ports @($PyPort)
+
+    Stop-PythonServerByCommandLine -ScriptPath $WatchdogServer -Label "11] Watchdog Helper (watchdog_server.py)"
 }
 
 Start-Sleep -Seconds 1

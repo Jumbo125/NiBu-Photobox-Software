@@ -65,7 +65,7 @@ window.TE = window.TE || {};
   };
 
   TE.apiListProjects = function () {
-    return $.getJSON('../api/template_editor_list_projects.php');
+    return $.getJSON('../api/template_editor_list_projects');
   };
 
   TE.uiRefreshProjects = function () {
@@ -524,11 +524,11 @@ window.TE = window.TE || {};
   };
 
   TE.apiLoadConfig = async function () {
-    return TE._fetchJson(`/api/template_editor_lade_config.php?v=${Date.now()}`);
+    return TE._fetchJson(`/api/template_editor_lade_config?v=${Date.now()}`);
   };
 
   TE.apiSaveConfig = async function (cfg) {
-    return TE.postJson('/api/template_editor_save_config.php', cfg || {});
+    return TE.postJson('/api/template_editor_save_config', cfg || {});
   };
 
   TE.loadConfig = async function () {

@@ -1,10 +1,10 @@
-﻿<?php
-// SPDX-License-Identifier: AGPL-3.0-or-later
-// Copyright (c) 2026 Andreas Rottmann
+﻿<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<!-- Copyright (c) 2026 Andreas Rottmann -->
 
-// sections/camera_settings.php
-// UI liest/schreibt Werte dynamisch über data-json-* in config/camera_config.json.
-?>
+<!--
+sections/camera_settings.php
+UI liest/schreibt Werte dynamisch über data-json-* in config/camera_config.json.
+-->
 <div
     class="modal fade"
     id="modalCameraSettings"
@@ -18,21 +18,21 @@
                     class="modal-title"
                     id="modalCameraSettingsLabel"
                     data-lang-key="overlay.camera_settings.title">
-                    <?= t('overlay.camera_settings.title', 'Camera Settings') ?>
+                    Camera Settings
                 </h5>
 
                 <button
                     type="button"
                     class="btn-close btn-close-white"
                     data-bs-dismiss="modal"
-                    aria-label="<?= t('form.close', 'Close') ?>"></button>
+                    aria-label="Close"></button>
             </div>
 
             <div class="modal-body">
                 <p
                     class="small text-secondary mb-3"
                     data-lang-key="overlay.camera_settings.description">
-                    <?= t('overlay.camera_settings.description', 'Adjust camera parameters using digiCamControl CLI.') ?>
+                    Adjust camera parameters using digiCamControl CLI.
                 </p>
 
                 <form
@@ -46,7 +46,7 @@
                                 class="form-label"
                                 for="cameraIso"
                                 data-lang-key="overlay.camera_settings.iso.label">
-                                <?= t('overlay.camera_settings.iso.label', 'ISO') ?>
+                                ISO
                             </label>
 
                             <select
@@ -69,7 +69,7 @@
                                 class="form-label"
                                 for="cameraShutter"
                                 data-lang-key="overlay.camera_settings.shutter.label">
-                                <?= t('overlay.camera_settings.shutter.label', 'Shutter Speed') ?>
+                                Shutter Speed
                             </label>
 
                             <select
@@ -108,7 +108,7 @@
                                 class="form-label"
                                 for="cameraAperture"
                                 data-lang-key="overlay.camera_settings.aperture.label">
-                                <?= t('overlay.camera_settings.aperture.label', 'Aperture (f-stop)') ?>
+                                Aperture (f-stop)
                             </label>
 
                             <select
@@ -131,7 +131,7 @@
                                 class="form-label"
                                 for="cameraWB"
                                 data-lang-key="overlay.camera_settings.wb.label">
-                                <?= t('overlay.camera_settings.wb.label', 'White Balance') ?>
+                                White Balance
                             </label>
 
                             <select
@@ -141,19 +141,19 @@
                                 data-json-parm="wb"
                                 data-default-value="auto">
                                 <option value="auto" data-lang-key="overlay.camera_settings.wb.auto">
-                                    <?= t('overlay.camera_settings.wb.auto', 'Auto') ?>
+                                    Auto
                                 </option>
                                 <option value="daylight" data-lang-key="overlay.camera_settings.wb.daylight">
-                                    <?= t('overlay.camera_settings.wb.daylight', 'Daylight') ?>
+                                    Daylight
                                 </option>
                                 <option value="cloudy" data-lang-key="overlay.camera_settings.wb.cloudy">
-                                    <?= t('overlay.camera_settings.wb.cloudy', 'Cloudy') ?>
+                                    Cloudy
                                 </option>
                                 <option value="tungsten" data-lang-key="overlay.camera_settings.wb.tungsten">
-                                    <?= t('overlay.camera_settings.wb.tungsten', 'Tungsten') ?>
+                                    Tungsten
                                 </option>
                                 <option value="fluorescent" data-lang-key="overlay.camera_settings.wb.fluorescent">
-                                    <?= t('overlay.camera_settings.wb.fluorescent', 'Fluorescent') ?>
+                                    Fluorescent
                                 </option>
                             </select>
                         </div>
@@ -164,7 +164,7 @@
                                 class="form-label"
                                 for="cameraExposure"
                                 data-lang-key="overlay.camera_settings.exposure.label">
-                                <?= t('overlay.camera_settings.exposure.label', 'Exposure Compensation') ?>
+                                Exposure Compensation
                             </label>
 
                             <input
@@ -195,17 +195,14 @@
                                     class="form-check-label"
                                     for="cameraUseSettingsForPicture"
                                     data-lang-key="overlay.camera_settings.use_settings_for_picture.label">
-                                    <?= t('overlay.camera_settings.use_settings_for_picture.label', 'Use settings for picture') ?>
+                                    Use settings for picture
                                 </label>
                             </div>
 
                             <div
                                 class="small text-secondary"
                                 data-lang-key="overlay.camera_settings.use_settings_for_picture.hint">
-                                <?= t(
-                                    'overlay.camera_settings.use_settings_for_picture.hint',
-                                    'If enabled, LiveView runs continuously (increased heat and power usage; may reduce stability during long events). Recommended: lower FPS when idle and use higher FPS only during active photo sessions.'
-                                ) ?>
+                                If enabled, LiveView runs continuously (increased heat and power usage; may reduce stability during long events). Recommended: lower FPS when idle and use higher FPS only during active photo sessions.
                             </div>
                         </div>
 
@@ -224,26 +221,20 @@
                                     class="form-check-label"
                                     for="cameraLiveviewAlwaysActive"
                                     data-lang-key="overlay.camera_settings.liveview_always_active.label">
-                                    <?= t('overlay.camera_settings.liveview_always_active.label', 'Keep LiveView running all the time') ?>
+                                    Keep LiveView running all the time
                                 </label>
                             </div>
 
                             <div
                                 class="small text-secondary"
                                 data-lang-key="overlay.camera_settings.liveview_always_active.hint">
-                                <?= t(
-                                    'overlay.camera_settings.liveview_always_active.hint',
-                                    'If disabled, LiveView starts only when needed. Before the first capture a 3-second warmup countdown is shown.'
-                                ) ?>
+                                If disabled, LiveView starts only when needed. Before the first capture a 3-second warmup countdown is shown.
                             </div>
 
                             <div class="alert alert-warning py-2 mt-2 mb-0" role="alert">
                                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
                                 <span data-lang-key="overlay.camera_settings.liveview_always_active.warning">
-                                    <?= t(
-                                        'overlay.camera_settings.liveview_always_active.warning',
-                                        'If enabled, LiveView runs permanently (heat, power usage, possible stability issues on long events).'
-                                    ) ?>
+                                    If enabled, LiveView runs permanently (heat, power usage, possible stability issues on long events).
                                 </span>
                             </div>
 
@@ -261,16 +252,13 @@
                                     class="form-check-label"
                                     for="cameraLiveviewShowOnStartscreen"
                                     data-lang-key="overlay.camera_settings.liveview_show_on_startscreen.label">
-                                    <?= t('overlay.camera_settings.liveview_show_on_startscreen.label', 'Show LiveView on startscreen') ?>
+                                    Show LiveView on startscreen
                                 </label>
                             </div>
                             <div
                                 class="small text-secondary"
                                 data-lang-key="overlay.camera_settings.liveview_show_on_startscreen.hint">
-                                <?= t(
-                                    'overlay.camera_settings.liveview_show_on_startscreen.hint',
-                                    'Only relevant when "Keep LiveView running" is active. If disabled, the static background is shown instead — LiveView still runs in the background.'
-                                ) ?>
+                                Only relevant when "Keep LiveView running" is active. If disabled, the static background is shown instead — LiveView still runs in the background.
                             </div>
 
                             <hr class="my-3">
@@ -289,17 +277,14 @@
                                     class="form-check-label"
                                     for="cameraPreviewMirror"
                                     data-lang-key="overlay.camera_settings.preview_mirror.label">
-                                    <?= t('overlay.camera_settings.preview_mirror.label', 'Mirror preview image') ?>
+                                    Mirror preview image
                                 </label>
                             </div>
 
                             <div
                                 class="small text-secondary"
                                 data-lang-key="overlay.camera_settings.preview_mirror.hint">
-                                <?= t(
-                                    'overlay.camera_settings.preview_mirror.hint',
-                                    'Mirrors only the on-screen preview (useful for front-facing setups). Saved photos are not changed.'
-                                ) ?>
+                                Mirrors only the on-screen preview (useful for front-facing setups). Saved photos are not changed.
                             </div>
 
                             <hr class="my-3">
@@ -318,7 +303,7 @@
                                     class="form-check-label"
                                     for="cameraFullImg"
                                     data-lang-key="overlay.camera_settings.full_img.label">
-                                    <?= t('overlay.camera_settings.full_img.label', 'Fullscreen preview (crop edges, center image)') ?>
+                                    Fullscreen preview (crop edges, center image)
                                 </label>
                             </div>
 
@@ -330,7 +315,7 @@
                                         for="cameraLiveviewMaxRuntimeMin"
                                         class="form-label mb-1"
                                         data-lang-key="overlay.camera_settings.liveview_max_runtime.label">
-                                        <?= t('overlay.camera_settings.liveview_max_runtime.label', 'Camera protection: stop LiveView after (minutes)') ?>
+                                        Camera protection: stop LiveView after (minutes)
                                     </label>
 
                                     <div class="input-group input-group-sm" style="max-width:200px">
@@ -341,24 +326,21 @@
                                             min="0"
                                             max="120"
                                             step="1"
-                                            placeholder="<?= t('overlay.camera_settings.liveview_max_runtime.placeholder', '0 = off') ?>"
+                                            placeholder="0 = off"
                                             data-json-group="camera_settings"
                                             data-json-parm="liveview_max_runtime_minutes"
                                             data-json-type="int"
                                             data-default-value="0"
                                             data-sync-parm="liveview_auto_pause_minutes">
                                         <span class="input-group-text" data-lang-key="overlay.camera_settings.liveview_max_runtime.unit">
-                                            <?= t('overlay.camera_settings.liveview_max_runtime.unit', 'min') ?>
+                                            min
                                         </span>
                                     </div>
 
                                     <div
                                         class="small text-secondary mt-1"
                                         data-lang-key="overlay.camera_settings.liveview_max_runtime.hint">
-                                        <?= t(
-                                            'overlay.camera_settings.liveview_max_runtime.hint',
-                                            '0 = disabled. LiveView is stopped automatically after X minutes to protect the camera — both during inactivity and during continuous use. It restarts on the next capture.'
-                                        ) ?>
+                                        0 = disabled. LiveView is stopped automatically after X minutes to protect the camera — both during inactivity and during continuous use. It restarts on the next capture.
                                     </div>
                                 </div>
                             </div>
@@ -369,7 +351,7 @@
                                         for="cameraLiveviewFpsActive"
                                         class="form-label mb-1"
                                         data-lang-key="overlay.camera_settings.liveview_fps_active.label">
-                                        <?= t('overlay.camera_settings.liveview_fps_active.label', 'LiveView FPS (while session is running)') ?>
+                                        LiveView FPS (while session is running)
                                     </label>
 
                                     <div class="input-group input-group-sm">
@@ -380,23 +362,20 @@
                                             min="1"
                                             max="30"
                                             step="1"
-                                            placeholder="<?= t('overlay.camera_settings.liveview_fps_active.placeholder', 'e.g. 15') ?>"
+                                            placeholder="e.g. 15"
                                             data-json-group="camera_settings"
                                             data-json-parm="liveview_fps_active"
                                             data-json-type="int"
                                             data-default-value="20">
                                         <span class="input-group-text" data-lang-key="overlay.camera_settings.liveview_fps.unit">
-                                            <?= t('overlay.camera_settings.liveview_fps.unit', 'FPS') ?>
+                                            FPS
                                         </span>
                                     </div>
 
                                     <div
                                         class="small text-secondary mt-1"
                                         data-lang-key="overlay.camera_settings.liveview_fps_active.hint">
-                                        <?= t(
-                                            'overlay.camera_settings.liveview_fps_active.hint',
-                                            'Used after clicking START (countdown / capturing). Higher FPS feels smoother but uses more CPU/USB bandwidth.'
-                                        ) ?>
+                                        Used after clicking START (countdown / capturing). Higher FPS feels smoother but uses more CPU/USB bandwidth.
                                     </div>
                                 </div>
 
@@ -405,7 +384,7 @@
                                         for="cameraLiveviewFpsIdle"
                                         class="form-label mb-1"
                                         data-lang-key="overlay.camera_settings.liveview_fps_idle.label">
-                                        <?= t('overlay.camera_settings.liveview_fps_idle.label', 'LiveView FPS (idle / preview only)') ?>
+                                        LiveView FPS (idle / preview only)
                                     </label>
 
                                     <div class="input-group input-group-sm">
@@ -416,23 +395,20 @@
                                             min="1"
                                             max="30"
                                             step="1"
-                                            placeholder="<?= t('overlay.camera_settings.liveview_fps_idle.placeholder', 'e.g. 8') ?>"
+                                            placeholder="e.g. 8"
                                             data-json-group="camera_settings"
                                             data-json-parm="liveview_fps_idle"
                                             data-json-type="int"
                                             data-default-value="10">
                                         <span class="input-group-text" data-lang-key="overlay.camera_settings.liveview_fps.unit">
-                                            <?= t('overlay.camera_settings.liveview_fps.unit', 'FPS') ?>
+                                            FPS
                                         </span>
                                     </div>
 
                                     <div
                                         class="small text-secondary mt-1"
                                         data-lang-key="overlay.camera_settings.liveview_fps_idle.hint">
-                                        <?= t(
-                                            'overlay.camera_settings.liveview_fps_idle.hint',
-                                            'Used when not in a photo session (only preview/stream). Lower FPS saves CPU and improves stability on long events.'
-                                        ) ?>
+                                        Used when not in a photo session (only preview/stream). Lower FPS saves CPU and improves stability on long events.
                                     </div>
                                 </div>
                             </div>
@@ -446,10 +422,10 @@
                 <div class="d-flex align-items-start justify-content-between gap-3 mb-2">
                     <div>
                         <div class="fw-semibold" data-lang-key="overlay.camera_settings.testphoto.title">
-                            <?= t('overlay.camera_settings.testphoto.title', 'Test Photo') ?>
+                            Test Photo
                         </div>
                         <div class="small text-secondary" data-lang-key="overlay.camera_settings.testphoto.hint">
-                            <?= t('overlay.camera_settings.testphoto.hint', 'Take a test shot to verify settings and framing.') ?>
+                            Take a test shot to verify settings and framing.
                         </div>
                     </div>
 
@@ -459,7 +435,7 @@
                         id="btnTakeTestPhoto">
                         <i class="bi bi-camera"></i>
                         <span data-lang-key="overlay.camera_settings.testphoto.button">
-                            <?= t('overlay.camera_settings.testphoto.button', 'Take test photo') ?>
+                            Take test photo
                         </span>
                     </button>
                 </div>
@@ -472,18 +448,18 @@
                         id="testPhotoPlaceholder"
                         class="small text-secondary"
                         data-lang-key="overlay.camera_settings.testphoto.placeholder">
-                        <?= t('overlay.camera_settings.testphoto.placeholder', 'No test photo yet.') ?>
+                        No test photo yet.
                     </div>
 
                     <img
                         id="testPhotoImg"
                         class="img-fluid d-none"
                         src=""
-                        alt="<?= t('overlay.camera_settings.testphoto.alt', 'Test photo preview') ?>">
+                        alt="Test photo preview">
                 </div>
 
                 <div class="small text-secondary mt-2" data-lang-key="overlay.camera_settings.testphoto.note">
-                    <?= t('overlay.camera_settings.testphoto.note', 'The latest test photo will be shown here.') ?>
+                    The latest test photo will be shown here.
                 </div>
             </div>
 
@@ -492,7 +468,7 @@
                     type="button"
                     class="btn btn-outline-light btn-sm"
                     data-bs-dismiss="modal">
-                    <span data-lang-key="form.cancel"><?= t('form.cancel', 'Cancel') ?></span>
+                    <span data-lang-key="form.cancel">Cancel</span>
                 </button>
 
                 <button
@@ -501,7 +477,7 @@
                     id="btnSaveCameraSettings"
                     data-json-file="config/camera_config.json">
                     <span data-lang-key="overlay.camera_settings.actions.apply">
-                        <?= t('overlay.camera_settings.actions.apply', 'Apply settings') ?>
+                        Apply settings
                     </span>
                 </button>
             </div>

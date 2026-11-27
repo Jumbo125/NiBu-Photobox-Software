@@ -397,6 +397,19 @@ else:
     _GREENWALL_PROFILE_IMPORT_ERROR = ""
 
 # -----------------------------
+# Webapi (ehemals booth/api/*.php) import
+# -----------------------------
+try:
+    from webapi import routes as webapi_routes
+    from webapi.multipart import parse_multipart as webapi_parse_multipart
+except Exception as e:
+    _WEBAPI_IMPORT_ERROR = str(e)
+    webapi_routes = None
+    webapi_parse_multipart = None
+else:
+    _WEBAPI_IMPORT_ERROR = ""
+
+# -----------------------------
 # DNP import
 # -----------------------------
 try:
@@ -1321,6 +1334,23 @@ class Handler(BaseHTTPRequestHandler):
             log_error("send_file_failed", "Could not send file", file_path=file_path, error=str(e), traceback=traceback.format_exc(), **_handler_log_context(self))
             return self._send_json(500, {"ok": False, "error": "send_file_failed", "message": str(e)})
 
+    def _send_bytes(self, code: int, data: bytes, mime: str, extra_headers: Optional[Dict[str, str]] = None):
+        """Wie _send_file, aber fuer in-memory Bytes (z.B. ZIP-Export ohne Zwischendatei)."""
+        try:
+            self.send_response(code)
+            self._cors()
+            self.send_header("Content-Type", mime or "application/octet-stream")
+            self.send_header("Content-Length", str(len(data)))
+            if extra_headers:
+                for k, v in extra_headers.items():
+                    if v is None:
+                        continue
+                    self.send_header(str(k), str(v))
+            self.end_headers()
+            self.wfile.write(data)
+        except (BrokenPipeError, ConnectionAbortedError, ConnectionResetError, OSError):
+            return
+
     def do_OPTIONS(self):
         self.send_response(200)
         self._cors()
@@ -1333,6 +1363,32 @@ class Handler(BaseHTTPRequestHandler):
 
         if path == "/":
             return self._send_text(200, "OK")
+
+        # ------------------------------------------------------------------
+        # Webapi (ehemals booth/api/*.php) — GET-Endpunkte
+        # ------------------------------------------------------------------
+        if path in (
+            "/api/config", "/api/list_folders", "/api/list_active_templates",
+            "/api/read_count_of_photos", "/api/template_info",
+            "/api/template_editor_lade_config", "/api/template_editor_list_projects",
+        ):
+            if webapi_routes is None:
+                return self._send_json(500, {"ok": False, "error": "webapi_import_failed", "detail": _WEBAPI_IMPORT_ERROR})
+
+            if path == "/api/config":
+                return webapi_routes.rw_config_get(self, qs, {})
+            if path == "/api/list_folders":
+                return webapi_routes.list_folders(self, qs, {})
+            if path == "/api/list_active_templates":
+                return webapi_routes.list_active_templates(self, qs, {})
+            if path == "/api/read_count_of_photos":
+                return webapi_routes.read_count_of_photos(self, qs, {})
+            if path == "/api/template_info":
+                return webapi_routes.template_info(self, qs, {})
+            if path == "/api/template_editor_lade_config":
+                return webapi_routes.template_editor_lade_config(self, qs, {})
+            if path == "/api/template_editor_list_projects":
+                return webapi_routes.template_editor_list_projects(self, qs, {})
 
         if path == "/ping":
             return self._send_json(200, {"ok": True})
@@ -1435,6 +1491,8 @@ class Handler(BaseHTTPRequestHandler):
                     "skip_dnp_info": DEBUG_SKIP_DNP_INFO,
                 },
                 "json_checks": _STARTUP_JSON_CHECKS,
+                "watchdog_port": int((_SERVER_CFG or {}).get("WatchdogPort") or 8054) if isinstance(_SERVER_CFG, dict) else 8054,
+                "booth_root": str(_pb_get_booth_root_safe() or ""),
             })
 
         if path == "/preview/session":
@@ -1741,7 +1799,56 @@ class Handler(BaseHTTPRequestHandler):
         path = u.path
         qs = parse_qs(u.query)
 
+        # ------------------------------------------------------------------
+        # Webapi multipart/form-data Endpunkte — MUESSEN vor parse_body()
+        # abgefangen werden, sonst ist der Request-Body-Stream schon vom
+        # generischen JSON/urlencoded-Parser konsumiert.
+        # ------------------------------------------------------------------
+        if path in ("/api/set_active_template", "/api/template_editor_import", "/api/template_editor_upload_asset"):
+            if webapi_routes is None or webapi_parse_multipart is None:
+                return self._send_json(500, {"ok": False, "error": "webapi_import_failed", "detail": _WEBAPI_IMPORT_ERROR})
+
+            fields, files = webapi_parse_multipart(self)
+
+            if path == "/api/set_active_template":
+                uploads = files.get("zip") or files.get("zip[]") or []
+                return webapi_routes.set_active_template(self, qs, uploads)
+
+            if path == "/api/template_editor_import":
+                zip_files = files.get("zip") or []
+                upload = zip_files[0] if zip_files else None
+                return webapi_routes.template_editor_import(self, qs, upload)
+
+            if path == "/api/template_editor_upload_asset":
+                file_files = files.get("file") or []
+                upload = file_files[0] if file_files else None
+                return webapi_routes.template_editor_upload_asset(self, qs, fields, upload)
+
         data = parse_body(self)
+
+        # ------------------------------------------------------------------
+        # Webapi JSON-Endpunkte (ehemals booth/api/*.php)
+        # ------------------------------------------------------------------
+        if path in (
+            "/api/config", "/api/session_snapshot", "/api/template_set_active",
+            "/api/template_editor_save_config", "/api/template_editor_save",
+            "/api/template_editor_export",
+        ):
+            if webapi_routes is None:
+                return self._send_json(500, {"ok": False, "error": "webapi_import_failed", "detail": _WEBAPI_IMPORT_ERROR})
+
+            if path == "/api/config":
+                return webapi_routes.rw_config_post(self, qs, data)
+            if path == "/api/session_snapshot":
+                return webapi_routes.session_snapshot(self, qs, data)
+            if path == "/api/template_set_active":
+                return webapi_routes.template_set_active(self, qs, data)
+            if path == "/api/template_editor_save_config":
+                return webapi_routes.template_editor_save_config(self, qs, data)
+            if path == "/api/template_editor_save":
+                return webapi_routes.template_editor_save(self, qs, data)
+            if path == "/api/template_editor_export":
+                return webapi_routes.template_editor_export(self, qs, data)
 
         if path == "/closebrowser":
             auth = _auth_or_403(self, qs, data)
@@ -2094,10 +2201,17 @@ class Handler(BaseHTTPRequestHandler):
                 booth_root = get_booth_root()
 
                 # template_dir: vom Editor mitgeschickt (für Test-Druck aus Editor)
+                # templateName: Alternative dazu -- Name statt Pfad (ehemals von
+                # booth/api/test_print.php vor dem Proxy-Call aufgelöst, jetzt
+                # direkt hier, da Browser den booth_root nicht kennt).
                 # Fallback: activeTemplate (für zukünftige andere Aufrufer)
                 template_dir_raw = str(data.get("template_dir") or "").strip()
+                template_name_raw = str(data.get("templateName") or "").strip()
+
                 if template_dir_raw:
                     active_template_dir = Path(template_dir_raw).resolve()
+                elif template_name_raw and webapi_routes is not None:
+                    active_template_dir = webapi_routes.resolve_template_dir_for_name(template_name_raw)
                 else:
                     active_template_dir = booth_root / "activeTemplate"
 

@@ -229,6 +229,7 @@ $PhpIni    = Join-Path $BaseDir 'php\php.ini'
 $BridgeExe = Join-Path $BaseDir 'booth\tools\camerabridge\APIServer\Photobox.Bridge.ApiServer.exe'
 $PyExe     = Join-Path $BaseDir 'booth\tools\python_portable\python.exe'
 $PyServer  = Join-Path $BaseDir 'booth\tools\python_portable\python_server.py'
+$WatchdogServer = Join-Path $BaseDir 'booth\tools\python_portable\watchdog_server.py'
 
 # --- harte Existenzprüfung ---
 if (-not (Test-Path -LiteralPath $CaddyExe)) {
@@ -529,6 +530,23 @@ if (-not $Web) {
         Write-Warning 'Python oder python_server.py nicht gefunden.'
         Write-Warning "PyExe: $PyExe"
         Write-Warning "PyServer: $PyServer"
+    }
+
+    # Watchdog-Helper: separater, minimaler Begleitprozess zu python_server.py.
+    # Ermöglicht den Start/Restart-Button in den Settings auch dann, wenn der
+    # Haupt-Server komplett abgestürzt ist (ein toter HTTP-Server kann sich
+    # nicht selbst aus dem Browser heraus wiederbeleben lassen). Muss daher
+    # unabhängig vom Haupt-Server gestartet werden, genau wie dieser selbst.
+    if ((Test-Path -LiteralPath $PyExe) -and (Test-Path -LiteralPath $WatchdogServer)) {
+        Start-Once `
+            -Exe $PyExe `
+            -Args @($WatchdogServer) `
+            -WorkDir (Split-Path $PyExe)
+    }
+    else {
+        Write-Warning 'Python oder watchdog_server.py nicht gefunden.'
+        Write-Warning "PyExe: $PyExe"
+        Write-Warning "WatchdogServer: $WatchdogServer"
     }
 }
 

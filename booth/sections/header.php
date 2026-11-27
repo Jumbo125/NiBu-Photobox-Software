@@ -1,15 +1,14 @@
-<?php
-// SPDX-License-Identifier: AGPL-3.0-or-later
-// Copyright (c) 2026 Andreas Rottmann
-//
-// layout/header.php
-?>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<!-- Copyright (c) 2026 Andreas Rottmann -->
+<!--
+layout/header.php
+-->
 
 <div id="appHeader">
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary">
     <div class="container-fluid">
       <span class="navbar-brand mb-0 h1" data-lang-key="app.title">
-        <?= t('app.title', 'Photobooth Control') ?>
+        Photobooth Control
       </span>
 
       <!-- ######### Aktive Event ################# -->
@@ -17,7 +16,7 @@
         <span class="navbar-brand mb-0 h1 active_event_title"></span>
 
         <span data-lang-key="overlay.active_event.printed.counter">
-          <?= t('overlay.active_event.printed.counter', 'Printed Pictures') ?>
+          Printed Pictures
         </span>
 
         <span class="navbar-brand mb-0 h1 active_event_counter"></span>
@@ -28,7 +27,7 @@
     
 
         <span data-lang-key="overlay.printed.paper.remaining">
-          <?= t('overlay.printed.paper.remaining', 'Remaining Paper') ?>
+          Remaining Paper
         </span>
 
         <span class="navbar-brand mb-0 h1 paper_remaining_value"></span>
@@ -36,8 +35,8 @@
           type="button"
           id="btnDnpPaperRefresh"
           class="btn btn-outline-light btn-sm rounded-circle d-inline-flex align-items-center justify-content-center pb-dnp-refresh"
-          title="<?= t('printer.dnp.paper_remaining.refresh', 'Refresh printer info') ?>"
-          aria-label="<?= t('printer.dnp.paper_remaining.refresh', 'Refresh printer info') ?>"
+          title="Refresh printer info"
+          aria-label="Refresh printer info"
         >
           <i class="bi bi-arrow-clockwise"></i>
         </button>
@@ -47,9 +46,9 @@
       <button
   id="btnUiReload"
   class="btn btn-warning btn rounded-circle d-inline-flex align-items-center justify-content-center btnUiReload"
-  title="<?= t('nav.browser_reload', 'Reload browser') ?>"
+  title="Reload browser"
   data-force="1"
-  aria-label="<?= t('nav.browser_reload', 'Reload browser') ?>"
+  aria-label="Reload browser"
 >
   <i class="bi bi-arrow-clockwise"></i>
 </button>
@@ -59,8 +58,8 @@
 <button
   type="button"
   class="btn btn-primary btn rounded-circle d-inline-flex align-items-center justify-content-center pb-toggle-kiosk"
-  title="<?= t('nav.browser_kiosk', 'Toggle kiosk mode') ?>"
-  aria-label="<?= t('nav.browser_kiosk', 'Toogle kiosk Mode') ?>"
+  title="Toggle kiosk mode"
+  aria-label="Toogle kiosk Mode"
 >
   <i class="bi bi-fullscreen"></i>
 </button>
@@ -70,9 +69,9 @@
 <button
   type="button"
   class="btn btn-danger btn rounded-circle d-inline-flex align-items-center justify-content-center pb-close-browser"
-  title="<?= t('nav.browser_close', 'Close browser') ?>"
+  title="Close browser"
   data-force="1"
-  aria-label="<?= t('nav.browser_close', 'Close browser') ?>"
+  aria-label="Close browser"
   data-action="closeBrowser"
 >
   <i class="bi bi-x-lg"></i>
@@ -87,12 +86,12 @@
           class="btn btn-outline-light btn-nav-lg"
           data-bs-toggle="modal"
           data-bs-target="#modalSettings"
-          title="<?= t('nav.general_settings', 'General Settings') ?>"
-          aria-label="<?= t('nav.general_settings', 'General Settings') ?>"
+          title="General Settings"
+          aria-label="General Settings"
         >
           <i class="bi bi-gear"></i>
           <span data-lang-key="nav.general_settings">
-            <?= t('nav.general_settings', 'General Settings') ?>
+            General Settings
           </span>
         </button>
 
@@ -101,12 +100,12 @@
           class="btn btn-outline-light btn-nav-lg"
           data-bs-toggle="modal"
           data-bs-target="#modalTemplateEditor"
-          title="<?= t('nav.template_editor', 'Template Editor') ?>"
-          aria-label="<?= t('nav.template_editor', 'Template Editor') ?>"
+          title="Template Editor"
+          aria-label="Template Editor"
         >
           <i class="bi bi-palette"></i>
           <span data-lang-key="nav.template_editor">
-            <?= t('nav.template_editor', 'Template Editor') ?>
+            Template Editor
           </span>
         </button>
 
@@ -115,12 +114,12 @@
           class="btn btn-outline-light btn-nav-lg"
           data-bs-toggle="modal"
           data-bs-target="#modalActiveEvent"
-          title="<?= t('nav.active_event', 'Active Event') ?>"
-          aria-label="<?= t('nav.active_event', 'Active Event') ?>"
+          title="Active Event"
+          aria-label="Active Event"
         >
           <i class="bi bi-easel"></i>
           <span data-lang-key="nav.active_event">
-            <?= t('nav.active_event', 'Active Event') ?>
+            Active Event
           </span>
         </button>
 
@@ -130,12 +129,12 @@
           id="btnCameraSettings"
           data-bs-toggle="modal"
           data-bs-target="#modalCameraSettings"
-          title="<?= t('nav.camera_settings', 'Camera Settings') ?>"
-          aria-label="<?= t('nav.camera_settings', 'Camera Settings') ?>"
+          title="Camera Settings"
+          aria-label="Camera Settings"
         >
           <i class="bi bi-camera"></i>
           <span data-lang-key="nav.camera_settings">
-            <?= t('nav.camera_settings', 'Camera Settings') ?>
+            Camera Settings
           </span>
         </button>
 
@@ -145,12 +144,12 @@
           id="btnSelectDevice"
           data-bs-toggle="modal"
           data-bs-target="#modalSelectDevice"
-          title="<?= t('nav.select_device', 'Select Camera') ?>"
-          aria-label="<?= t('nav.select_device', 'Select Camera') ?>"
+          title="Select Camera"
+          aria-label="Select Camera"
         >
           <i class="bi bi-camera-fill"></i>
           <span data-lang-key="nav.select_device">
-            <?= t('nav.select_device', 'Select Camera') ?>
+            Select Camera
           </span>
         </button>
 
@@ -158,12 +157,12 @@
           type="button"
           class="btn btn-outline-light btn-nav-lg"
           id="btnFullscreen"
-          title="<?= t('nav.fullscreen', 'Fullscreen') ?>"
-          aria-label="<?= t('nav.fullscreen', 'Fullscreen') ?>"
+          title="Fullscreen"
+          aria-label="Fullscreen"
         >
           <i class="bi bi-arrows-fullscreen"></i>
           <span data-lang-key="nav.fullscreen">
-            <?= t('nav.fullscreen', 'Fullscreen') ?>
+            Fullscreen
           </span>
         </button>
       </div>

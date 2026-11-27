@@ -91,6 +91,16 @@
       // informiert alle Module (z. B. fullscreen, preview, etc.)
       $(document).trigger("pb:configLoaded", [window.PB_CONFIG]);
 
+      // 1b) Installationsabhängige Pfad-Defaults setzen (ehemals PHP __DIR__),
+      // bevor irgendein Settings-Modal zum ersten Mal applyConfigToForm liest.
+      if (typeof PB.applyDynamicDefaults === "function") {
+        try {
+          await PB.applyDynamicDefaults();
+        } catch (e) {
+          console.warn(e);
+        }
+      }
+
       // 2) UI aus Config anwenden (Background etc.)
       if (typeof PB.applyUiFromConfig === "function") {
         try {

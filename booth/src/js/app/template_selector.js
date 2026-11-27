@@ -27,7 +27,7 @@
   window.PB = window.PB || {};
   const PB = window.PB;
 
-  const ENDPOINT_LIST = 'api/list_active_templates.php';
+  const ENDPOINT_LIST = 'api/list_active_templates';
   const CONFIG_FILE_GENERAL = (PB.CONFIG_PATHS && PB.CONFIG_PATHS.general) || 'config/config/config.json';
 
   let _templates = [];

@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Andreas Rottmann
 
 /**
- * config_io.js — Lesen/Schreiben von JSON-Dateien über r_w_config.php
+ * config_io.js — Lesen/Schreiben von JSON-Dateien über api/config
  *
  * Kapselt ausschließlich File-IO (Config/JSON-Dateien) über einen serverseitigen Endpoint,
  * da Browser nicht direkt auf das lokale Dateisystem zugreifen dürfen.
@@ -16,10 +16,10 @@
   const php_r_w_config =
     (PB.ENDPOINTS && PB.ENDPOINTS.config_rw)
       ? PB.ENDPOINTS.config_rw
-      : 'api/r_w_config.php';
+      : 'api/config';
 
   /**
-   * Liest eine JSON-Datei über api/r_w_config.php (GET).
+   * Liest eine JSON-Datei über api/config (GET).
    */
   PB.configFileGet = PB.configFileGet || function (fileRel) {
     return $.ajax({
@@ -33,10 +33,10 @@
   };
 
   /**
-   * Schreibt/Patcht eine JSON-Datei über api/r_w_config.php (POST).
+   * Schreibt/Patcht eine JSON-Datei über api/config (POST).
    */
   PB.configFileSet = PB.configFileSet || function (fileRel, patchObj) {
-    // Erwartet: r_w_config.php akzeptiert ?file=... und JSON Body als Patch/Replace
+    // Erwartet: api/config akzeptiert ?file=... und JSON Body als Patch/Replace
     return PB.postJson(
       php_r_w_config + '?file=' + encodeURIComponent(fileRel),
       patchObj

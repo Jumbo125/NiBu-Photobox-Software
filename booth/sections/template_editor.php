@@ -1,7 +1,7 @@
-﻿<?php
-// sections/template_editor.php
-// Modal: Template Editor (90vw)
-?>
+﻿<!--
+sections/template_editor.php
+Modal: Template Editor (90vw)
+-->
 <div
     class="modal fade"
     id="modalTemplateEditor"
@@ -17,13 +17,13 @@
                     id="modalTemplateEditorLabel"
                     data-lang-key="overlay.template_editor.title"
                 >
-                    <?= t('overlay.template_editor.title', 'Template Editor') ?>
+                    Template Editor
                 </h5>
                 <button
                     type="button"
                     class="btn-close btn-close-white"
                     data-bs-dismiss="modal"
-                    aria-label="<?= t('form.close', 'Close') ?>"
+                    aria-label="Close"
                 ></button>
             </div>
             <div class="modal-body">
@@ -33,7 +33,7 @@
                     <div class="text-center text-secondary">
                     <iframe
     src="http://localhost:8050/editor/editor.php"
-    title="<?= t('overlay.template_editor.title', 'Template Editor') ?>"
+    title="Template Editor"
     loading="lazy"
 ></iframe>
                     </div>
@@ -46,7 +46,7 @@
                     data-bs-dismiss="modal"
                 >
                     <span data-lang-key="form.close">
-                        <?= t('form.close', 'Close') ?>
+                        Close
                     </span>
                 </button>
             </div>

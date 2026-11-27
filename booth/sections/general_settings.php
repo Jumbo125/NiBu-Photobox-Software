@@ -1,9 +1,7 @@
-﻿<?php
-// SPDX-License-Identifier: AGPL-3.0-or-later
-// Copyright (c) 2026 Andreas Rottmann
+﻿<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<!-- Copyright (c) 2026 Andreas Rottmann -->
 
-// sections/general_settings.php
-?>
+<!-- sections/general_settings.php -->
 
 <div class="modal fade"
   id="modalSettings"
@@ -19,23 +17,23 @@
           data-bs-toggle="tooltip"
           data-bs-trigger="hover click"
           data-bs-placement="top"
-          title="<?= t('overlay.settings.tooltip.config_path', 'config/config.json') ?>"></i>&nbsp;
+          title="config/config.json"></i>&nbsp;
 
         <h5 class="modal-title flex-grow-1"
           id="modalSettingsLabel"
           data-lang-key="overlay.settings.title">
-          <?= t('overlay.settings.title', 'General Settings') ?>
+          General Settings
         </h5>
 
         <button type="button"
           class="btn btn-outline-success btn-sm"
           data-bs-toggle="modal"
           data-bs-target="#modalPrinterSettings"
-          title="<?= t('overlay.settings.printer', 'Open Printer Settings') ?>"
-          aria-label="<?= t('overlay.settings.printer', 'Open Printer Settings') ?>">
+          title="Open Printer Settings"
+          aria-label="Open Printer Settings">
           <i class="bi bi-printer"></i>
           <span data-lang-key="overlay.settings.printer">
-            <?= t('overlay.settings.printer', 'Open Printer Settings') ?>
+            Open Printer Settings
           </span>
         </button>
 
@@ -43,11 +41,11 @@
           class="btn btn-outline-warning btn-sm"
           data-bs-toggle="modal"
           data-bs-target="#modalRenderSettings"
-          title="<?= t('overlay.settings.render', '(Advanced) Open Image Render Settings') ?>"
-          aria-label="<?= t('overlay.settings.render', '(Advanced) Open Image Render Settings') ?>">
+          title="(Advanced) Open Image Render Settings"
+          aria-label="(Advanced) Open Image Render Settings">
           <i class="bi bi-card-image"></i>
           <span data-lang-key="overlay.settings.render">
-            <?= t('overlay.settings.render', '(Advanced) Open Image Render Settings') ?>
+            (Advanced) Open Image Render Settings
           </span>
         </button>
 
@@ -55,11 +53,11 @@
           class="btn btn-outline-warning btn-sm"
           data-bs-toggle="modal"
           data-bs-target="#modalCameraBridgeSettings"
-          title="<?= t('overlay.settings.cameraBridgeSetup', '(Advanced) Open Camera Bridge Setup') ?>"
-          aria-label="<?= t('overlay.settings.cameraBridgeSetup', '(Advanced) Open Camera Bridge Setup') ?>">
+          title="(Advanced) Open Camera Bridge Setup"
+          aria-label="(Advanced) Open Camera Bridge Setup">
           <i class="bi bi-plugin"></i>
           <span data-lang-key="overlay.settings.cameraBridgeSetup">
-            <?= t('overlay.settings.cameraBridgeSetup', '(Advanced) Open Camera Bridge Setup') ?>
+            (Advanced) Open Camera Bridge Setup
           </span>
         </button>
 
@@ -67,23 +65,23 @@
           class="btn btn-outline-warning btn-sm"
           data-bs-toggle="modal"
           data-bs-target="#modalExternalPcSettings"
-          title="<?= t('overlay.settings.externalPc', 'Open External PC Settings') ?>"
-          aria-label="<?= t('overlay.settings.externalPc', 'Open External PC Settings') ?>">
+          title="Open External PC Settings"
+          aria-label="Open External PC Settings">
           <i class="bi bi-usb-symbol"></i>
           <span data-lang-key="overlay.settings.externalPc">
-            <?= t('overlay.settings.externalPc', 'Open External PC Settings') ?>
+            Open External PC Settings
           </span>
         </button>
 
         <button type="button"
           class="btn-close btn-close-white"
           data-bs-dismiss="modal"
-          aria-label="<?= t('form.close', 'Close') ?>"></button>
+          aria-label="Close"></button>
       </div>
 
       <div class="modal-body">
         <p class="small text-secondary mb-3" data-lang-key="overlay.settings.description">
-          <?= t('overlay.settings.description', 'Configure global options of the photobooth.') ?>
+          Configure global options of the photobooth.
         </p>
 
         <form id="formGeneralSettings" class="small" data-json-file="config/config.json">
@@ -91,7 +89,7 @@
           <!-- Betriebssystem -->
           <div class="mb-3">
             <label for="settingOS" class="form-label" data-lang-key="overlay.settings.os.label">
-              <?= t('overlay.settings.os.label', 'Operating System') ?>
+              Operating System
             </label>
 
             <div class="input-group input-group-sm">
@@ -105,26 +103,26 @@
                 data-json-parm="os"
                 data-default-value="windows">
                 <option value="windows" data-lang-key="overlay.settings.os.option_windows">
-                  <?= t('overlay.settings.os.option_windows', 'Windows') ?>
+                  Windows
                 </option>
                 <option value="linux" data-lang-key="overlay.settings.os.option_linux">
-                  <?= t('overlay.settings.os.option_linux', 'Linux') ?>
+                  Linux
                 </option>
                 <option value="mac" data-lang-key="overlay.settings.os.option_mac">
-                  <?= t('overlay.settings.os.option_mac', 'macOS') ?>
+                  macOS
                 </option>
               </select>
             </div>
 
             <div class="form-text text-secondary" data-lang-key="overlay.settings.os.help">
-              <?= t('overlay.settings.os.help', 'This setting will be saved to config JSON.') ?>
+              This setting will be saved to config JSON.
             </div>
           </div>
 
           <!-- Sprache -->
           <div class="mb-3">
             <label for="settingLanguage" class="form-label" data-lang-key="overlay.settings.language.label">
-              <?= t('overlay.settings.language.label', 'Language') ?>
+              Language
             </label>
 
             <select id="settingLanguage"
@@ -132,15 +130,15 @@
               data-json-parm="language"
               data-default-value="en">
               <option value="en" data-lang-key="overlay.settings.language.option_en">
-                <?= t('overlay.settings.language.option_en', '🇬🇧 English') ?>
+                🇬🇧 English
               </option>
               <option value="de" data-lang-key="overlay.settings.language.option_de">
-                <?= t('overlay.settings.language.option_de', '🇩🇪 Deutsch') ?>
+                🇩🇪 Deutsch
               </option>
             </select>
 
             <div class="form-text text-secondary" data-lang-key="overlay.settings.language.help">
-              <?= t('overlay.settings.language.help', 'This setting will be saved to config JSON.') ?>
+              This setting will be saved to config JSON.
             </div>
           </div>
 
@@ -158,7 +156,7 @@
                   aria-expanded="false"
                   aria-controls="accUiBody">
                   <span class="text-uppercase" data-lang-key="overlay.settings.ui.title">
-                    <?= t('overlay.settings.ui.title', 'User Interface') ?>
+                    User Interface
                   </span>
                 </button>
               </h2>
@@ -172,7 +170,7 @@
                   <div class="row">
                     <div class="col-md-6 mb-3">
                       <label for="settingBgColor" class="form-label" data-lang-key="overlay.settings.ui.bgcolor.label">
-                        <?= t('overlay.settings.ui.bgcolor.label', 'Background Color') ?>
+                        Background Color
                       </label>
                       <input type="color"
                         id="settingBgColor"
@@ -186,7 +184,7 @@
 
                     <div class="col-md-6 mb-3">
                       <label for="settingTheme" class="form-label" data-lang-key="overlay.settings.ui.theme.label">
-                        <?= t('overlay.settings.ui.theme.label', 'Theme Style') ?>
+                        Theme Style
                       </label>
                       <select id="settingTheme"
                         class="form-select form-select-sm"
@@ -194,10 +192,10 @@
                         data-json-parm="theme"
                         data-default-value="dark">
                         <option value="dark" selected data-lang-key="overlay.settings.ui.theme.option_dark">
-                          <?= t('overlay.settings.ui.theme.option_dark', 'Dark') ?>
+                          Dark
                         </option>
                         <option value="light" data-lang-key="overlay.settings.ui.theme.option_light">
-                          <?= t('overlay.settings.ui.theme.option_light', 'Light') ?>
+                          Light
                         </option>
                       </select>
                     </div>
@@ -205,16 +203,16 @@
 
                   <div class="mb-3">
                     <label for="bgStaticImgChoose" class="form-label" data-lang-key="overlay.settings.bgStaticImgChoose.label">
-                      <?= t('overlay.settings.bgStaticImgChoose.label', 'Background Image') ?>
+                      Background Image
                     </label>
 
                     <div class="input-group input-group-sm">
                       <input class="form-control" type="text"
                         id="bgStaticImgChoose"
-                        placeholder="<?= t('overlay.settings.bgStaticImgChoose.placeholder', 'uploads/bgImage.jpg') ?>"
+                        placeholder="uploads/bgImage.jpg"
                         data-json-group="ui"
                         data-json-parm="bgStaticImg"
-                        data-default-value="<?= t('overlay.settings.bgStaticImgChoose.placeholder', 'uploads/bgImage.jpg') ?>">
+                        data-default-value="uploads/bgImage.jpg">
 
                       <button class="pb-upload btn btn-outline-warning"
                         data-filter="Images|*.png;*.jpg;*.jpeg;*.webp;*.bmp;*.gif|All|*.*"
@@ -223,7 +221,7 @@
                         data-overwrite="0"
                         data-target="#bgStaticImgChoose">
                         <span data-lang-key="form.pick_file_upload">
-                          <?= t('form.pick_file_upload', 'Pick file to Upload') ?>
+                          Pick file to Upload
                         </span>
                       </button>
                     </div>
@@ -243,7 +241,7 @@
                   aria-expanded="false"
                   aria-controls="accCaptureBody">
                   <span class="text-uppercase" data-lang-key="overlay.settings.capture.title">
-                    <?= t('overlay.settings.capture.title', 'Capture Settings') ?>
+                    Capture Settings
                   </span>
                 </button>
               </h2>
@@ -266,18 +264,18 @@
                         <label class="form-check-label"
                           for="settingPrepareOverlayEnabled"
                           data-lang-key="overlay.settings.capture.prepare_overlay_enabled">
-                          <?= t('overlay.settings.capture.prepare_overlay_enabled', 'Show prepare screen before countdown') ?>
+                          Show prepare screen before countdown
                         </label>
                       </div>
                       <div class="form-text text-secondary"
                         data-lang-key="overlay.settings.capture.prepare_overlay_enabled_help">
-                        <?= t('overlay.settings.capture.prepare_overlay_enabled_help', 'Shows a friendly prepare screen while the camera preview becomes ready. The countdown still starts as soon as the preview image is available.') ?>
+                        Shows a friendly prepare screen while the camera preview becomes ready. The countdown still starts as soon as the preview image is available.
                       </div>
                     </div>
 
                     <div class="col-md-4 mb-3">
                       <label for="settingCounterFirst" class="form-label" data-lang-key="overlay.settings.capture.counter_first">
-                        <?= t('overlay.settings.capture.counter_first', 'Countdown before first photo (s)') ?>
+                        Countdown before first photo (s)
                       </label>
                       <input type="number" min="1" max="20" step="1"
                         id="settingCounterFirst"
@@ -291,7 +289,7 @@
 
                     <div class="col-md-4 mb-3">
                       <label for="settingCounterBetween" class="form-label" data-lang-key="overlay.settings.capture.counter_between">
-                        <?= t('overlay.settings.capture.counter_between', 'Seconds between photos') ?>
+                        Seconds between photos
                       </label>
                       <input type="number" min="1" max="20" step="1"
                         id="settingCounterBetween"
@@ -307,7 +305,7 @@
                       <label for="settingCounterUntilCapture"
                         class="form-label"
                         data-lang-key="overlay.settings.capture.counter_until_capture">
-                        <?= t('overlay.settings.capture.counter_until_capture', 'Seconds until capture') ?>
+                        Seconds until capture
                       </label>
 
                       <input type="number"
@@ -325,7 +323,7 @@
 
                     <div class="col-md-4 mb-3">
                       <label for="settingCounterAfter" class="form-label" data-lang-key="overlay.settings.capture.counter_after">
-                        <?= t('overlay.settings.capture.counter_after', 'Delay after series (s)') ?>
+                        Delay after series (s)
                       </label>
                       <input type="number" min="1" max="20" step="1"
                         id="settingCounterAfter"
@@ -340,7 +338,7 @@
 
                   <div class="col-md-4 mb-3">
                       <label for="settingCounterPreviewImg" class="form-label" data-lang-key="overlay.settings.capture.preview_img_time">
-                        <?= t('overlay.settings.capture.preview_img_time', 'Time for Show each finish photo') ?>
+                        Time for Show each finish photo
                       </label>
                       <input type="number" min="1" max="20" step="1"
                         id="settingCounterPreviewImg"
@@ -360,75 +358,72 @@
                       <label for="settingTxtCaptureStarting"
                         class="form-label"
                         data-lang-key="overlay.settings.capture.text_starting">
-                        <?= t('overlay.settings.capture.text_starting', 'Text: Starting') ?>
+                        Text: Starting
                       </label>
 
                       <input type="text"
                         id="settingTxtCaptureStarting"
                         class="form-control form-control-sm"
-                        value="<?= t('capture.defaults.text_starting', 'Starting…') ?>"
+                        value="Starting…"
                         data-json-group="capture"
                         data-json-parm="text_starting"
                         data-json-type="string"
-                        data-default-value="<?= t('capture.defaults.text_starting', 'Starting…') ?>">
+                        data-default-value="Starting…">
                     </div>
 
                     <div class="col-md-6 mb-3">
                       <label for="settingTxtCaptureNextPhoto"
                         class="form-label"
                         data-lang-key="overlay.settings.capture.text_next_photo">
-                        <?= t('overlay.settings.capture.text_next_photo', 'Next photo') ?>
+                        Next photo
                       </label>
 
                       <input type="text"
                         id="settingTxtCaptureNextPhoto"
                         class="form-control form-control-sm"
-                        value="<?= t('capture.defaults.text_next_photo', 'Next photo…') ?>"
+                        value="Next photo…"
                         data-json-group="capture"
                         data-json-parm="text_next_photo"
                         data-json-type="string"
-                        data-default-value="<?= t('capture.defaults.text_next_photo', 'Next photo…') ?>">
+                        data-default-value="Next photo…">
                     </div>
 
                     <div class="col-md-6 mb-3">
                       <label for="settingTxtCaptureProcessing"
                         class="form-label"
                         data-lang-key="overlay.settings.capture.text_processing">
-                        <?= t('overlay.settings.capture.text_processing', 'Processing') ?>
+                        Processing
                       </label>
 
                       <input type="text"
                         id="settingTxtCaptureProcessing"
                         class="form-control form-control-sm"
-                        value="<?= t('capture.defaults.text_processing', 'Images are being processed…') ?>"
+                        value="Images are being processed…"
                         data-json-group="capture"
                         data-json-parm="text_processing"
                         data-json-type="string"
-                        data-default-value="<?= t('capture.defaults.text_processing', 'Images are being processed…') ?>">
+                        data-default-value="Images are being processed…">
                     </div>
 
                     <div class="mb-3">
                       <label for="settingTxtCaptureHoldStill"
                         class="form-label"
                         data-lang-key="overlay.settings.capture.text_hold_still">
-                        <?= t('overlay.settings.capture.text_hold_still', 'Hold still (during capture)') ?>
+                        Hold still (during capture)
                       </label>
 
                       <input type="text"
                         id="settingTxtCaptureHoldStill"
                         class="form-control form-control-sm"
-                        value="<?= t('capture.defaults.text_hold_still', 'Photo {slot}/{target} – hold still…') ?>"
+                        value="Photo {slot}/{target} – hold still…"
                         data-json-group="capture"
                         data-json-parm="text_hold_still"
                         data-json-type="string"
-                        data-default-value="<?= t('capture.defaults.text_hold_still', 'Photo {slot}/{target} – hold still…') ?>">
+                        data-default-value="Photo {slot}/{target} – hold still…">
 
                       <div class="form-text text-secondary"
                         data-lang-key="overlay.settings.capture.text_hold_still_help">
-                        <?= t(
-                          'overlay.settings.capture.text_hold_still_help',
-                          'You can use variables: {slot} (current photo number) and {target} (total photos). Example: "Photo {slot}/{target} – hold still…"'
-                        ) ?>
+                        You can use variables: {slot} (current photo number) and {target} (total photos). Example: "Photo {slot}/{target} – hold still…"
                       </div>
                     </div>
 
@@ -437,7 +432,7 @@
   <label for="settingTxtCaptureTriggering"
     class="form-label"
     data-lang-key="overlay.settings.capture.text_triggering">
-    <?= t('overlay.settings.capture.text_triggering', 'Trigger text (while camera is taking the photo)') ?>
+    Trigger text (while camera is taking the photo)
   </label>
 
   <textarea
@@ -447,14 +442,13 @@
     data-json-group="capture"
     data-json-parm="text_triggering"
     data-json-type="string"
-    data-default-value="<?= t('capture.defaults.text_triggering', "The camera is taking the photo…\nplease do not move.") ?>"><?= t('capture.defaults.text_triggering', "The camera is taking the photo…\nplease do not move.") ?></textarea>
+    data-default-value="The camera is taking the photo…
+please do not move.">The camera is taking the photo…
+please do not move.</textarea>
 
   <div class="form-text text-secondary"
     data-lang-key="overlay.settings.capture.text_triggering_help">
-    <?= t(
-      'overlay.settings.capture.text_triggering_help',
-      'Text shown after the countdown while the camera is still taking the photo.'
-    ) ?>
+    Text shown after the countdown while the camera is still taking the photo.
   </div>
 </div>
 
@@ -464,34 +458,34 @@
                       <label for="settingTxtCapturePrinting"
                         class="form-label"
                         data-lang-key="overlay.settings.capture.text_printing">
-                        <?= t('overlay.settings.capture.text_printing', 'Printing') ?>
+                        Printing
                       </label>
 
                       <input type="text"
                         id="settingTxtCapturePrinting"
                         class="form-control form-control-sm"
-                        value="<?= t('capture.defaults.text_printing', 'Picture is printing…') ?>"
+                        value="Picture is printing…"
                         data-json-group="capture"
                         data-json-parm="text_printing"
                         data-json-type="string"
-                        data-default-value="<?= t('capture.defaults.text_printing', 'Picture is printing…') ?>">
+                        data-default-value="Picture is printing…">
                     </div>
 
                     <div class="col-md-6 mb-3">
                       <label for="settingTxtCaptureDone"
                         class="form-label"
                         data-lang-key="overlay.settings.capture.text_done">
-                        <?= t('overlay.settings.capture.text_done', 'Done') ?>
+                        Done
                       </label>
 
                       <input type="text"
                         id="settingTxtCaptureDone"
                         class="form-control form-control-sm"
-                        value="<?= t('capture.defaults.text_done', 'Done!') ?>"
+                        value="Done!"
                         data-json-group="capture"
                         data-json-parm="text_done"
                         data-json-type="string"
-                        data-default-value="<?= t('capture.defaults.text_done', 'Done!') ?>">
+                        data-default-value="Done!">
                     </div>
 
                   </div>
@@ -510,12 +504,12 @@
                         <label class="form-check-label"
                           for="settingShowFinishImage"
                           data-lang-key="overlay.settings.capture.show_finish_image">
-                          <?= t('overlay.settings.capture.show_finish_image', 'Show final image after capture flow') ?>
+                          Show final image after capture flow
                         </label>
                       </div>
                       <div class="form-text text-secondary"
                         data-lang-key="overlay.settings.capture.show_finish_image_help">
-                        <?= t('overlay.settings.capture.show_finish_image_help', 'Display the final image to the user after the capture flow completes.') ?>
+                        Display the final image to the user after the capture flow completes.
                       </div>
                     </div>
 
@@ -523,7 +517,7 @@
                       <label for="settingShowFinishImageSeconds"
                         class="form-label"
                         data-lang-key="overlay.settings.capture.show_finish_image_seconds">
-                        <?= t('overlay.settings.capture.show_finish_image_seconds', 'Final image display duration (seconds)') ?>
+                        Final image display duration (seconds)
                       </label>
 
                       <input type="number"
@@ -540,11 +534,11 @@
 
                       <div class="form-text text-secondary"
                         data-lang-key="overlay.settings.capture.show_finish_image_seconds_help">
-                        <?= t('overlay.settings.capture.show_finish_image_seconds_help', 'How long the final image should stay visible before returning to the start screen. (0 = disabled)') ?>
+                        How long the final image should stay visible before returning to the start screen. (0 = disabled)
                       </div>
                       <div class="form-text text-warning"
                         data-lang-key="overlay.settings.capture.show_finish_image_seconds_coin_hint">
-                        <?= t('overlay.settings.capture.show_finish_image_seconds_coin_hint', 'Ignored while the coin counter is enabled (System section) — the final screen with the print button then stays open until the user closes it or prints, so it cannot disappear before a coin is inserted.') ?>
+                        Ignored while the coin counter is enabled (System section) — the final screen with the print button then stays open until the user closes it or prints, so it cannot disappear before a coin is inserted.
                       </div>
                     </div>
   <hr/>
@@ -553,7 +547,7 @@
                       <label for="settingFastCaptureEffect"
                         class="form-label"
                         data-lang-key="overlay.settings.capture.settingFastCaptureEffect">
-                        <?= t('overlay.settings.capture.settingFastCaptureEffect', 'Faster Capture (taking photo) than Countdown (ms)') ?>
+                        Faster Capture (taking photo) than Countdown (ms)
                       </label>
 
                       <input type="number"
@@ -570,7 +564,7 @@
 
                       <div class="form-text text-secondary"
                         data-lang-key="overlay.settings.capture.settingFastCaptureEffect_help">
-                        <?= t('overlay.settings.capture.settingFastCaptureEffect_help', 'On some devices, taking a photo takes a long time. Simulate a faster capture process by triggering the capture before the visible countdown has finished. (0 = disabled)') ?>
+                        On some devices, taking a photo takes a long time. Simulate a faster capture process by triggering the capture before the visible countdown has finished. (0 = disabled)
                       </div>
                     </div>
                   </div>
@@ -589,7 +583,7 @@
                   aria-expanded="false"
                   aria-controls="accPrintBody">
                   <span class="text-uppercase" data-lang-key="overlay.settings.print.title">
-                    <?= t('overlay.settings.print.title', 'Printing') ?>
+                    Printing
                   </span>
                 </button>
               </h2>
@@ -607,7 +601,7 @@
                       data-json-parm="print_automatically_when_finish"
                       data-default-value="true">
                     <label class="form-check-label" for="settingAutoPrint" data-lang-key="overlay.settings.print.auto">
-                      <?= t('overlay.settings.print.auto', 'Print automatically after series') ?>
+                      Print automatically after series
                     </label>
                   </div>
 
@@ -618,7 +612,7 @@
                       data-json-parm="silent"
                       data-default-value="true">
                     <label class="form-check-label" for="settingPrintSilent" data-lang-key="overlay.settings.print.silent">
-                      <?= t('overlay.settings.print.silent', 'Silent print (no dialog window)') ?>
+                      Silent print (no dialog window)
                     </label>
                   </div>
 
@@ -636,7 +630,7 @@
                   aria-expanded="false"
                   aria-controls="accSystemBody">
                   <span class="text-uppercase" data-lang-key="overlay.settings.system.title">
-                    <?= t('overlay.settings.system.title', 'System') ?>
+                    System
                   </span>
                 </button>
               </h2>
@@ -654,7 +648,7 @@
         data-json-parm="fullscreen"
         data-default-value="true">
       <label class="form-check-label" for="settingFullscreen" data-lang-key="overlay.settings.system.fullscreen">
-        <?= t('overlay.settings.system.fullscreen', 'Start in fullscreen / kiosk mode') ?>
+        Start in fullscreen / kiosk mode
       </label>
     </div>
 
@@ -662,7 +656,7 @@
       <label for="settingUiBrowserWatchdogInterval"
         class="form-label"
         data-lang-key="overlay.settings.system.ui_browser_watchdog_interval">
-        <?= t('overlay.settings.system.ui_browser_watchdog_interval', 'UI browser watchdog check interval (minutes)') ?>
+        UI browser watchdog check interval (minutes)
       </label>
 
       <input type="number"
@@ -690,13 +684,13 @@
         >
       <label class="form-check-label" for="settingAutostartEnabled"
         data-lang-key="overlay.settings.system.autostart">
-        <?= t('overlay.settings.system.autostart', 'Autostart aktivieren/deaktivieren') ?>
+        Autostart aktivieren/deaktivieren
       </label>
     </div>
 
     <div class="form-text mb-3"
       data-lang-key="overlay.settings.system.autostart_help">
-      <?= t('overlay.settings.system.autostart_help', 'Startet die Anwendung automatisch nach dem Windows-Start.') ?>
+      Startet die Anwendung automatisch nach dem Windows-Start.
     </div>
 
     <!-- Task Planer / systemd watchdog enable/disable -->
@@ -710,13 +704,13 @@
         data-json-parm="task_planer_service">
       <label class="form-check-label" for="settingTaskPlanerServiceEnabled"
         data-lang-key="overlay.settings.system.task_planer_service">
-        <?= t('overlay.settings.system.task_planer_service', 'Task-Planer Win / systemd Linux aktivieren/deaktivieren') ?>
+        Task-Planer Win / systemd Linux aktivieren/deaktivieren
       </label>
     </div>
 
     <div class="form-text mb-3"
       data-lang-key="overlay.settings.system.task_planer_service_help">
-      <?= t('overlay.settings.system.task_planer_service_help', 'Aktiviert die Überwachung des gesamten Programms. Dadurch können alle benötigten Programme kontrolliert und bei Bedarf automatisch neu gestartet werden.') ?>
+      Aktiviert die Überwachung des gesamten Programms. Dadurch können alle benötigten Programme kontrolliert und bei Bedarf automatisch neu gestartet werden.
     </div>
 
     <!-- ToF-Bewegungssensor (Externer PC) enable/disable -->
@@ -728,13 +722,13 @@
         data-disable-endpoint="/pi_pico/tof/disable">
       <label class="form-check-label" for="settingTofEnabled"
         data-lang-key="overlay.settings.system.tof">
-        <?= t('overlay.settings.system.tof', 'Bewegungssender (ToF) aktivieren/deaktivieren') ?>
+        Bewegungssender (ToF) aktivieren/deaktivieren
       </label>
     </div>
 
     <div class="form-text mb-3"
       data-lang-key="overlay.settings.system.tof_help">
-      <?= t('overlay.settings.system.tof_help', 'Löst LiveView-Vorwärmung aus, sobald sich eine Person dem Sensor nähert.') ?>
+      Löst LiveView-Vorwärmung aus, sobald sich eine Person dem Sensor nähert.
     </div>
 
     <!-- Münzzähler (Externer PC) enable/disable -->
@@ -746,17 +740,17 @@
         data-disable-endpoint="/pi_pico/coin/disable">
       <label class="form-check-label" for="settingCoinEnabled"
         data-lang-key="overlay.settings.system.coin">
-        <?= t('overlay.settings.system.coin', 'Münzzähler aktivieren/deaktivieren') ?>
+        Münzzähler aktivieren/deaktivieren
       </label>
     </div>
 
     <div class="form-text mb-3"
       data-lang-key="overlay.settings.system.coin_help">
-      <?= t('overlay.settings.system.coin_help', 'Verbucht Münzeinwürfe des ST-001-Münzprüfers als Guthaben.') ?>
+      Verbucht Münzeinwürfe des ST-001-Münzprüfers als Guthaben.
     </div>
 
     <div class="form-text" data-lang-key="overlay.settings.system.debug_help">
-      <?= t('overlay.settings.system.debug_help', 'Enable or disable Debug-Console at the bottom') ?>
+      Enable or disable Debug-Console at the bottom
     </div>
 
     <div class="form-check form-switch mb-2">
@@ -766,14 +760,14 @@
         data-json-parm="debugMode"
         data-default-value="true">
       <label class="form-check-label" for="debugMode" data-lang-key="overlay.settings.system.debug">
-        <?= t('overlay.settings.system.debug', 'Enable/Disable Debug-Mode') ?>
+        Enable/Disable Debug-Mode
       </label>
     </div>
 
     <!-- Admin Password -->
     <div class="mb-2">
       <label class="form-label" for="settingPassword" data-lang-key="overlay.settings.system.password">
-        <?= t('overlay.settings.system.password', 'Admin password') ?>
+        Admin password
       </label>
 
       <div class="input-group">
@@ -787,7 +781,7 @@
         <button class="btn btn-outline-secondary"
           type="button"
           id="btnTogglePassword"
-          aria-label="<?= t('overlay.settings.system.password.toggle_aria', 'Show/Hide password') ?>">👁️</button>
+          aria-label="Show/Hide password">👁️</button>
       </div>
     </div>
 
@@ -797,44 +791,32 @@
 
           </div><!-- /accordion -->
 
-          <?php
-          $boothRoot = realpath(__DIR__ . '/..');
-
-          $activeTemplatePath = rtrim($boothRoot, "\\/") . DIRECTORY_SEPARATOR . 'activeTemplate' . DIRECTORY_SEPARATOR;
-
-          $renderConfigPath = rtrim($boothRoot, "\\/") . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'render_config.json';
-
-          $activeTemplatePathOut = (DIRECTORY_SEPARATOR === '\\')
-            ? str_replace('/', '\\', $activeTemplatePath)
-            : $activeTemplatePath;
-
-          $renderConfigPathOut = (DIRECTORY_SEPARATOR === '\\')
-            ? str_replace('/', '\\', $renderConfigPath)
-            : $renderConfigPath;
-          ?>
-
+          <!-- value/data-default-value absichtlich leer — siehe Kommentar bei
+               eventStoragePath in active_event_settings.php (pb_dynamic_defaults.js) -->
           <div>
             <input type="hidden"
               id="settingActiveTemplate"
               class="form-control form-control-sm"
-              value="<?= htmlspecialchars($activeTemplatePathOut, ENT_QUOTES) ?>"
+              value=""
               readonly
               data-json-group="activeTemplate"
               data-json-parm="path"
               data-json-type="string"
-              data-default-value="<?= htmlspecialchars($activeTemplatePathOut, ENT_QUOTES) ?>">
+              data-default-value=""
+              data-pb-dynamic-default="boothRoot/activeTemplate/">
           </div>
 
           <div>
             <input type="hidden"
               id="settingRenderConfig"
               class="form-control form-control-sm"
-              value="<?= htmlspecialchars($renderConfigPathOut, ENT_QUOTES) ?>"
+              value=""
               readonly
               data-json-group="python"
               data-json-parm="renderConfig"
               data-json-type="string"
-              data-default-value="<?= htmlspecialchars($renderConfigPathOut, ENT_QUOTES) ?>">
+              data-default-value=""
+              data-pb-dynamic-default="boothRoot/config/config/render_config.json">
           </div>
 
         </form>
@@ -853,7 +835,7 @@
                 aria-controls="collapseThirdPartyAdvanced">
                 <i class="bi bi-sliders me-2"></i>
                 <span data-lang-key="overlay.settings.app.advanced.title">
-                  <?= t('overlay.settings.app.advanced.title', 'Advanced setup (Python paths & ports)') ?>
+                  Advanced setup (Python paths & ports)
                 </span>
               </button>
             </h2>
@@ -864,8 +846,199 @@
               data-bs-parent="#accordionThirdParty">
 
               <div class="accordion-body">
-                <?php include "general_settings_third_party.php"; ?>
-                <?php include "general_settings_third_party_server.php"; ?>
+                <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+                <!-- Copyright (c) 2026 Andreas Rottmann -->
+
+                <form id="formThirdSoftwareSettings" class="small" data-json-file="config/config.json">
+
+                  <h6 class="text-uppercase mt-3" data-lang-key="overlay.settings.app.python.title">
+                    Python Environment
+                  </h6>
+
+                  <div class="mb-3">
+                    <label for="settingPythonPath" class="form-label" data-lang-key="overlay.settings.app.python.path">
+                      Python Executable Path
+                    </label>
+
+                    <div class="input-group input-group-sm">
+                      <input
+                        type="text"
+                        id="settingPythonPath"
+                        class="form-control"
+                        placeholder="e.g. C:\photo-software\tools\python_portable\python.exe"
+                        data-json-group="python"
+                        data-json-parm="Path"
+                        data-default-value="C:\Users\andre\Desktop\photo-software\booth\tools\python_portable\python.exe"
+                      >
+
+                      <button
+                        type="button"
+                        class="btn pb-pick-file btn-outline-warning"
+                        data-target="#settingPythonPath"
+                        data-initial="C:\Photobox\booth\tools\python_portable\"
+                        data-title="Select python.exe"
+                        data-filter="Executable (*.exe)|*.exe|All files (*.*)|*.*"
+                      >
+                        <span data-lang-key="form.pick_file">Pick file</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <hr class="border-secondary">
+
+                  <h6 class="text-uppercase mt-3" data-lang-key="overlay.settings.app.pickfile_render_app.title">
+                    Render App (create Image)
+                  </h6>
+
+                  <h6 class="text-uppercase mt-3" data-lang-key="overlay.settings.app.pickfile_python_server.title">
+                    Python Server
+                  </h6>
+
+                  <div class="mb-3">
+                    <div class="input-group input-group-sm">
+                      <input
+                        type="text"
+                        id="settingFilepickerServerPy"
+                        class="form-control"
+                        placeholder="e.g. C:\Photobooth\booth\tools\python_portable\python_server.py"
+                        data-json-group="app"
+                        data-json-parm="python_server"
+                        data-default-value="C:\Photobooth\booth\tools\python_portable\python_server.py"
+                      >
+
+                      <button
+                        type="button"
+                        class="btn btn-outline-warning pb-pick-file"
+                        data-target="#settingFilepickerServerPy"
+                        data-initial="C:\Photobox\booth\tools\python_portable\"
+                        data-title="Select python_server.py"
+                        data-filter="Python (*.py)|*.py|All files (*.*)|*.*"
+                      >
+                        <span data-lang-key="form.pick_file">Pick file</span>
+                      </button>
+                    </div>
+                  </div>
+
+                </form>
+
+                <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+                <!-- Copyright (c) 2026 Andreas Rottmann -->
+
+                <form id="formThirdSoftware_ServerSettings" class="small" data-json-file="../tools/python_portable/server_config.json">
+
+                  <!-- Caddy Webroot -->
+                  <div class="mb-3">
+                    <label for="settingCaddyWebRoot" class="form-label" data-lang-key="overlay.settings.app.python.caddyWebRoot.path">
+                      Caddy webroot path (important for some Python API endpoints, e.g. uploads).
+                    </label>
+
+                    <div class="input-group input-group-sm">
+                      <input type="text"
+                             id="settingCaddyWebRoot"
+                             class="form-control"
+                             placeholder="e.g. C:\photo-software\booth\"
+                             data-json-group=""
+                             data-json-parm="caddyWebroot"
+                             data-default-value="C:\photo-software\booth\">
+
+                      <button type="button"
+                              class="btn btn-outline-warning pb-pick-folder"
+                              data-target="#settingCaddyWebRoot"
+                              data-title="Select Caddy webroot folder">
+                        <span data-lang-key="form.pick_folder">
+                          Pick folder
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Python Server-Port -->
+                  <div class="mb-3">
+                    <label for="settingPythonPort" class="form-label" data-lang-key="overlay.settings.app.python.port">
+                      Python Port
+                    </label>
+
+                    <input type="number"
+                           id="settingPythonPort"
+                           class="form-control form-control-sm"
+                           min="1" max="65535" step="1"
+                           value="8053"
+                           data-json-parm="Python_ServerPort"
+                           data-default-value="8053">
+                  </div>
+
+                  <!-- Python API Key -->
+                  <div class="mb-3">
+                    <label for="pbPythonApiKey" class="form-label" data-lang-key="overlay.settings.app.python.api_key.label">
+                      Python API key
+                    </label>
+
+                    <div class="input-group input-group-sm">
+                      <input type="text"
+                             id="pbPythonApiKey"
+                             class="form-control bg-dark text-warning border-secondary"
+                             placeholder=""
+                             data-json-parm="AuthKey"
+                             data-default-value="">
+
+                      <button type="button"
+                              class="btn btn-outline-warning border-secondary KeyGen"
+                              id="pbPythonApiKeyGen"
+                              data-lang-key="overlay.settings.app.python.api_key.generate"
+                              data-key-for="#pbPythonApiKey">
+                        <span data-lang-key="overlay.settings.app.python.api_key.generate">
+                          Generate
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+
+                </form>
+
+                <!-- Python Tool Server Controls -->
+                <div class="mt-3 p-2 border border-secondary rounded" id="pythonServerPanel">
+                  <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <button type="button" class="btn btn-sm btn-outline-success" id="btnPythonStart">
+                      <span data-lang-key="overlay.settings.app.python.server_controls.start">
+                        Start
+                      </span>
+                    </button>
+
+                    <button type="button" class="btn btn-sm btn-outline-warning" id="btnPythonRestart">
+                      <span data-lang-key="overlay.settings.app.python.server_controls.restart">
+                        Restart
+                      </span>
+                    </button>
+
+                    <button type="button" class="btn btn-sm btn-outline-danger" id="btnPythonStop">
+                      <span data-lang-key="overlay.settings.app.python.server_controls.stop">
+                        Stop
+                      </span>
+                    </button>
+
+                    <button type="button" class="btn btn-sm btn-outline-secondary ms-auto" id="btnPythonRefresh">
+                      <span data-lang-key="overlay.settings.app.python.server_controls.refresh">
+                        Refresh
+                      </span>
+                    </button>
+                  </div>
+
+                  <div class="progress mt-2" style="height: 18px;">
+                    <div class="progress-bar" id="pythonServerBar" role="progressbar" style="width: 0%;">
+                      <span data-lang-key="common.unknown">
+                        unknown
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="small mt-2 text-muted"
+                       id="pythonServerInfo"
+                       data-lang-key="overlay.settings.app.python.server_controls.status_unknown">
+                    Status: unknown
+                  </div>
+
+                  <div class="small mt-1" id="pythonServerMsg"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -875,14 +1048,14 @@
 
       <div class="modal-footer border-secondary">
         <button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal">
-          <span data-lang-key="form.cancel"><?= t('form.cancel', 'Cancel') ?></span>
+          <span data-lang-key="form.cancel">Cancel</span>
         </button>
 
         <button type="button"
           class="btn btn-primary btn-sm pb-save-config"
           id="btnSaveGeneralSettings"
           data-multiple-form="1">
-          <span data-lang-key="form.save"><?= t('form.save', 'Save') ?></span>
+          <span data-lang-key="form.save">Save</span>
         </button>
       </div>
 

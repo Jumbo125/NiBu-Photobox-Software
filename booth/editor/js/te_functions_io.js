@@ -181,7 +181,7 @@ window.TE = window.TE || {};
 
     payload.previewDataUrl = TE.capturePreviewDataUrl();
 
-    return await TE.postJson('/api/template_editor_save.php', payload);
+    return await TE.postJson('/api/template_editor_save', payload);
   };
 
   TE.exportZip = async function () {
@@ -193,7 +193,7 @@ window.TE = window.TE || {};
       return;
     }
 
-    const r = await fetch('/api/template_editor_export.php', {
+    const r = await fetch('/api/template_editor_export', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json; charset=utf-8' },
       body: JSON.stringify({ templateName: name }),
@@ -222,7 +222,7 @@ window.TE = window.TE || {};
     if (!file) throw new Error(pbT('te.import.no_zip_selected', 'Kein ZIP ausgewählt'));
     const fd = new FormData();
     fd.append('zip', file);
-    return await TE.uploadFile('/api/template_editor_import.php', fd);
+    return await TE.uploadFile('/api/template_editor_import', fd);
   };
 
   TE._reorderToMatchLayers = function (layers) {

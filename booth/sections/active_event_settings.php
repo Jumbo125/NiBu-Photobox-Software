@@ -1,9 +1,8 @@
-﻿<?php
-// SPDX-License-Identifier: AGPL-3.0-or-later
-// Copyright (c) 2026 Andreas Rottmann
-//
-// sections/active_event_settings.php — Modal: Active Event
-?>
+﻿<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<!-- Copyright (c) 2026 Andreas Rottmann -->
+<!--
+sections/active_event_settings.php — Modal: Active Event
+-->
 <div
     class="modal fade"
     id="modalActiveEvent"
@@ -19,7 +18,7 @@
                     id="modalActiveEventLabel"
                     data-lang-key="overlay.active_event.title"
                 >
-                    <?= t('overlay.active_event.title', 'Active Event') ?>
+                    Active Event
                 </h5>
 
                 &nbsp;
@@ -29,7 +28,7 @@
                     data-bs-toggle="tooltip"
                     data-bs-placement="top"
                     data-bs-trigger="hover click"
-                    title="<?= t('overlay.active_event.config_file.tooltip', 'config/active_event_config.json') ?>"
+                    title="config/active_event_config.json"
                 ></i>
 
                 &nbsp;
@@ -38,11 +37,11 @@
                     type="button"
                     class="btn btn-outline-success btn-sm"
                     id="btnNewEvent"
-                    title="<?= t('overlay.active_event.new_event.title', 'Create new event') ?>"
+                    title="Create new event"
                 >
                     <i class="bi bi-plus-circle me-1"></i>
                     <span data-lang-key="overlay.active_event.new_event.button">
-                        <?= t('overlay.active_event.new_event.button', 'New Event') ?>
+                        New Event
                     </span>
                 </button>
 
@@ -52,14 +51,14 @@
                 <button
                     type="button"
                     class="btn btn-outline-warning btn-sm pb-open-folder"
-                    title="<?= t('overlay.active_event.open_folder.title', 'Open event folder') ?>"
+                    title="Open event folder"
                     data-target="activeEvent"
                     data-create_dir="true"
                     data-cooldown="3"
                 >
                     <i class="bi bi-folder2-open me-1"></i>
                     <span data-lang-key="overlay.active_event.open_folder.button">
-                        <?= t('overlay.active_event.open_folder.button', 'Folder') ?>
+                        Folder
                     </span>
                 </button>
                 -->
@@ -69,11 +68,11 @@
                     type="button"
                     class="btn btn-outline-warning btn-sm"
                     id="btnOpenPhotoExplorer"
-                    title="<?= t('overlay.active_event.photo_explorer.title', 'Fotos anzeigen') ?>"
+                    title="Fotos anzeigen"
                 >
                     <i class="bi bi-images me-1"></i>
                     <span data-lang-key="overlay.active_event.photo_explorer.button">
-                        <?= t('overlay.active_event.photo_explorer.button', 'Fotos') ?>
+                        Fotos
                     </span>
                 </button>
 
@@ -82,7 +81,7 @@
                     type="button"
                     class="btn-close btn-close-white"
                     data-bs-dismiss="modal"
-                    aria-label="<?= t('form.close', 'Close') ?>"
+                    aria-label="Close"
                 ></button>
             </div>
 
@@ -91,10 +90,7 @@
                     class="small text-secondary mb-3"
                     data-lang-key="overlay.active_event.description"
                 >
-                    <?= t(
-                        'overlay.active_event.description',
-                        'Configure folder, template and print limits for the current event.'
-                    ) ?>
+                    Configure folder, template and print limits for the current event.
                 </p>
 
                 <form
@@ -108,7 +104,7 @@
                             class="form-label"
                             data-lang-key="overlay.active_event.event_name.label"
                         >
-                            <?= t('overlay.active_event.event_name.label', 'Event Name') ?>
+                            Event Name
                         </label>
 
                         <div class="input-group input-group-sm">
@@ -116,7 +112,7 @@
                                 type="text"
                                 class="form-control"
                                 id="eventNamse"
-                                placeholder="<?= t('overlay.active_event.event_name.placeholder', 'Add Event Name') ?>"
+                                placeholder="Add Event Name"
                                 data-json-group="active_event"
                                 data-json-parm="eventName"
                                 data-default-value=""
@@ -124,27 +120,25 @@
                         </div>
                     </div>
 
-<?php
-// Absoluter Pfad zu booth/EVENTS — Server legt Events direkt darunter an
-$boothPhotosBase = rtrim(realpath(__DIR__ . '/..'), "\\/") . DIRECTORY_SEPARATOR . 'EVENTS';
-$boothPhotosBaseOut = (DIRECTORY_SEPARATOR === '\\')
-    ? str_replace('/', '\\', $boothPhotosBase)
-    : $boothPhotosBase;
-?>
                     <!-- Photo storage folder — automatisch aus booth/photos + Eventname -->
                     <div class="mb-3">
                         <label class="form-label" data-lang-key="overlay.active_event.storage.label">
-                            <?= t('overlay.active_event.storage.label', 'Photo storage folder') ?>
+                            Photo storage folder
                         </label>
 
-                        <!-- Verstecktes Feld — wird per JS automatisch befüllt, in JSON gespeichert -->
+                        <!-- Verstecktes Feld — wird per JS automatisch befüllt, in JSON gespeichert.
+                             data-default-value ist absichtlich leer: der absolute Dateisystempfad
+                             ist installationsabhängig und wird von pb_dynamic_defaults.js zur
+                             Laufzeit aus /runtime (booth_root) berechnet und hier eingesetzt,
+                             bevor PB.applyConfigToForm läuft. -->
                         <input
                             type="hidden"
                             id="eventStoragePath"
                             data-json-group="active_event"
                             data-json-parm="photo_storage_path"
-                            data-default-value="<?= htmlspecialchars($boothPhotosBaseOut, ENT_QUOTES) ?>"
-                            data-photos-base="<?= htmlspecialchars($boothPhotosBaseOut, ENT_QUOTES) ?>"
+                            data-default-value=""
+                            data-pb-dynamic-default="boothRoot/EVENTS"
+                            data-photos-base=""
                         >
 
                         <!-- Schreibgeschützte Pfad-Anzeige -->
@@ -157,16 +151,13 @@ $boothPhotosBaseOut = (DIRECTORY_SEPARATOR === '\\')
                                 class="form-control text-secondary"
                                 id="eventStoragePathDisplay"
                                 readonly
-                                placeholder="<?= htmlspecialchars($boothPhotosBaseOut . DIRECTORY_SEPARATOR . 'EVENTS' . DIRECTORY_SEPARATOR . '…', ENT_QUOTES) ?>"
+                                placeholder="…"
                                 tabindex="-1"
                             >
                         </div>
 
                         <div class="form-text small" data-lang-key="overlay.active_event.storage.help_auto">
-                            <?= t(
-                                'overlay.active_event.storage.help_auto',
-                                'The storage path is automatically set to photos/EVENTS/<event-name> within the booth folder.'
-                            ) ?>
+                            The storage path is automatically set to photos/EVENTS/<event-name> within the booth folder.
                         </div>
                     </div>
 
@@ -177,7 +168,7 @@ $boothPhotosBaseOut = (DIRECTORY_SEPARATOR === '\\')
                             class="form-label"
                             data-lang-key="overlay.active_event.template.label"
                         >
-                            <?= t('overlay.active_event.template.label', 'Template (ZIP)') ?>
+                            Template (ZIP)
                         </label>
 
                         <!-- Note: File inputs are not stored via JSON. Handle upload via a dedicated endpoint (FormData).
@@ -193,10 +184,7 @@ $boothPhotosBaseOut = (DIRECTORY_SEPARATOR === '\\')
                         >
 
                         <div class="form-text small" data-lang-key="overlay.active_event.template.help">
-                            <?= t(
-                                'overlay.active_event.template.help',
-                                'Select one or more template ZIP archives. One file = single active template. Multiple files = the visitor can choose between them before starting the capture.'
-                            ) ?>
+                            Select one or more template ZIP archives. One file = single active template. Multiple files = the visitor can choose between them before starting the capture.
                         </div>
 
                         <!-- Vorschau der aktuell aktiven Templates (activeTemplate/<n>/preview.jpg).
@@ -216,7 +204,7 @@ $boothPhotosBaseOut = (DIRECTORY_SEPARATOR === '\\')
                             class="form-label"
                             data-lang-key="overlay.active_event.prints.label"
                         >
-                            <?= t('overlay.active_event.prints.label', 'Maximum number of prints') ?>
+                            Maximum number of prints
                         </label>
 
                         <input
@@ -225,7 +213,7 @@ $boothPhotosBaseOut = (DIRECTORY_SEPARATOR === '\\')
                             id="eventMaxPrints"
                             min="0"
                             step="1"
-                            placeholder="<?= t('overlay.active_event.prints.placeholder', '0') ?>"
+                            placeholder="0"
                             value="0"
                             data-json-group="active_event"
                             data-json-parm="max_prints"
@@ -233,7 +221,7 @@ $boothPhotosBaseOut = (DIRECTORY_SEPARATOR === '\\')
                         >
 
                         <div class="form-text small" data-lang-key="overlay.active_event.prints.help">
-                            <?= t('overlay.active_event.prints.help', '0 = unlimited. This limit is counted down with every print.') ?>
+                            0 = unlimited. This limit is counted down with every print.
                         </div>
                     </div>
 
@@ -244,7 +232,7 @@ $boothPhotosBaseOut = (DIRECTORY_SEPARATOR === '\\')
                             class="form-label"
                             data-lang-key="overlay.active_event.print_counter.label"
                         >
-                            <?= t('overlay.active_event.print_counter.label', 'Already printed photos') ?>
+                            Already printed photos
                         </label>
 
                         <input
@@ -253,7 +241,7 @@ $boothPhotosBaseOut = (DIRECTORY_SEPARATOR === '\\')
                             id="eventPrintCounter"
                             min="0"
                             step="1"
-                            placeholder="<?= t('overlay.active_event.print_counter.placeholder', '0') ?>"
+                            placeholder="0"
                             value="0"
                             data-json-group="active_event"
                             data-json-parm="print_counter"
@@ -261,7 +249,7 @@ $boothPhotosBaseOut = (DIRECTORY_SEPARATOR === '\\')
                         >
 
                         <div class="form-text small" data-lang-key="overlay.active_event.print_counter.help">
-                            <?= t('overlay.active_event.print_counter.help', 'Current counter of already printed photos for this event.') ?>
+                            Current counter of already printed photos for this event.
                         </div>
                     </div>
 
@@ -283,15 +271,12 @@ $boothPhotosBaseOut = (DIRECTORY_SEPARATOR === '\\')
                                 for="eventAllowReprint"
                                 data-lang-key="overlay.active_event.allow_reprint.label"
                             >
-                                <?= t('overlay.active_event.allow_reprint.label', 'Allow reprint') ?>
+                                Allow reprint
                             </label>
                         </div>
 
                         <div class="form-text small" data-lang-key="overlay.active_event.allow_reprint.help">
-                            <?= t(
-                                'overlay.active_event.allow_reprint.help',
-                                'If enabled, operators can reprint the last result without consuming a new photo session.'
-                            ) ?>
+                            If enabled, operators can reprint the last result without consuming a new photo session.
                         </div>
                     </div>
 
@@ -302,7 +287,7 @@ $boothPhotosBaseOut = (DIRECTORY_SEPARATOR === '\\')
                             class="form-label"
                             data-lang-key="overlay.active_event.multiple_print.label"
                         >
-                            <?= t('overlay.active_event.multiple_print.label', 'Multiple print copies') ?>
+                            Multiple print copies
                         </label>
 
                         <input
@@ -311,7 +296,7 @@ $boothPhotosBaseOut = (DIRECTORY_SEPARATOR === '\\')
                             id="eventMultiplePrint"
                             min="1"
                             step="1"
-                            placeholder="<?= t('overlay.active_event.multiple_print.placeholder', '1') ?>"
+                            placeholder="1"
                             value="1"
                             data-json-group="active_event"
                             data-json-parm="multiple_print"
@@ -319,41 +304,24 @@ $boothPhotosBaseOut = (DIRECTORY_SEPARATOR === '\\')
                         >
 
                         <div class="form-text small" data-lang-key="overlay.active_event.multiple_print.help">
-                            <?= t(
-                                'overlay.active_event.multiple_print.help',
-                                'Number of copies per print job (e.g. 2 prints each time).'
-                            ) ?>
+                            Number of copies per print job (e.g. 2 prints each time).
                         </div>
                     </div>
 
-<?php
-// booth-Root (absolut) bestimmen
-$boothRoot = realpath(__DIR__ . '/..');
-
-// Datei-Pfad (ohne trailing separator)
-$activeEventConfigPath =
-    rtrim($boothRoot, "\\/") .
-    DIRECTORY_SEPARATOR . 'config' .
-    DIRECTORY_SEPARATOR . 'active_event_config.json';
-
-// Ausgabe: nur unter Windows Backslashes erzwingen, Linux bleibt mit /
-$activeEventConfigPathOut = (DIRECTORY_SEPARATOR === '\\')
-    ? str_replace('/', '\\', $activeEventConfigPath)
-    : $activeEventConfigPath;
-?>
-
-                    <!-- Hidden config path -->
+                    <!-- Hidden config path — value/data-default-value absichtlich leer,
+                         siehe Kommentar oben bei eventStoragePath (pb_dynamic_defaults.js). -->
                     <div>
                         <input
                             type="hidden"
                             id="settingActiveEvent"
                             class="form-control form-control-sm"
-                            value="<?= htmlspecialchars($activeEventConfigPathOut, ENT_QUOTES) ?>"
+                            value=""
                             readonly
                             data-json-group="active_event"
                             data-json-parm="config_path"
                             data-json-type="string"
-                            data-default-value="<?= htmlspecialchars($activeEventConfigPathOut, ENT_QUOTES) ?>"
+                            data-default-value=""
+                            data-pb-dynamic-default="boothRoot/config/active_event_config.json"
                         >
                     </div>
                 </form>
@@ -362,7 +330,7 @@ $activeEventConfigPathOut = (DIRECTORY_SEPARATOR === '\\')
             <div class="modal-footer border-secondary">
                 <button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal">
                     <span data-lang-key="form.cancel">
-                        <?= t('form.cancel', 'Cancel') ?>
+                        Cancel
                     </span>
                 </button>
 
@@ -373,7 +341,7 @@ $activeEventConfigPathOut = (DIRECTORY_SEPARATOR === '\\')
                     data-json-file="config/active_event_config.json"
                 >
                     <span data-lang-key="form.save">
-                        <?= t('form.save', 'Save') ?>
+                        Save
                     </span>
                 </button>
             </div>

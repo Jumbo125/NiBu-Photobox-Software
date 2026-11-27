@@ -1,13 +1,11 @@
-<?php
-# SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2026 Andreas Rottmann
-?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright (c) 2026 Andreas Rottmann -->
 
 <form id="formCameraBridgeApiServerSettings" class="small"
       data-json-file="../tools/camerabridge/APIServer/ApiServer_settings.json">
 
   <h5 class="mt-2 mb-3 text-center text-warning" data-lang-key="overlay.camerabridge_settings.apiserver.section">
-    <?= t('overlay.camerabridge_settings.apiserver.section', 'API Server') ?>
+    API Server
   </h5>
   &nbsp;
   <i class="bi bi-gear fs-3"
@@ -28,7 +26,7 @@
                 aria-controls="collapseApiExe">
           <i class="bi bi-file-earmark-binary me-2"></i>
           <span data-lang-key="overlay.camerabridge_settings.apiserver.exepath.label">
-            <?= t('overlay.camerabridge_settings.apiserver.exepath.label', 'API Server EXE path') ?>
+            API Server EXE path
           </span>
         </button>
       </h2>
@@ -40,14 +38,14 @@
 
           <div class="mb-3">
             <label for="settingCameraAPIServerPath" class="form-label" data-lang-key="overlay.settings.app.pickfile_bridge_app.path">
-              <?= t('overlay.settings.app.pickfile_bridge_app.path', 'Path to camera control (Photobox.Bridge.ApiServer.exe)') ?>
+              Path to camera control (Photobox.Bridge.ApiServer.exe)
             </label>
 
             <div class="input-group input-group-sm">
               <input type="text"
                      id="settingCameraAPIServerPath"
                      class="form-control"
-                     placeholder="<?= t('overlay.settings.app.pickfile_bridge_app.placeholder', 'e.g. C:\Photobox\tools\camerabridge\APIServer\Photobox.Bridge.ApiServer.exe') ?>"
+                     placeholder="e.g. C:\Photobox\tools\camerabridge\APIServer\Photobox.Bridge.ApiServer.exe"
                      data-json-group="Server"
                      data-json-parm="ExePath"
                      data-default-value="C:\Photobox\tools\camerabridge\APIServer\Photobox.Bridge.ApiServer.exe ">
@@ -56,9 +54,9 @@
                       class="btn btn-outline-warning pb-pick-file"
                       data-target="#settingCameraAPIServerPath"
                       data-initial="tools/camerabridge/"
-                      data-title="<?= t('overlay.settings.app.pickfile_bridge_app.title', 'Select Photobox.Bridge.ApiServer.exe') ?>"
-                      data-filter="<?= t('overlay.settings.app.pickfile_bridge_app.filter', 'Executable (*.exe)|*.exe|All files (*.*)|*.*') ?>">
-                <span data-lang-key="form.pick_file"><?= t('form.pick_file', 'Pick file') ?></span>
+                      data-title="Select Photobox.Bridge.ApiServer.exe"
+                      data-filter="Executable (*.exe)|*.exe|All files (*.*)|*.*">
+                <span data-lang-key="form.pick_file">Pick file</span>
               </button>
             </div>
           </div>
@@ -69,7 +67,7 @@
                    data-json-parm="camerabridge_server_headless"
                    data-default-value="true">
             <label class="form-check-label" for="headlessCameraBridge_server" data-lang-key="overlay.settings.camera_server.headless">
-              <?= t('overlay.settings.camera_server.headless', 'Start CameraBridge-API-SERVER Headless') ?>
+              Start CameraBridge-API-SERVER Headless
             </label>
           </div>
 
@@ -79,19 +77,16 @@
                    data-json-parm="camerabridge_server_one_instance"
                    data-default-value="true">
             <label class="form-check-label" for="one_instanceCameraBridge_server" data-lang-key="overlay.settings.camera_server.oneinstance">
-              <?= t('overlay.settings.camera_server.oneinstance', 'Enable only one CameraBridge-API-SERVER at the same time (*recommend)') ?>
+              Enable only one CameraBridge-API-SERVER at the same time (*recommend)
             </label>
           </div>
 
           <div class="alert alert-warning">
-            <?= t(
-              'overlay.settings.camera.control_cmd.note',
-              'Normally, only set the EXE path here. The app will add/update CLI parameters automatically based on your settings. Add manual parameters only if you know what you are doing.'
-            ) ?>
+            Normally, only set the EXE path here. The app will add/update CLI parameters automatically based on your settings. Add manual parameters only if you know what you are doing.
           </div>
 
           <div class="form-text text-secondary mt-2" data-lang-key="overlay.camerabridge_settings.apiserver.exepath.hint">
-            <?= t('overlay.camerabridge_settings.apiserver.exepath.hint', 'Absolute path to the API server executable (required).') ?>
+            Absolute path to the API server executable (required).
           </div>
 
         </div>
@@ -108,7 +103,7 @@
                 aria-controls="collapseBridge">
           <i class="bi bi-diagram-3 me-2"></i>
           <span data-lang-key="overlay.camerabridge_settings.bridge.section">
-            <?= t('overlay.camerabridge_settings.bridge.section', 'API-SERVER Config') ?>
+            API-SERVER Config
           </span>
         </button>
       </h2>
@@ -120,7 +115,7 @@
 
           <div class="mb-3">
             <label for="pbBridgeBindAddress" class="form-label" data-lang-key="overlay.camerabridge_settings.bind_address.label">
-              <?= t('overlay.camerabridge_settings.bind_address.label', 'Bind address') ?>
+              Bind address
             </label>
 
             <input type="text"
@@ -131,38 +126,38 @@
                    data-default-value="127.0.0.1" />
 
             <div class="form-text text-secondary mt-2" data-lang-key="overlay.camerabridge_settings.bind_address.hint">
-              <?= t('overlay.camerabridge_settings.bind_address.hint', 'IP to listen on. Use 127.0.0.1 for local-only access, or 0.0.0.0 / + for LAN access (firewall required).') ?>
+              IP to listen on. Use 127.0.0.1 for local-only access, or 0.0.0.0 / + for LAN access (firewall required).
             </div>
 
             <div class="alert alert-warning small mt-2 bg-dark text-warning border border-warning" role="alert">
               <strong data-lang-key="overlay.camerabridge_settings.bind_address.alert.title">
-                <?= t('overlay.camerabridge_settings.bind_address.alert.title', 'Bind address hint') ?>
+                Bind address hint
               </strong>
 
               <div class="mt-1" data-lang-key="overlay.camerabridge_settings.bind_address.alert.text">
-                <?= t('overlay.camerabridge_settings.bind_address.alert.text', 'Defines on which network interface the HTTP server listens:') ?>
+                Defines on which network interface the HTTP server listens:
               </div>
 
               <ul class="mb-0">
                 <li data-lang-key="overlay.camerabridge_settings.bind_address.alert.local">
-                  <?= t('overlay.camerabridge_settings.bind_address.alert.local', '127.0.0.1 = local only (no LAN/WiFi access).') ?>
+                  127.0.0.1 = local only (no LAN/WiFi access).
                 </li>
                 <li data-lang-key="overlay.camerabridge_settings.bind_address.alert.all">
-                  <?= t('overlay.camerabridge_settings.bind_address.alert.all', '+ / 0.0.0.0 = all interfaces (LAN/WiFi/Hotspot), e.g. for tablet/phone.') ?>
+                  + / 0.0.0.0 = all interfaces (LAN/WiFi/Hotspot), e.g. for tablet/phone.
                 </li>
               </ul>
 
               <hr class="my-2">
 
               <small data-lang-key="overlay.camerabridge_settings.bind_address.alert.firewall">
-                <?= t('overlay.camerabridge_settings.bind_address.alert.firewall', 'Important: For LAN binding, Windows Firewall must allow the port (e.g. 8052).') ?>
+                Important: For LAN binding, Windows Firewall must allow the port (e.g. 8052).
               </small>
             </div>
           </div>
 
           <div class="mb-3">
             <label for="pbBridgeHttpPort" class="form-label" data-lang-key="overlay.camerabridge_settings.http_port.label">
-              <?= t('overlay.camerabridge_settings.http_port.label', 'HTTP port') ?>
+              HTTP port
             </label>
 
             <input type="number"
@@ -177,7 +172,7 @@
                    data-default-value="8052" />
 
             <div class="form-text text-secondary mt-2" data-lang-key="overlay.camerabridge_settings.http_port.hint">
-              <?= t('overlay.camerabridge_settings.http_port.hint', 'Local API port for the API server (default: 8052).') ?>
+              Local API port for the API server (default: 8052).
             </div>
           </div>
 
@@ -195,7 +190,7 @@
                 aria-controls="collapseMjpeg">
           <i class="bi bi-broadcast me-2"></i>
           <span data-lang-key="overlay.camerabridge_settings.mjpeg.section">
-            <?= t('overlay.camerabridge_settings.mjpeg.section', 'MJPEG endpoint') ?>
+            MJPEG endpoint
           </span>
         </button>
       </h2>
@@ -207,7 +202,7 @@
 
           <div class="mb-3">
             <label for="pbBridgeMjpegPath" class="form-label" data-lang-key="overlay.camerabridge_settings.mjpeg_path.label">
-              <?= t('overlay.camerabridge_settings.mjpeg_path.label', 'MJPEG path') ?>
+              MJPEG path
             </label>
 
             <input type="text"
@@ -218,7 +213,7 @@
                    data-default-value="/live.mjpg" />
 
             <div class="form-text text-secondary mt-2" data-lang-key="overlay.camerabridge_settings.mjpeg_path.hint">
-              <?= t('overlay.camerabridge_settings.mjpeg_path.hint', 'HTTP path for the MJPEG stream used by the preview element.') ?>
+              HTTP path for the MJPEG stream used by the preview element.
             </div>
           </div>
 
@@ -236,7 +231,7 @@
                 aria-controls="collapseApiKey">
           <i class="bi bi-key me-2"></i>
           <span data-lang-key="overlay.camerabridge_settings.api.section">
-            <?= t('overlay.camerabridge_settings.api.section', 'API key') ?>
+            API key
           </span>
         </button>
       </h2>
@@ -248,7 +243,7 @@
 
           <div class="mb-3">
             <label for="pbBridgeApiKey" class="form-label" data-lang-key="overlay.camerabridge_settings.api_key.label">
-              <?= t('overlay.camerabridge_settings.api_key.label', 'API key') ?>
+              API key
             </label>
 
             <div class="input-group input-group-sm">
@@ -264,12 +259,12 @@
                       id="pbBridgeApiKeyGen"
                       data-lang-key="overlay.camerabridge_settings.api_key.generate"
                       data-key-for="#pbBridgeApiKey">
-                <?= t('overlay.camerabridge_settings.api_key.generate', 'Generate') ?>
+                Generate
               </button>
             </div>
 
             <div class="form-text text-secondary mt-2" data-lang-key="overlay.camerabridge_settings.api_key.hint">
-              <?= t('overlay.camerabridge_settings.api_key.hint', 'Required for /api/* endpoints (sent as X-Api-Key). MJPEG stream remains unprotected. Leave empty to disable authentication.') ?>
+              Required for /api/* endpoints (sent as X-Api-Key). MJPEG stream remains unprotected. Leave empty to disable authentication.
             </div>
           </div>
 
@@ -287,7 +282,7 @@
                 aria-controls="collapseHealth">
           <i class="bi bi-heart-pulse me-2"></i>
           <span data-lang-key="overlay.camerabridge_settings.health.section">
-            <?= t('overlay.camerabridge_settings.health.section', 'Health') ?>
+            Health
           </span>
         </button>
       </h2>
@@ -300,7 +295,7 @@
           <div class="row g-2">
             <div class="col-md-6">
               <label for="pbBridgeHealthIntervalMs" class="form-label" data-lang-key="overlay.camerabridge_settings.health.interval.label">
-                <?= t('overlay.camerabridge_settings.health.interval.label', 'Interval (ms)') ?>
+                Interval (ms)
               </label>
               <input type="number"
                      inputmode="numeric"
@@ -313,13 +308,13 @@
                      data-json-parm="Health.IntervalMs"
                      data-default-value="2000" />
               <div class="form-text text-secondary mt-2" data-lang-key="overlay.camerabridge_settings.health.interval.hint">
-                <?= t('overlay.camerabridge_settings.health.interval.hint', 'How often the watchdog/health check runs.') ?>
+                How often the watchdog/health check runs.
               </div>
             </div>
 
             <div class="col-md-6">
               <label for="pbBridgeHealthTimeoutMs" class="form-label" data-lang-key="overlay.camerabridge_settings.health.timeout.label">
-                <?= t('overlay.camerabridge_settings.health.timeout.label', 'Timeout (ms)') ?>
+                Timeout (ms)
               </label>
               <input type="number"
                      inputmode="numeric"
@@ -332,7 +327,7 @@
                      data-json-parm="Health.TimeoutMs"
                      data-default-value="800" />
               <div class="form-text text-secondary mt-2" data-lang-key="overlay.camerabridge_settings.health.timeout.hint">
-                <?= t('overlay.camerabridge_settings.health.timeout.hint', 'How long to wait before a health check is considered failed.') ?>
+                How long to wait before a health check is considered failed.
               </div>
             </div>
           </div>
@@ -351,7 +346,7 @@
                 aria-controls="collapseLogging">
           <i class="bi bi-journal-text me-2"></i>
           <span data-lang-key="overlay.camerabridge_settings.logging.section">
-            <?= t('overlay.camerabridge_settings.logging.section', 'Logging') ?>
+            Logging
           </span>
         </button>
       </h2>
@@ -363,7 +358,7 @@
 
           <div class="mb-3">
             <label for="pbBridgeLogFile" class="form-label" data-lang-key="overlay.camerabridge_settings.logging.logfile.label">
-              <?= t('overlay.camerabridge_settings.logging.logfile.label', 'Log file') ?>
+              Log file
             </label>
 
             <div class="input-group input-group-sm">
@@ -378,14 +373,14 @@
                       class="btn btn-outline-warning pb-pick-file"
                       data-target="#pbBridgeLogFile"
                       data-initial="C:/Photobox/tools/camerabridge/APIServer/"
-                      data-title="<?= t('overlay.camerabridge_settings.logging.logfile.pick_title', 'Select log file') ?>"
-                      data-filter="<?= t('overlay.camerabridge_settings.logging.logfile.filter', 'Text (*.txt)|*.txt|All files (*.*)|*.*') ?>">
-                <span data-lang-key="form.pick_file"><?= t('form.pick_file', 'Pick file') ?></span>
+                      data-title="Select log file"
+                      data-filter="Text (*.txt)|*.txt|All files (*.*)|*.*">
+                <span data-lang-key="form.pick_file">Pick file</span>
               </button>
             </div>
 
             <div class="form-text text-secondary mt-2" data-lang-key="overlay.camerabridge_settings.logging.logfile.hint">
-              <?= t('overlay.camerabridge_settings.logging.logfile.hint', 'Relative or absolute path to the API server log file.') ?>
+              Relative or absolute path to the API server log file.
             </div>
           </div>
 
@@ -403,7 +398,7 @@
                 aria-controls="collapseWorker">
           <i class="bi bi-cpu me-2"></i>
           <span data-lang-key="overlay.camerabridge_settings.worker.section">
-            <?= t('overlay.camerabridge_settings.worker.section', 'Worker process') ?>
+            Worker process
           </span>
         </button>
       </h2>
@@ -415,7 +410,7 @@
 
           <div class="mb-3">
             <label for="pbBridgeWorkerExePath" class="form-label" data-lang-key="overlay.camerabridge_settings.worker.exepath.label">
-              <?= t('overlay.camerabridge_settings.worker.exepath.label', 'Worker EXE path') ?>
+              Worker EXE path
             </label>
 
             <div class="input-group input-group-sm">
@@ -430,20 +425,20 @@
                       class="btn btn-outline-warning pb-pick-file"
                       data-target="#pbBridgeWorkerExePath"
                       data-initial="C:/Photobox/tools/camerabridge/Worker/"
-                      data-title="<?= t('overlay.camerabridge_settings.worker.exepath.pick_title', 'Select CameraWorker.exe') ?>"
-                      data-filter="<?= t('overlay.camerabridge_settings.worker.exepath.filter', 'Executable (*.exe)|*.exe|All files (*.*)|*.*') ?>">
-                <span data-lang-key="form.pick_file"><?= t('form.pick_file', 'Pick file') ?></span>
+                      data-title="Select CameraWorker.exe"
+                      data-filter="Executable (*.exe)|*.exe|All files (*.*)|*.*">
+                <span data-lang-key="form.pick_file">Pick file</span>
               </button>
             </div>
 
             <div class="form-text text-secondary mt-2" data-lang-key="overlay.camerabridge_settings.worker.exepath.hint">
-              <?= t('overlay.camerabridge_settings.worker.exepath.hint', 'Absolute path to CameraWorker.exe (required).') ?>
+              Absolute path to CameraWorker.exe (required).
             </div>
           </div>
 
           <div class="mb-3">
             <label for="pbBridgeWorkerArgs" class="form-label" data-lang-key="overlay.camerabridge_settings.worker.args.label">
-              <?= t('overlay.camerabridge_settings.worker.args.label', 'Worker arguments') ?>
+              Worker arguments
             </label>
 
             <input type="text"
@@ -454,18 +449,18 @@
                    data-default-value="" />
 
             <div class="form-text text-secondary mt-2" data-lang-key="overlay.camerabridge_settings.worker.args.hint">
-              <?= t('overlay.camerabridge_settings.worker.args.hint', 'Optional command line args passed to the worker.') ?>
+              Optional command line args passed to the worker.
             </div>
 
             <div class="alert alert-warning mt-3 mb-0 py-2 px-3 small bg-dark text-warning border border-warning">
               <div class="d-flex align-items-start justify-content-between gap-3">
                 <div class="flex-grow-1">
                   <div class="fw-semibold" data-lang-key="overlay.camerabridge_settings.worker.args.warn.title">
-                    <?= t('overlay.camerabridge_settings.worker.args.warn.title', '⚠ Be careful with worker args') ?>
+                    ⚠ Be careful with worker args
                   </div>
 
                   <div class="mt-1" data-lang-key="overlay.camerabridge_settings.worker.args.warn.text">
-                    <?= t('overlay.camerabridge_settings.worker.args.warn.text', 'Wrong arguments can prevent the CameraBridge worker from starting. Unknown args are ignored.') ?>
+                    Wrong arguments can prevent the CameraBridge worker from starting. Unknown args are ignored.
                   </div>
 
                   <a class="d-inline-block mt-2 link-warning"
@@ -475,13 +470,13 @@
                      aria-expanded="false"
                      aria-controls="pbBridgeWorkerArgsHelp"
                      data-lang-key="overlay.camerabridge_settings.worker.args.warn.toggle">
-                    <?= t('overlay.camerabridge_settings.worker.args.warn.toggle', 'Show supported arguments') ?>
+                    Show supported arguments
                   </a>
 
                   <div class="collapse mt-2" id="pbBridgeWorkerArgsHelp">
                     <div class="border border-warning rounded p-2">
                       <div class="fw-semibold mb-1" data-lang-key="overlay.camerabridge_settings.worker.args.supported.title">
-                        <?= t('overlay.camerabridge_settings.worker.args.supported.title', 'Supported CLI flags') ?>
+                        Supported CLI flags
                       </div>
 
                       <ul class="mb-2 ps-3">
@@ -501,7 +496,7 @@
                       </ul>
 
                       <div class="fw-semibold mb-1" data-lang-key="overlay.camerabridge_settings.worker.args.examples.title">
-                        <?= t('overlay.camerabridge_settings.worker.args.examples.title', 'Examples') ?>
+                        Examples
                       </div>
                       <div class="text-break">
                         <code>--headless --http --liveview --fps=15</code><br />
@@ -517,7 +512,7 @@
                         data-bs-target="#pbBridgeWorkerArgsHelp"
                         aria-expanded="false"
                         aria-controls="pbBridgeWorkerArgsHelp"
-                        title="<?= t('overlay.camerabridge_settings.worker.args.help.toggle_title', 'Toggle help') ?>">
+                        title="Toggle help">
                   ?
                 </button>
               </div>
@@ -528,7 +523,7 @@
             <label for="pbBridgeWorkerLogFile"
                    class="form-label"
                    data-lang-key="overlay.camerabridge_settings.worker.logging.logfile.label">
-              <?= t('overlay.camerabridge_settings.worker.logging.logfile.label', 'Worker log file') ?>
+              Worker log file
             </label>
 
             <div class="input-group input-group-sm">
@@ -543,15 +538,15 @@
                       class="btn btn-outline-warning pb-pick-file"
                       data-target="#pbBridgeWorkerLogFile"
                       data-initial="C:/Photobox/tools/camerabridge/Worker/"
-                      data-title="<?= t('overlay.camerabridge_settings.worker.logging.logfile.pick_title', 'Select worker log file') ?>"
-                      data-filter="<?= t('overlay.camerabridge_settings.worker.logging.logfile.filter', 'Log (*.log)|*.log|Text (*.txt)|*.txt|All files (*.*)|*.*') ?>">
-                <span data-lang-key="form.pick_file"><?= t('form.pick_file', 'Pick file') ?></span>
+                      data-title="Select worker log file"
+                      data-filter="Log (*.log)|*.log|Text (*.txt)|*.txt|All files (*.*)|*.*">
+                <span data-lang-key="form.pick_file">Pick file</span>
               </button>
             </div>
 
             <div class="form-text text-secondary mt-2"
                  data-lang-key="overlay.camerabridge_settings.worker.logging.logfile.hint">
-              <?= t('overlay.camerabridge_settings.worker.logging.logfile.hint', 'Optional. If set, the UI will append <code>--log=&lt;path&gt;</code> to the worker arguments when saving.') ?>
+              Optional. If set, the UI will append <code>--log=&lt;path&gt;</code> to the worker arguments when saving.
             </div>
           </div>
 
@@ -562,7 +557,7 @@
                        data-json-parm="Worker.AutoStartOnBoot" data-default-value="true" />
                 <label class="form-check-label" for="pbBridgeWorkerAutoStartOnBoot"
                        data-lang-key="overlay.camerabridge_settings.worker.autostart_boot.label">
-                  <?= t('overlay.camerabridge_settings.worker.autostart_boot.label', 'Auto start on boot') ?>
+                  Auto start on boot
                 </label>
               </div>
             </div>
@@ -573,7 +568,7 @@
                        data-json-parm="Worker.AutoStartWhenUnreachable" data-default-value="true" />
                 <label class="form-check-label" for="pbBridgeWorkerAutoStartWhenUnreachable"
                        data-lang-key="overlay.camerabridge_settings.worker.autostart_unreachable.label">
-                  <?= t('overlay.camerabridge_settings.worker.autostart_unreachable.label', 'Auto start when unreachable') ?>
+                  Auto start when unreachable
                 </label>
               </div>
             </div>
@@ -583,7 +578,7 @@
             <div class="col-md-6">
               <label for="pbBridgeWorkerStartCooldownMs" class="form-label"
                      data-lang-key="overlay.camerabridge_settings.worker.cooldown.label">
-                <?= t('overlay.camerabridge_settings.worker.cooldown.label', 'Start cooldown (ms)') ?>
+                Start cooldown (ms)
               </label>
               <input type="number" inputmode="numeric" min="0" max="600000" step="500"
                      id="pbBridgeWorkerStartCooldownMs"
@@ -596,7 +591,7 @@
             <div class="col-md-6">
               <label for="pbBridgeWorkerFailThreshold" class="form-label"
                      data-lang-key="overlay.camerabridge_settings.worker.failthreshold.label">
-                <?= t('overlay.camerabridge_settings.worker.failthreshold.label', 'Fail threshold') ?>
+                Fail threshold
               </label>
               <input type="number" inputmode="numeric" min="1" max="50" step="1"
                      id="pbBridgeWorkerFailThreshold"
@@ -608,7 +603,7 @@
           </div>
 
           <div class="form-text text-secondary mt-2" data-lang-key="overlay.camerabridge_settings.worker.note">
-            <?= t('overlay.camerabridge_settings.worker.note', 'These options control how the API server supervises and restarts the worker process.') ?>
+            These options control how the API server supervises and restarts the worker process.
           </div>
 
         </div>

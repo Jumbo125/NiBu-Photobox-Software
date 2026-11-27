@@ -33,7 +33,7 @@
    * Zentrale Endpoint-Konstanten (können vor dem Laden anderer Module überschrieben werden).
    */
   PB.ENDPOINTS = PB.ENDPOINTS || {
-    config_rw: "api/r_w_config.php",
+    config_rw: "api/config",
     camera_config: "api/camera_config.php",
     control_device_list: "api/control_device_list.php",
     camera_iframe: "tools/camerabridge/stream.html",
@@ -258,7 +258,7 @@
       }
 
       // optional überschreibbar per data-attrs
-      const endpoint = String($inp.attr("data-pb-upload-endpoint") || "api/set_Active_template.php").trim();
+      const endpoint = String($inp.attr("data-pb-upload-endpoint") || "api/set_active_template").trim();
       const field = String($inp.attr("data-pb-upload-field") || "zip").trim();
 
       // Mehrfachauswahl: ein Feldname "zip[]" pro Datei, Backend legt je Datei

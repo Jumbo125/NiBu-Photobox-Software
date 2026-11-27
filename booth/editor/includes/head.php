@@ -6,5 +6,5 @@
   <link rel="stylesheet" href="../src/css/bootstrap.css">
   <link rel="stylesheet" href="../src/css/bootstrap-icons.css">
 
-  <link rel="stylesheet" href="css/template_editor_main.css?v=<?php echo $assetVersion; ?>">
+  <link rel="stylesheet" href="css/template_editor_main.css?v=20261127">
 </head>

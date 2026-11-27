@@ -176,7 +176,7 @@
             }
           };
 
-          const tplUrl = 'api/template_info.php?_=' + Date.now();
+          const tplUrl = 'api/template_info?_=' + Date.now();
           let tplInfo;
 
           try {

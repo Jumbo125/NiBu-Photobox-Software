@@ -16,7 +16,7 @@ SPDX-License-Identifier: Apache-2.0
     <div class="d-flex">
       <div class="toast-body">
         <span id="pbConnectionToastText" data-role="pb-conn-text" data-lang-key="bridge.toast.waiting">
-          <?= t('bridge.toast.waiting', 'Waiting for CameraBridge…') ?>
+          Waiting for CameraBridge…
         </span>
       </div>
 
@@ -25,7 +25,7 @@ SPDX-License-Identifier: Apache-2.0
         class="btn-close btn-close-white me-2 m-auto"
         data-bs-dismiss="toast"
         data-lang-key="form.close"
-        aria-label="<?= t('form.close', 'Close') ?>"
+        aria-label="Close"
       ></button>
     </div>
   </div>

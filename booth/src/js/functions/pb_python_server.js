@@ -8,8 +8,11 @@
  *
  * Robustere Version:
  *  - ping(): prüft, ob Server erreichbar ist
- *  - startViaPhp(): startet/restartet Server via PHP
- *  - ensureReady(): ping -> ggf. Start via PHP -> waitReady
+ *  - startViaWatchdog(): startet/restartet Server über den separaten
+ *    watchdog_server.py Begleitprozess (siehe booth/tools/python_portable/
+ *    watchdog_server.py). Port wird dynamisch über /runtime erfragt, nicht
+ *    hartkodiert, da Ports zentral in server_config.json gepflegt werden.
+ *  - ensureReady(): ping -> ggf. Start via Watchdog -> waitReady
  *  - fetch(): JSON-Fetch gegen Python-Endpunkte
  *  - callWithRestart(): Restart nur bei echten Transport-/Serverfehlern
  *  - parallele Restarts/ensureReady-Aufrufe werden gebündelt
@@ -60,7 +63,32 @@
 
   SVC.port = SVC.port || 8053;
   SVC.baseUrl = (port = SVC.port) => `http://127.0.0.1:${Number(port) || 8053}`;
-  SVC.getStartEndpoint = () => "/api/python_server_restart.php";
+
+  // Watchdog-Port NICHT hartkodiert -- kommt dynamisch aus /runtime am
+  // Haupt-Server (der ihn wiederum aus server_config.json liest, Key
+  // "WatchdogPort"). Einmal pro Seitenaufruf aufgelöst und gecacht.
+  let _watchdogPortPromise = null;
+  SVC.getWatchdogPort = function (mainPort = SVC.port) {
+    if (_watchdogPortPromise) return _watchdogPortPromise;
+
+    _watchdogPortPromise = (async () => {
+      try {
+        const r = await fetch(SVC.baseUrl(mainPort) + "/runtime", { cache: "no-store" });
+        if (r.ok) {
+          const j = await r.json();
+          const p = Number(j?.watchdog_port);
+          if (p > 0) return p;
+        }
+      } catch (_) {
+        // fällt auf Default zurück
+      }
+      return 8054;
+    })();
+
+    return _watchdogPortPromise;
+  };
+  SVC.watchdogBaseUrl = async (mainPort = SVC.port) =>
+    `http://127.0.0.1:${await SVC.getWatchdogPort(mainPort)}`;
 
   let lastPingState = null;
   let ensureReadyPromise = null;
@@ -197,43 +225,36 @@
     return false;
   };
 
-  SVC.startViaPhp = async function (opts = {}) {
+  /**
+   * Startet/stellt sicher, dass der Haupt-Server läuft -- über den separaten
+   * watchdog_server.py Begleitprozess (siehe booth/tools/python_portable/
+   * watchdog_server.py). Der Watchdog läuft unabhängig vom Haupt-Server und
+   * übersteht dessen Abstürze; er ist der einzige Weg, einen komplett toten
+   * Haupt-Server aus dem Browser heraus wiederzubeleben (ohne PHP, OS-unabhängig).
+   *
+   * AuthKey ist derselbe wie für den Haupt-Server (window.PB_CONFIG.pythonServer.AuthKey),
+   * server_config.json ist für beide Prozesse die gemeinsame Quelle.
+   */
+  SVC.startViaWatchdog = async function (opts = {}) {
     const cfgNow = window.PB_CONFIG || {};
     const pythonPort = PB._getDeep(cfgNow, "pythonServer", {}) || {};
-    const pythonNow = PB._getDeep(cfgNow, "general.python", {}) || {};
-    const appsNow = PB._getDeep(cfgNow, "general.app", {}) || {};
-
     const port = Number(opts.port ?? pythonPort.Port ?? SVC.port ?? 8053) || 8053;
-    const exe = String(pythonNow.Path || "").trim();
-    const script = String(appsNow.python_server || "").trim();
-
-    if (!script) {
-      console.error(
-        pbT(
-          "python_svc.err.missing_script_path",
-          "[pythonSvc] Missing python_server.py path (general.app.python_server).",
-        ),
-      );
-      return false;
-    }
-
-    const qs = new URLSearchParams({ port: String(port) });
-    if (exe) qs.set("exe", exe);
-    if (script) qs.set("script", script);
-
-    const url = SVC.getStartEndpoint() + "?" + qs.toString();
+    const apiKey = String(opts.apiKey ?? pythonPort.AuthKey ?? "").trim();
 
     try {
-      const r = await fetch(url, {
+      const watchdogUrl = await SVC.watchdogBaseUrl(port);
+      const r = await fetch(watchdogUrl + "/start", {
         method: "POST",
         cache: "no-store",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ api_key: apiKey }),
       });
       return r.ok;
     } catch (e) {
       console.warn(
         pbT(
-          "python_svc.warn.start_via_php_failed",
-          "[pythonSvc] startViaPhp failed:",
+          "python_svc.warn.start_via_watchdog_failed",
+          "[pythonSvc] startViaWatchdog failed (watchdog_server.py nicht erreichbar?):",
         ),
         e,
       );
@@ -261,7 +282,7 @@
         ),
       );
 
-      const started = await SVC.startViaPhp(opts);
+      const started = await SVC.startViaWatchdog(opts);
       if (!started) {
         throw new Error(
           pbT(

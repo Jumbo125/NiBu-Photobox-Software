@@ -1,7 +1,7 @@
-﻿<?php
-// sections/render_settings.php
-// Modal: Render Settings (render_config.json)
-?>
+﻿<!--
+sections/render_settings.php
+Modal: Render Settings (render_config.json)
+-->
 <div
     class="modal fade"
     id="modalRenderSettings"
@@ -16,7 +16,7 @@
                     class="modal-title"
                     id="modalRenderSettingsLabel"
                     data-lang-key="overlay.render_settings.title">
-                    <?= t('overlay.render_settings.title', 'Render Settings') ?>
+                    Render Settings
                 </h5> <!-- Gear Icon mit Tooltip -->
                 &nbsp; <i class="bi bi-gear fs-3"
                     data-bs-toggle="tooltip"
@@ -27,17 +27,14 @@
                     type="button"
                     class="btn-close btn-close-white"
                     data-bs-dismiss="modal"
-                    aria-label="<?= t('form.close', 'Close') ?>"></button>
+                    aria-label="Close"></button>
             </div>
 
             <div class="modal-body">
                 <p
                     class="small text-secondary mb-3"
                     data-lang-key="overlay.render_settings.description">
-                    <?= t(
-                        'overlay.render_settings.description',
-                        'Configure output quality and green screen (greenwall) settings used by the renderer.'
-                    ) ?>
+                    Configure output quality and green screen (greenwall) settings used by the renderer.
                 </p>
 
                 <form id="formRenderSettings" class="small" data-json-file="config/render_config.json">
@@ -45,7 +42,7 @@
      IMAGE / CROPPING (FIT)
      ========================= -->
                     <h6 class="mt-2 mb-2" data-lang-key="overlay.render_settings.image_fit.section">
-                        <?= t('overlay.render_settings.image_fit.section', 'Image-Cropping') ?>
+                        Image-Cropping
                     </h6>
 
                     <div class="mb-3">
@@ -53,7 +50,7 @@
                             for="renderImageFitMode"
                             class="form-label"
                             data-lang-key="overlay.render_settings.image_fit.mode.label">
-                            <?= t('overlay.render_settings.image_fit.mode.label', 'Fit mode') ?>
+                            Fit mode
                         </label>
 
                         <select
@@ -63,19 +60,19 @@
                             data-json-parm="resize_mode"
                             data-default-value="cover">
                             <option value="contain">
-                                <?= t('overlay.render_settings.image_fit.mode.opt.contain', 'Contain (all visible, may Border on each Side)') ?>
+                                Contain (all visible, may Border on each Side)
                             </option>
                             <option value="cover">
-                                <?= t('overlay.render_settings.image_fit.mode.opt.cover', 'Cover (fill, may cropping)') ?>
+                                Cover (fill, may cropping)
                             </option>
                             <option value="stretch">
-                                <?= t('overlay.render_settings.image_fit.mode.opt.stretch', 'Stretch (stretch to placeholder, no cropping, but no aspect-ratio)') ?>
+                                Stretch (stretch to placeholder, no cropping, but no aspect-ratio)
                             </option>
                         </select>
 
                         <!-- optionaler Hinweis -->
                         <div class="form-text" data-lang-key="overlay.render_settings.image_fit.hint">
-                            <?= t('overlay.render_settings.image_fit.hint', 'Contain = no cropping, Cover = may crop, Stretch = distorted..') ?>
+                            Contain = no cropping, Cover = may crop, Stretch = distorted..
                         </div>
                     </div>
 
@@ -83,7 +80,7 @@
      PHOTO WORK SCALE
      ========================= -->
 <h6 class="mt-2 mb-2" data-lang-key="overlay.render_settings.photo_work_scale.section">
-    <?= t('overlay.render_settings.photo_work_scale.section', 'Photo render scale') ?>
+    Photo render scale
 </h6>
 
 <div class="mb-3">
@@ -91,7 +88,7 @@
         for="renderPhotoWorkScale"
         class="form-label"
         data-lang-key="overlay.render_settings.photo_work_scale.label">
-        <?= t('overlay.render_settings.photo_work_scale.label', 'Photo work scale') ?>
+        Photo work scale
     </label>
 
     <input
@@ -106,7 +103,7 @@
         step="0.1" />
 
     <div class="form-text" data-lang-key="overlay.render_settings.photo_work_scale.hint">
-        <?= t('overlay.render_settings.photo_work_scale.hint', 'Scale factor for internal photo processing. Only downsizes, never upscales. Default: 1.5') ?>
+        Scale factor for internal photo processing. Only downsizes, never upscales. Default: 1.5
     </div>
 </div>
 
@@ -116,7 +113,7 @@
                             for="renderContainBgColor"
                             class="form-label"
                             data-lang-key="overlay.render_settings.image_fit.contain_bg.label">
-                            <?= t('overlay.render_settings.image_fit.contain_bg.label', 'Contain background color') ?>
+                            Contain background color
                         </label>
 
                         <input
@@ -127,10 +124,10 @@
                             data-json-parm="contain_bg"
                             data-default-value="#000000"
                             value="#000000"
-                            title="<?= t('overlay.render_settings.image_fit.contain_bg.title', 'Pick a background color') ?>" />
+                            title="Pick a background color" />
 
                         <div class="form-text" data-lang-key="overlay.render_settings.image_fit.contain_bg.hint">
-                            <?= t('overlay.render_settings.image_fit.contain_bg.hint', 'Only used when Fit mode is set to "Contain" (for the empty borders around the image).') ?>
+                            Only used when Fit mode is set to "Contain" (for the empty borders around the image).
                         </div>
                     </div>
 
@@ -139,7 +136,7 @@
                          OUTPUT
                          ========================= -->
                     <h6 class="mt-2 mb-2" data-lang-key="overlay.render_settings.output.section">
-                        <?= t('overlay.render_settings.output.section', 'Output') ?>
+                        Output
                     </h6>
 
                     <!-- Output format -->
@@ -148,7 +145,7 @@
                             for="renderOutputFormat"
                             class="form-label"
                             data-lang-key="overlay.render_settings.output.format.label">
-                            <?= t('overlay.render_settings.output.format.label', 'Format') ?>
+                            Format
                         </label>
 
                         <select
@@ -157,12 +154,12 @@
                             data-json-group="output"
                             data-json-parm="format"
                             data-default-value="jpg">
-                            <option value="jpg"><?= t('overlay.render_settings.output.format.opt.jpg', 'JPEG (.jpg)') ?></option>
-                            <option value="png"><?= t('overlay.render_settings.output.format.opt.png', 'PNG (.png)') ?></option>
+                            <option value="jpg">JPEG (.jpg)</option>
+                            <option value="png">PNG (.png)</option>
                         </select>
 
                         <div class="form-text small" data-lang-key="overlay.render_settings.output.format.help">
-                            <?= t('overlay.render_settings.output.format.help', 'Output file format for the final rendered image.') ?>
+                            Output file format for the final rendered image.
                         </div>
                     </div>
 
@@ -172,7 +169,7 @@
                             for="renderJpegQuality"
                             class="form-label"
                             data-lang-key="overlay.render_settings.output.jpeg_quality.label">
-                            <?= t('overlay.render_settings.output.jpeg_quality.label', 'JPEG quality') ?>
+                            JPEG quality
                         </label>
 
                         <input
@@ -182,14 +179,14 @@
                             min="1"
                             max="100"
                             step="1"
-                            placeholder="<?= t('overlay.render_settings.output.jpeg_quality.placeholder', '94') ?>"
+                            placeholder="94"
                             value="94"
                             data-json-group="output"
                             data-json-parm="jpeg_quality"
                             data-default-value="94">
 
                         <div class="form-text small" data-lang-key="overlay.render_settings.output.jpeg_quality.help">
-                            <?= t('overlay.render_settings.output.jpeg_quality.help', '1–100. Higher = better quality, larger file. Recommended for print: 92–95.') ?>
+                            1–100. Higher = better quality, larger file. Recommended for print: 92–95.
                         </div>
                     </div>
 
@@ -199,7 +196,7 @@
                             for="renderJpegSubsampling"
                             class="form-label"
                             data-lang-key="overlay.render_settings.output.jpeg_subsampling.label">
-                            <?= t('overlay.render_settings.output.jpeg_subsampling.label', 'JPEG subsampling') ?>
+                            JPEG subsampling
                         </label>
 
                         <select
@@ -208,13 +205,13 @@
                             data-json-group="output"
                             data-json-parm="jpeg_subsampling"
                             data-default-value="0">
-                            <option value="0"><?= t('overlay.render_settings.output.jpeg_subsampling.opt.0', '0 (4:4:4) – Best for logos/text') ?></option>
-                            <option value="1"><?= t('overlay.render_settings.output.jpeg_subsampling.opt.1', '1 (4:2:2) – Balanced') ?></option>
-                            <option value="2"><?= t('overlay.render_settings.output.jpeg_subsampling.opt.2', '2 (4:2:0) – Smaller, softer edges') ?></option>
+                            <option value="0">0 (4:4:4) – Best for logos/text</option>
+                            <option value="1">1 (4:2:2) – Balanced</option>
+                            <option value="2">2 (4:2:0) – Smaller, softer edges</option>
                         </select>
 
                         <div class="form-text small" data-lang-key="overlay.render_settings.output.jpeg_subsampling.help">
-                            <?= t('overlay.render_settings.output.jpeg_subsampling.help', 'Color subsampling. 0 keeps best color edges; 2 reduces file size but may blur colored edges.') ?>
+                            Color subsampling. 0 keeps best color edges; 2 reduces file size but may blur colored edges.
                         </div>
                     </div>
 
@@ -233,12 +230,12 @@
                                 class="form-check-label"
                                 for="renderJpegOptimize"
                                 data-lang-key="overlay.render_settings.output.jpeg_optimize.label">
-                                <?= t('overlay.render_settings.output.jpeg_optimize.label', 'Optimize JPEG') ?>
+                                Optimize JPEG
                             </label>
                         </div>
 
                         <div class="form-text small" data-lang-key="overlay.render_settings.output.jpeg_optimize.help">
-                            <?= t('overlay.render_settings.output.jpeg_optimize.help', 'Better compression (smaller file), slightly slower saving.') ?>
+                            Better compression (smaller file), slightly slower saving.
                         </div>
                     </div>
 
@@ -257,12 +254,12 @@
                                 class="form-check-label"
                                 for="renderJpegProgressive"
                                 data-lang-key="overlay.render_settings.output.jpeg_progressive.label">
-                                <?= t('overlay.render_settings.output.jpeg_progressive.label', 'Progressive JPEG') ?>
+                                Progressive JPEG
                             </label>
                         </div>
 
                         <div class="form-text small" data-lang-key="overlay.render_settings.output.jpeg_progressive.help">
-                            <?= t('overlay.render_settings.output.jpeg_progressive.help', 'Progressive loading in browsers. Usually not important for printing.') ?>
+                            Progressive loading in browsers. Usually not important for printing.
                         </div>
                     </div>
 
@@ -272,7 +269,7 @@
                             for="renderOutputDpi"
                             class="form-label"
                             data-lang-key="overlay.render_settings.output.dpi.label">
-                            <?= t('overlay.render_settings.output.dpi.label', 'DPI metadata') ?>
+                            DPI metadata
                         </label>
 
                         <input
@@ -282,14 +279,14 @@
                             min="72"
                             max="1200"
                             step="1"
-                            placeholder="<?= t('overlay.render_settings.output.dpi.placeholder', '300') ?>"
+                            placeholder="300"
                             value="300"
                             data-json-group="output"
                             data-json-parm="dpi"
                             data-default-value="300">
 
                         <div class="form-text small" data-lang-key="overlay.render_settings.output.dpi.help">
-                            <?= t('overlay.render_settings.output.dpi.help', 'Metadata only (pixels do not change). Useful for print workflows (e.g. 300 DPI).') ?>
+                            Metadata only (pixels do not change). Useful for print workflows (e.g. 300 DPI).
                         </div>
                     </div>
 
@@ -300,7 +297,7 @@
                          ========================= -->
                     <div id="greenwall_settings">
                         <h6 class="mt-2 mb-2" data-lang-key="overlay.render_settings.greenwall.section">
-                            <?= t('overlay.render_settings.greenwall.section', 'Greenwall (Green Screen)') ?>
+                            Greenwall (Green Screen)
                         </h6>
 <!-- Greenwall reference image path -->
 <div class="mb-3">
@@ -308,7 +305,7 @@
         for="greenwallReferenceImagePath"
         class="form-label"
         data-lang-key="overlay.render_settings.greenwall.reference_image_path.label">
-        <?= t('overlay.render_settings.greenwall.reference_image_path.label', 'Referenzbild') ?>
+        Referenzbild
     </label>
 
     <div class="input-group input-group-sm">
@@ -316,7 +313,7 @@
             class="form-control"
             type="text"
             id="greenwallReferenceImagePath"
-            placeholder="<?= t('overlay.render_settings.greenwall.reference_image_path.placeholder', 'C:/images/reference.jpg') ?>"
+            placeholder="C:/images/reference.jpg"
             data-json-group="greenwall"
             data-json-parm="reference_image_path"
             data-default-value="">
@@ -330,7 +327,7 @@
             data-overwrite="0"
             data-target="#greenwallReferenceImagePath">
             <span data-lang-key="form.pick_file">
-                <?= t('form.pick_file', 'Pick file') ?>
+                Pick file
             </span>
         </button>
     </div>
@@ -338,7 +335,7 @@
     <div
         class="form-text small"
         data-lang-key="overlay.render_settings.greenwall.reference_image_path.help">
-        <?= t('overlay.render_settings.greenwall.reference_image_path.help', 'Wähle das Referenzbild aus. Der absolute Pfad wird gespeichert.') ?>
+        Wähle das Referenzbild aus. Der absolute Pfad wird gespeichert.
     </div>
 </div>
 
@@ -349,7 +346,7 @@
         id="btnGenerateGreenwallProfile"
         class="btn btn-sm btn-warning">
         <span data-lang-key="overlay.render_settings.greenwall.generate_profile.button">
-            <?= t('overlay.render_settings.greenwall.generate_profile.button', 'Referenzprofil generieren') ?>
+            Referenzprofil generieren
         </span>
     </button>
 
@@ -357,7 +354,7 @@
         id="greenwallProfileGenerateStatus"
         class="form-text small text-muted mt-1"
         data-lang-key="overlay.render_settings.greenwall.generate_profile.status_idle">
-        <?= t('overlay.render_settings.greenwall.generate_profile.status_idle', 'Noch kein Referenzprofil generiert.') ?>
+        Noch kein Referenzprofil generiert.
     </div>
 </div>
 
@@ -367,14 +364,14 @@
         for="renderGreenwallReferenceProfilePath"
         class="form-label"
         data-lang-key="overlay.render_settings.greenwall.reference_profile_path.label">
-        <?= t('overlay.render_settings.greenwall.reference_profile_path.label', 'Referenzprofil-Pfad') ?>
+        Referenzprofil-Pfad
     </label>
 
     <input
         type="text"
         class="form-control form-control-sm"
         id="renderGreenwallReferenceProfilePath"
-        placeholder="<?= t('overlay.render_settings.greenwall.reference_profile_path.placeholder', 'C:/profiles/reference-profile.npy') ?>"
+        placeholder="C:/profiles/reference-profile.npy"
         readonly
         data-json-group="greenwall"
         data-json-parm="reference_profile_path"
@@ -383,7 +380,7 @@
     <div
         class="form-text small"
         data-lang-key="overlay.render_settings.greenwall.reference_profile_path.help">
-        <?= t('overlay.render_settings.greenwall.reference_profile_path.help', 'Hier wird später der Pfad des erzeugten Referenzprofils angezeigt.') ?>
+        Hier wird später der Pfad des erzeugten Referenzprofils angezeigt.
     </div>
 </div>
                         <!-- Greenwall switch -->
@@ -392,7 +389,7 @@
                                 for="renderGreenwallSwitch"
                                 class="form-label"
                                 data-lang-key="overlay.render_settings.greenwall.switch.label">
-                                <?= t('overlay.render_settings.greenwall.switch.label', 'Greenwall switch') ?>
+                                Greenwall switch
                             </label>
 
                             <select
@@ -401,13 +398,13 @@
                                 data-json-group="greenwall"
                                 data-json-parm="switch"
                                 data-default-value="auto">
-                                <option value="auto"><?= t('overlay.render_settings.greenwall.switch.opt.auto', 'Auto (follow template)') ?></option>
-                                <option value="on"><?= t('overlay.render_settings.greenwall.switch.opt.on', 'On (force enabled)') ?></option>
-                                <option value="off"><?= t('overlay.render_settings.greenwall.switch.opt.off', 'Off (force disabled)') ?></option>
+                                <option value="auto">Auto (follow template)</option>
+                                <option value="on">On (force enabled)</option>
+                                <option value="off">Off (force disabled)</option>
                             </select>
 
                             <div class="form-text small" data-lang-key="overlay.render_settings.greenwall.switch.help">
-                                <?= t('overlay.render_settings.greenwall.switch.help', 'Auto uses the template flag (e.g. greenwall="1"). On/Off overrides it globally.') ?>
+                                Auto uses the template flag (e.g. greenwall="1"). On/Off overrides it globally.
                             </div>
                         </div>
 
@@ -417,7 +414,7 @@
                                 for="renderGreenwallMode"
                                 class="form-label"
                                 data-lang-key="overlay.render_settings.greenwall.mode.label">
-                                <?= t('overlay.render_settings.greenwall.mode.label', 'Mode') ?>
+                                Mode
                             </label>
 
                             <select
@@ -426,13 +423,13 @@
                                 data-json-group="greenwall"
                                 data-json-parm="mode"
                                 data-default-value="auto">
-                                <option value="auto"><?= t('overlay.render_settings.greenwall.mode.opt.auto', 'Auto (diff if reference exists, else chroma)') ?></option>
-                                <option value="diff"><?= t('overlay.render_settings.greenwall.mode.opt.diff', 'Diff (reference comparison)') ?></option>
-                                <option value="chroma"><?= t('overlay.render_settings.greenwall.mode.opt.chroma', 'Chroma (green dominance)') ?></option>
+                                <option value="auto">Auto (diff if reference exists, else chroma)</option>
+                                <option value="diff">Diff (reference comparison)</option>
+                                <option value="chroma">Chroma (green dominance)</option>
                             </select>
 
                             <div class="form-text small" data-lang-key="overlay.render_settings.greenwall.mode.help">
-                                <?= t('overlay.render_settings.greenwall.mode.help', 'Select how the mask is created: diff (with reference) or chroma key (green dominance).') ?>
+                                Select how the mask is created: diff (with reference) or chroma key (green dominance).
                             </div>
                         </div>
 
@@ -442,7 +439,7 @@
                                 for="renderDiffThreshold"
                                 class="form-label"
                                 data-lang-key="overlay.render_settings.greenwall.diff_threshold.label">
-                                <?= t('overlay.render_settings.greenwall.diff_threshold.label', 'Diff threshold') ?>
+                                Diff threshold
                             </label>
 
                             <input
@@ -452,14 +449,14 @@
                                 min="0"
                                 max="255"
                                 step="1"
-                                placeholder="<?= t('overlay.render_settings.greenwall.diff_threshold.placeholder', '25') ?>"
+                                placeholder="25"
                                 value="25"
                                 data-json-group="greenwall"
                                 data-json-parm="diff_threshold"
                                 data-default-value="25">
 
                             <div class="form-text small" data-lang-key="overlay.render_settings.greenwall.diff_threshold.help">
-                                <?= t('overlay.render_settings.greenwall.diff_threshold.help', 'Diff sensitivity. Lower = keep more person; higher = stricter background removal.') ?>
+                                Diff sensitivity. Lower = keep more person; higher = stricter background removal.
                             </div>
                         </div>
 
@@ -469,7 +466,7 @@
                                 for="renderGreenMin"
                                 class="form-label"
                                 data-lang-key="overlay.render_settings.greenwall.green_min.label">
-                                <?= t('overlay.render_settings.greenwall.green_min.label', 'Green minimum') ?>
+                                Green minimum
                             </label>
 
                             <input
@@ -479,14 +476,14 @@
                                 min="0"
                                 max="255"
                                 step="1"
-                                placeholder="<?= t('overlay.render_settings.greenwall.green_min.placeholder', '150') ?>"
+                                placeholder="150"
                                 value="150"
                                 data-json-group="greenwall"
                                 data-json-parm="green_min"
                                 data-default-value="150">
 
                             <div class="form-text small" data-lang-key="overlay.render_settings.greenwall.green_min.help">
-                                <?= t('overlay.render_settings.greenwall.green_min.help', 'Minimum green channel value required before a pixel can be considered “green”.') ?>
+                                Minimum green channel value required before a pixel can be considered “green”.
                             </div>
                         </div>
 
@@ -496,7 +493,7 @@
                                 for="renderGreenRatio"
                                 class="form-label"
                                 data-lang-key="overlay.render_settings.greenwall.green_ratio.label">
-                                <?= t('overlay.render_settings.greenwall.green_ratio.label', 'Green ratio') ?>
+                                Green ratio
                             </label>
 
                             <input
@@ -506,14 +503,14 @@
                                 min="1"
                                 max="5"
                                 step="0.01"
-                                placeholder="<?= t('overlay.render_settings.greenwall.green_ratio.placeholder', '1.35') ?>"
+                                placeholder="1.35"
                                 value="1.35"
                                 data-json-group="greenwall"
                                 data-json-parm="green_ratio"
                                 data-default-value="1.35">
 
                             <div class="form-text small" data-lang-key="overlay.render_settings.greenwall.green_ratio.help">
-                                <?= t('overlay.render_settings.greenwall.green_ratio.help', 'How strongly green must dominate red/blue. Higher = stricter (less false keying, but may create holes).') ?>
+                                How strongly green must dominate red/blue. Higher = stricter (less false keying, but may create holes).
                             </div>
                         </div>
 
@@ -523,7 +520,7 @@
                                 for="renderBlurRadius"
                                 class="form-label"
                                 data-lang-key="overlay.render_settings.greenwall.blur_radius.label">
-                                <?= t('overlay.render_settings.greenwall.blur_radius.label', 'Mask blur radius') ?>
+                                Mask blur radius
                             </label>
 
                             <input
@@ -533,14 +530,14 @@
                                 min="0"
                                 max="20"
                                 step="1"
-                                placeholder="<?= t('overlay.render_settings.greenwall.blur_radius.placeholder', '2') ?>"
+                                placeholder="2"
                                 value="2"
                                 data-json-group="greenwall"
                                 data-json-parm="blur_radius"
                                 data-default-value="2">
 
                             <div class="form-text small" data-lang-key="overlay.render_settings.greenwall.blur_radius.help">
-                                <?= t('overlay.render_settings.greenwall.blur_radius.help', 'Smooth the mask for cleaner edges (typical: 1–3).') ?>
+                                Smooth the mask for cleaner edges (typical: 1–3).
                             </div>
                         </div>
 
@@ -550,7 +547,7 @@
                                 for="renderFeather"
                                 class="form-label"
                                 data-lang-key="overlay.render_settings.greenwall.feather.label">
-                                <?= t('overlay.render_settings.greenwall.feather.label', 'Feather') ?>
+                                Feather
                             </label>
 
                             <input
@@ -560,14 +557,14 @@
                                 min="0"
                                 max="50"
                                 step="1"
-                                placeholder="<?= t('overlay.render_settings.greenwall.feather.placeholder', '2') ?>"
+                                placeholder="2"
                                 value="2"
                                 data-json-group="greenwall"
                                 data-json-parm="feather"
                                 data-default-value="2">
 
                             <div class="form-text small" data-lang-key="overlay.render_settings.greenwall.feather.help">
-                                <?= t('overlay.render_settings.greenwall.feather.help', 'Additional edge softening (implementation dependent).') ?>
+                                Additional edge softening (implementation dependent).
                             </div>
                         </div>
 
@@ -577,7 +574,7 @@
                                 for="renderSpillSuppression"
                                 class="form-label"
                                 data-lang-key="overlay.render_settings.greenwall.spill_suppression.label">
-                                <?= t('overlay.render_settings.greenwall.spill_suppression.label', 'Spill suppression') ?>
+                                Spill suppression
                             </label>
 
                             <input
@@ -587,14 +584,14 @@
                                 min="0"
                                 max="1"
                                 step="0.01"
-                                placeholder="<?= t('overlay.render_settings.greenwall.spill_suppression.placeholder', '0.35') ?>"
+                                placeholder="0.35"
                                 value="0.35"
                                 data-json-group="greenwall"
                                 data-json-parm="spill_suppression"
                                 data-default-value="0.35">
 
                             <div class="form-text small" data-lang-key="overlay.render_settings.greenwall.spill_suppression.help">
-                                <?= t('overlay.render_settings.greenwall.spill_suppression.help', 'Reduce green color spill on edges (0–1).') ?>
+                                Reduce green color spill on edges (0–1).
                             </div>
                         </div>
 
@@ -604,7 +601,7 @@
                                 for="renderCloseIter"
                                 class="form-label"
                                 data-lang-key="overlay.render_settings.greenwall.close_iter.label">
-                                <?= t('overlay.render_settings.greenwall.close_iter.label', 'Close iterations') ?>
+                                Close iterations
                             </label>
 
                             <input
@@ -614,14 +611,14 @@
                                 min="0"
                                 max="10"
                                 step="1"
-                                placeholder="<?= t('overlay.render_settings.greenwall.close_iter.placeholder', '1') ?>"
+                                placeholder="1"
                                 value="1"
                                 data-json-group="greenwall"
                                 data-json-parm="close_iter"
                                 data-default-value="1">
 
                             <div class="form-text small" data-lang-key="overlay.render_settings.greenwall.close_iter.help">
-                                <?= t('overlay.render_settings.greenwall.close_iter.help', 'Close small holes in the mask (morphological closing). Typical: 0–2.') ?>
+                                Close small holes in the mask (morphological closing). Typical: 0–2.
                             </div>
                         </div>
 
@@ -640,12 +637,12 @@
                                     class="form-check-label"
                                     for="renderWriteMaskDebug"
                                     data-lang-key="overlay.render_settings.greenwall.write_mask_debug.label">
-                                    <?= t('overlay.render_settings.greenwall.write_mask_debug.label', 'Write mask debug image') ?>
+                                    Write mask debug image
                                 </label>
                             </div>
 
                             <div class="form-text small" data-lang-key="overlay.render_settings.greenwall.write_mask_debug.help">
-                                <?= t('overlay.render_settings.greenwall.write_mask_debug.help', 'If enabled, the renderer exports the mask image for debugging/tuning.') ?>
+                                If enabled, the renderer exports the mask image for debugging/tuning.
                             </div>
                         </div>
                     </div>
@@ -656,7 +653,7 @@
             <div class="modal-footer border-secondary">
                 <button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal">
                     <span data-lang-key="form.cancel">
-                        <?= t('form.cancel', 'Cancel') ?>
+                        Cancel
                     </span>
                 </button>
 
@@ -666,7 +663,7 @@
                     class="btn btn-primary btn-sm pb-save-config"
                     data-json-file="config/render_config.json">
                     <span data-lang-key="form.save">
-                        <?= t('form.save', 'Save') ?>
+                        Save
                     </span>
                 </button>
             </div>

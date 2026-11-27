@@ -162,10 +162,10 @@ body.pb-capture-running #btnLiveviewToggle {
       };
 
       if (typeof PB.postJson === "function") {
-        return PB.postJson("api/session_snapshot.php", payload);
+        return PB.postJson("api/session_snapshot", payload);
       }
 
-      const r = await fetch("api/session_snapshot.php", {
+      const r = await fetch("api/session_snapshot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

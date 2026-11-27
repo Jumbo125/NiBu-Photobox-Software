@@ -200,8 +200,8 @@
 
     const port = UI.getPort();
     try {
-      const ok = await SVC.startViaPhp({ port });
-      if (!ok) throw new Error("startViaPhp failed");
+      const ok = await SVC.startViaWatchdog({ port, apiKey: UI.getPythonApiKey() });
+      if (!ok) throw new Error("startViaWatchdog failed");
 
       await SVC.waitReady(port, 15000);
       UI.setMsg(t("python.ui.msg.start_triggered", "Start triggered."), false);
@@ -209,7 +209,7 @@
       UI.setMsg(
         t(
           "python.ui.msg.start_failed",
-          "Start failed (check PHP start endpoint or script path)."
+          "Start failed (check that watchdog_server.py is running)."
         ),
         true
       );
