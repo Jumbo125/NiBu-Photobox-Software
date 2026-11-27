@@ -31,6 +31,7 @@ booth/tools/python_portable/*
 browser/
 php/
 
+!booth/tools/python_portable/webapi/
 !booth/tools/python_portable/webapi/*
 
 # Externe Vendor-Libraries (Bootstrap, jQuery, Fabric.js) - nicht weitergeben
