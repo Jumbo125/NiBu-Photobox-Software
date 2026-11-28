@@ -244,6 +244,47 @@ function write_template_count(string $boothRoot, int $count): bool {
   return true;
 }
 
+/**
+ * Writes config.json: general.activeTemplate.path = $path.
+ * Every ZIP import re-creates slots 1..N from scratch (rrmdir_contents above),
+ * so any previously selected slot path (e.g. ".../activeTemplate/2/") can
+ * point at a folder that no longer exists or no longer holds the intended
+ * template. Resetting the pointer to slot 1 here keeps it always valid right
+ * after an import, instead of relying on the template-selector UI (which is
+ * only shown, and only then fixes the path, when templateCount > 1).
+ */
+function write_active_template_path(string $boothRoot, string $slotDir): bool {
+  $cfgPath = $boothRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'config.json';
+
+  $data = [];
+  if (is_file($cfgPath)) {
+    $raw = @file_get_contents($cfgPath);
+    if ($raw !== false) {
+      $decoded = json_decode($raw, true);
+      if (is_array($decoded)) $data = $decoded;
+    }
+  }
+
+  if (!isset($data['general']) || !is_array($data['general'])) {
+    $data['general'] = [];
+  }
+  if (!isset($data['general']['activeTemplate']) || !is_array($data['general']['activeTemplate'])) {
+    $data['general']['activeTemplate'] = [];
+  }
+  $data['general']['activeTemplate']['path'] = rtrim($slotDir, "\\/") . DIRECTORY_SEPARATOR;
+
+  $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+  if ($json === false) return false;
+
+  $tmp = $cfgPath . '.tmp';
+  if (@file_put_contents($tmp, $json) === false) return false;
+  if (!@rename($tmp, $cfgPath)) {
+    @unlink($tmp);
+    return false;
+  }
+  return true;
+}
+
 try {
   if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
     json_out([
@@ -431,6 +472,11 @@ try {
   $templateCount = count($slots);
   $configWritten = write_template_count($boothRoot, $templateCount);
 
+  // Reset the active-template pointer to slot 1: every import rebuilds
+  // 1..N from scratch, so a stale path from a previous import (e.g. slot 2,
+  // now gone) must not survive the new import.
+  $activePathWritten = write_active_template_path($boothRoot, $slots[0]['target']);
+
   json_out([
     'ok' => true,
     'target' => $target,
@@ -438,6 +484,7 @@ try {
     'multiSlot' => $multiSlot,
     'slots' => $slots,
     'configWritten' => $configWritten,
+    'activePathWritten' => $activePathWritten,
     // Backward-compat top-level fields (legacy single-template consumers)
     'templateXmlEntries' => $slots[0]['templateXmlEntries'] ?? [],
     'templateXmlPath' => $slots[0]['templateXmlPath'] ?? null,

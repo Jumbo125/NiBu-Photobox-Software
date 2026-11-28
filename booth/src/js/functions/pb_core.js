@@ -286,6 +286,14 @@
             try {
               $inp.val("");
             } catch (_) {}
+            // Server resets general.activeTemplate.path to slot 1 on every
+            // import; mirror that in-memory so a stale path (e.g. the old
+            // slot 2) isn't used before the next full config reload.
+            if (res.slots && res.slots[0] && res.slots[0].target) {
+              const newPath = String(res.slots[0].target).replace(/[\\/]+$/, "") +
+                (String(res.slots[0].target).includes("\\") ? "\\" : "/");
+              PB._setDeep(window.PB_CONFIG, "general.activeTemplate.path", newPath);
+            }
             dfd.resolve(res);
           } else {
             const errText = res && res.error ? res.error : t("zip.import.failed", "ZIP import failed");
